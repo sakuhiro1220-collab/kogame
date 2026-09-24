@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ラウンド結果</title>
+<link rel="stylesheet" href="/static/daifugo.css">
+</head>
+
+<body>
+
+<h1>ラウンド結果</h1>
+
+<div id="result-box"></div>
+
+<button onclick="nextRound()">次のラウンドへ</button>
+
+<script>
+const data = JSON.parse(sessionStorage.getItem("round_result"));
+const game = data.game;
+const ranks = data.ranks;
+
+let html = "<h2>順位</h2><ul>";
+for (let pid in ranks) {
+    html += `<li>${pid}：${ranks[pid]}</li>`;
+}
+html += "</ul>";
+
+document.getElementById("result-box").innerHTML = html;
+
+function nextRound() {
+    socket.emit("next_round", { room_id: data.room_id });
+}
+</script>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+socket.on("round_start", data => {
+    window.location.href = `/matching_daifugo_online_play?room_id=${data.room_id}`;
+});
+</script>
+
+</body>
+</html>

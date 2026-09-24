@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SPEED結果</title>
+
+<style>
+body { font-family:sans-serif; text-align:center; padding:40px; }
+.player {
+    background:white;
+    padding:15px;
+    margin:10px;
+    border-radius:10px;
+    box-shadow:0 5px 10px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+<body>
+
+<h2>⚡ SPEED 結果発表！</h2>
+
+<div class="player">
+    <h3>あなた：{{ my_time }} 秒</h3>
+</div>
+
+<div class="player">
+    <h3>プレイヤー2：{{ p2 }}</h3>
+</div>
+
+<div class="player">
+    <h3>プレイヤー3：{{ p3 }}</h3>
+</div>
+
+<div class="player">
+    <h3>プレイヤー4：{{ p4 }}</h3>
+</div>
+
+{% if matched %}
+    <h2>🎉 勝利！マッチング成功！</h2>
+{% else %}
+    <h2>😢 負けました…</h2>
+{% endif %}
+
+<br>
+<a href="/matching_page">ゲーム一覧に戻る</a>
+
+</body>
+</html>
+

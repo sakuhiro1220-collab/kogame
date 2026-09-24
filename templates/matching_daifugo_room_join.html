@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>大富豪：部屋参加</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+
+<h1>大富豪：部屋に参加</h1>
+
+<p>部屋ID：<span id="room">{{ room_id }}</span></p>
+
+<p id="msg"></p>
+
+<button onclick="joinRoom()">この部屋に参加する</button>
+
+<script>
+const room_id = "{{ room_id }}";
+
+async function joinRoom() {
+    const res = await fetch("/daifugo_join_room", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ room_id })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+        document.getElementById("msg").innerText = data.error;
+        return;
+    }
+
+    // ★ 参加成功 → 待機画面へ
+    window.location.href =
+    "/matching_daifugo_online_play?room_id=" + data.room_id;
+}
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

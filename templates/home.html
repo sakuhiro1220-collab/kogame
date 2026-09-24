@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>スワイプマッチング</title>
+
+<!-- Swiper.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<style>
+
+.mailbox-button {
+    position: fixed;
+
+    top: 10px;
+    right: 20px;
+
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 0 14px;
+
+    background: #ffffff;
+
+    border: 1px solid #ddd;
+    border-radius: 22px;
+
+    color: #333;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.15);
+
+    transition: 0.2s;
+
+    z-index: 10000;
+}
+
+.mailbox-button:hover {
+    transform: translateY(-2px);
+    background: #fff5f5;
+}
+
+.mail-icon {
+    font-size: 22px;
+}
+
+.mail-badge {
+    position: absolute;
+
+    top: -5px;
+    right: -5px;
+
+    min-width: 20px;
+    height: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 4px;
+
+    background: #ff3b4f;
+    color: white;
+
+    border: 2px solid white;
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* 上部メニュー */
+.top-menu {
+    width: 100%;
+    height: 64px;
+    background: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-bottom: 1px solid #ddd;
+
+    font-size: 20px;
+    font-weight: bold;
+
+    box-sizing: border-box;
+
+    position: relative;
+    z-index: 100;
+}
+
+/* スワイプカード領域（下メニュー分を引く） */
+.swiper {
+    width: 100%;
+    height: calc(100vh - 140px); /* 上メニュー＋下メニュー分を引く */
+    position: relative;
+    z-index: 1;
+}
+
+.swiper-slide {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    width: 85%;
+    height: 75%;
+    margin: auto;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.profile-img {
+    width: 80%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.name {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.info {
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+.buttons {
+    margin-top: auto;
+    display: flex;
+    gap: 20px;
+}
+
+.btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.like {
+    background: #ff4d4d;
+    color: white;
+}
+
+.skip {
+    background: #ccc;
+}
+
+.chat {
+    background: #4CAF50;
+    color: white;
+}
+
+/* 下メニュー（最前面） */
+.bottom-menu {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+}
+
+.bottom-menu a {
+    text-decoration: none;
+    color: black;
+    font-size: 18px;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="top-area">
+
+    <div class="top-menu">
+        <a href="/matching_page">
+            🎮 ゲームでマッチング
+        </a>
+    </div>
+
+    <div class="mailbox-row">
+        <button
+            class="mailbox-button"
+            onclick="location.href='/mailbox'"
+        >
+            📬 メールボックス
+
+            {% if unread_mail_count and unread_mail_count > 0 %}
+            <span class="mail-badge">
+                {{ unread_mail_count }}
+            </span>
+            {% endif %}
+        </button>
+    </div>
+
+</div>
+
+<div class="swiper">
+    <div class="swiper-wrapper">
+
+        {% for u in filtered_users %}
+
+        <div
+            class="swiper-slide"
+            id="card-{{ u.id }}"
+            data-user-id="{{ u.id }}"
+        >
+
+            <img
+                src="{{ u.photo_url }}"
+                alt="プロフィール写真"
+                class="profile-img"
+            >
+
+            <div class="name">
+                {{ u.name }}（{{ u.age }}）
+            </div>
+
+            <div class="info">
+                {{ u.gender }}
+            </div>
+
+            <div class="info">
+                {{ u.intro }}
+            </div>
+
+            <div class="info">
+                住んでいる県: {{ u.address }}
+            </div>
+
+
+            <div class="buttons">
+
+                <button
+                    type="button"
+                    class="btn skip"
+                    onclick="swipeSkip('{{ u.id }}')"
+                >
+                    ×
+                </button>
+
+                <button
+                    type="button"
+                    class="btn like"
+                    onclick="swipeLike('{{ u.id }}')"
+                >
+                    ♥
+                </button>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+</div>
+
+<!-- 下メニュー -->
+<div class="bottom-menu">
+    <a href="/home">🏠 ホーム</a>
+    <a href="/chat_page">💬 チャット</a>
+    <a href="/board">📋 掲示板</a>
+    <a href="/profile">👤 プロフィール</a>
+    <a href="/coin_page">💰 コイン</a>
+</div>
+
+<div
+    id="swipeLock"
+    class="swipe-lock"
+    style="display: none;"
+>
+
+    <div class="lock-icon">
+        🔒
+    </div>
+
+    <h2>
+        本日の無料カードはここまで
+    </h2>
+
+    <p>
+        無料で見られる5枚をすべて見ました。
+        <br>
+        50 coinで1枚追加できます。
+    </p>
+
+    <div class="coin-display">
+        💰 所持コイン：
+        <span id="currentCoins">
+            0
+        </span>
+    </div>
+
+    <button
+        type="button"
+        class="unlock-button"
+        onclick="unlockSwipeCard()"
+    >
+        🔓 50 coinで1枚解放
+    </button>
+
+    <div
+        id="unlockMessage"
+        class="unlock-message"
+    ></div>
+
+</div>
+
+<script>
+const swiper = new Swiper(".swiper", {
+    direction: "horizontal",
+    loop: false,
+
+    /* 指・マウスで次のカードへ移動できなくする */
+    allowTouchMove: false,
+
+    /* マウスホイールで移動させない */
+    mousewheel: false,
+
+    /* キーボード操作で移動させない */
+    keyboard: false
+});
+
+function swipeSkip(id) {
+    let card = document.getElementById("card-" + id);
+    card.style.transform = "translateX(-300px) rotate(-20deg)";
+    setTimeout(() => swiper.slideNext(), 200);
+}
+
+function swipeLike(id) {
+    let card = document.getElementById("card-" + id);
+    card.style.transform = "translateX(300px) rotate(20deg)";
+    fetch("/like/" + id)
+        .then(res => res.json())
+        .then(data => {
+            if (data.matched) {
+                alert("マッチング成立！チャットが解禁されました！");
+            }
+        });
+    setTimeout(() => swiper.slideNext(), 200);
+}
+</script>
+
+
+
+<script>
+function showSwipeLock(coins) {
+
+    swipeProcessing = true;
+
+    const swiperElement =
+        document.querySelector(".swiper");
+
+    const lockElement =
+        document.getElementById(
+            "swipeLock"
+        );
+
+    if (swiperElement) {
+        swiperElement.style.display =
+            "none";
+    }
+
+    if (lockElement) {
+        lockElement.style.display =
+            "flex";
+    }
+
+    document.getElementById(
+        "currentCoins"
+    ).textContent = coins;
+}
+
+async function unlockSwipeCard() {
+
+    const message =
+        document.getElementById(
+            "unlockMessage"
+        );
+
+    message.style.color =
+        "#ffffff";
+
+    message.textContent =
+        "解放中...";
+
+    try {
+
+        const response = await fetch(
+            "/swipe/unlock",
+            {
+                method: "POST"
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+
+            message.style.color =
+                "#ff9eaa";
+
+            message.textContent =
+                data.message;
+
+            return;
+        }
+
+        document.getElementById(
+            "currentCoins"
+        ).textContent =
+            data.coins;
+
+        message.style.color =
+            "#7fffb2";
+
+        message.textContent =
+            "1枚解放しました！";
+
+        document.getElementById(
+            "swipeLock"
+        ).style.display =
+            "none";
+
+        document.querySelector(
+            ".swiper"
+        ).style.display =
+            "block";
+
+        swiper.update();
+
+        swipeProcessing = false;
+
+    } catch (error) {
+
+        console.error(error);
+
+        message.style.color =
+            "#ff9eaa";
+
+        message.textContent =
+            "通信エラーが発生しました";
+
+    }
+}
+
+let swipeProcessing = false;
+
+
+/* 左スワイプ */
+function swipeSkip(userId) {
+    if (swipeProcessing) {
+        return;
+    }
+
+    flyCard(userId, "left");
+}
+
+
+/* 右スワイプ */
+async function swipeLike(userId) {
+    if (swipeProcessing) {
+        return;
+    }
+
+    swipeProcessing = true;
+
+    try {
+        const response = await fetch(
+            "/like/" + encodeURIComponent(userId)
+        );
+
+        const data = await response.json();
+
+        if (data.matched) {
+            console.log("マッチしました！");
+        }
+
+    } catch (error) {
+        console.error(
+            "LIKE処理でエラー:",
+            error
+        );
+    }
+
+    flyCard(userId, "right", true);
+}
+
+
+/* カードを画面外へ飛ばす */
+function flyCard(userId, direction, alreadyLocked = false) {
+
+    if (swipeProcessing && !alreadyLocked) {
+        return;
+    }
+
+    swipeProcessing = true;
+
+    const card = document.getElementById(
+        "card-" + userId
+    );
+
+    if (!card) {
+        swipeProcessing = false;
+        return;
+    }
+
+
+    /* 左右に飛ばす */
+    if (direction === "right") {
+        card.classList.add("fly-right");
+    } else {
+        card.classList.add("fly-left");
+    }
+
+
+    /* アニメーション終了後 */
+    setTimeout(async function () {
+
+    card.remove();
+
+    swiper.update();
+
+    try {
+
+        const response = await fetch(
+            "/swipe/record",
+            {
+                method: "POST"
+            }
+        );
+
+        const data = await response.json();
+
+        console.log(
+            "今日のスワイプ:",
+            data.count,
+            "/",
+            data.limit
+        );
+
+        if (data.locked) {
+
+            showSwipeLock(
+                data.coins
+            );
+
+            return;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "スワイプ記録エラー:",
+            error
+        );
+
+    }
+
+    swipeProcessing = false;
+
+}, 450);
+}
+</script>
+</body>
+</html>
+
+<style>
+/* ========================================
+   カードロック
+======================================== */
+
+.swipe-lock {
+    width: 90%;
+    max-width: 430px;
+    min-height: 520px;
+
+    margin: 30px auto;
+    padding: 50px 30px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    border-radius: 25px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #222636,
+            #161925
+        );
+
+    color: white;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0, 0, 0, 0.25);
+}
+
+
+/* ロックアイコン */
+
+.lock-icon {
+    font-size: 70px;
+    margin-bottom: 20px;
+}
+
+
+/* ロック画面タイトル */
+
+.swipe-lock h2 {
+    margin-bottom: 15px;
+    font-size: 23px;
+}
+
+
+/* ロック画面説明 */
+
+.swipe-lock p {
+    color: #aeb4c6;
+    line-height: 1.7;
+    margin-bottom: 25px;
+}
+
+
+/* 所持コイン */
+
+.coin-display {
+    margin-bottom: 20px;
+    padding: 10px 18px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    color: #ffd86b;
+
+    font-weight: bold;
+}
+
+
+/* 50コインで解放ボタン */
+
+.unlock-button {
+    width: 100%;
+
+    padding: 16px;
+
+    border: none;
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #8b5cf6,
+            #6366f1
+        );
+
+    color: white;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 25px
+        rgba(99, 102, 241, 0.30);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+/* 解放ボタンにマウスを乗せた時 */
+
+.unlock-button:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 14px 30px
+        rgba(99, 102, 241, 0.45);
+}
+
+
+/* 解放ボタンを押した時 */
+
+.unlock-button:active {
+    transform: translateY(0);
+}
+
+
+/* メッセージ */
+
+.unlock-message {
+    min-height: 24px;
+
+    margin-top: 15px;
+
+    color: #ff9eaa;
+
+    font-size: 14px;
+}
+/* ========================================
+   スワイプでカードを飛ばす
+======================================== */
+
+.swiper-slide {
+    transition:
+        transform 0.45s ease,
+        opacity 0.45s ease;
+
+    will-change:
+        transform,
+        opacity;
+}
+
+
+/* 左へ飛ばす */
+
+.swiper-slide.fly-left {
+    transform:
+        translateX(-130vw)
+        rotate(-25deg) !important;
+
+    opacity: 0 !important;
+
+    pointer-events: none;
+}
+
+
+/* 右へ飛ばす */
+
+.swiper-slide.fly-right {
+    transform:
+        translateX(130vw)
+        rotate(25deg) !important;
+
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+
+

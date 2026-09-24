@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ギフトを贈る</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<style>
+body {
+    font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    text-align: center;
+    padding: 40px;
+}
+
+h1 {
+    font-size: 30px;
+    margin-bottom: 20px;
+}
+
+.gift-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px;
+}
+
+.gift-card {
+    background: white;
+    width: 160px;
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.gift-card:hover {
+    transform: scale(1.05);
+}
+
+.gift-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.gift-name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.gift-info {
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+#msg {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #444;
+}
+</style>
+</head>
+
+<body>
+
+<h1>ギフトを贈る</h1>
+
+<div class="gift-container">
+
+    <div class="gift-card" onclick="sendGift('bronze')">
+        <div class="gift-icon">🥉</div>
+        <div class="gift-name">銅</div>
+        <div class="gift-info">10コイン / +5スター</div>
+    </div>
+
+    <div class="gift-card" onclick="sendGift('silver')">
+        <div class="gift-icon">🥈</div>
+        <div class="gift-name">銀</div>
+        <div class="gift-info">30コイン / +15スター</div>
+    </div>
+
+    <div class="gift-card" onclick="sendGift('gold')">
+        <div class="gift-icon">🥇</div>
+        <div class="gift-name">金</div>
+        <div class="gift-info">60コイン / +30スター</div>
+    </div>
+
+    <div class="gift-card" onclick="sendGift('sapphire')">
+        <div class="gift-icon">🔷</div>
+        <div class="gift-name">サファイア</div>
+        <div class="gift-info">120コイン / +70スター</div>
+    </div>
+
+    <div class="gift-card" onclick="sendGift('emerald')">
+        <div class="gift-icon">💚</div>
+        <div class="gift-name">エメラルド</div>
+        <div class="gift-info">200コイン / +120スター</div>
+    </div>
+
+    <div class="gift-card" onclick="sendGift('diamond')">
+        <div class="gift-icon">💎</div>
+        <div class="gift-name">ダイヤモンド</div>
+        <div class="gift-info">500コイン / +300スター</div>
+    </div>
+
+    <div class="gift-card" onclick="sendGift('platinum')">
+        <div class="gift-icon">👑</div>
+        <div class="gift-name">プラチナ</div>
+        <div class="gift-info">1000コイン / +700スター</div>
+    </div>
+
+</div>
+
+<p id="msg"></p>
+
+<script>
+async function sendGift(gift_id) {
+    const receiver = "{{ receiver_id }}"; // ← Flask側で渡す
+
+    const res = await fetch("/send_gift", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ gift_id, receiver })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+        document.getElementById("msg").innerText = data.error;
+        return;
+    }
+
+    document.getElementById("msg").innerText =
+        `${data.gift} を贈りました！（+${data.star_added}スター）`;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>掲示板</title>
+</head>
+<body>
+
+<h1>掲示板</h1>
+
+<a href="/board_post">投稿する</a><br><br>
+
+{% for b in boards %}
+<div style="border:1px solid #ccc; padding:10px; margin:10px;">
+    <h3>{{ b.title }}</h3>
+    <p>{{ b.body }}</p>
+
+    <!-- 投稿者プロフィールへ飛ぶリンク -->
+    <small>
+        投稿者：
+        <a href="/profile/{{ b.user_id }}">{{ b.user_id }}</a>
+    </small>
+</div>
+{% endfor %}
+
+<a href="/home">ホームに戻る</a>
+
+</body>
+</html>

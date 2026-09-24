@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ログイン</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px 20px;
+
+            font-family:
+                "Segoe UI",
+                "Hiragino Sans",
+                "Yu Gothic",
+                "Meiryo",
+                sans-serif;
+
+            color: #ffffff;
+
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(71, 118, 230, 0.32),
+                    transparent 32%
+                ),
+                radial-gradient(
+                    circle at 85% 90%,
+                    rgba(142, 84, 233, 0.28),
+                    transparent 35%
+                ),
+                linear-gradient(
+                    135deg,
+                    #090e1a,
+                    #111b35,
+                    #0c1325
+                );
+
+            overflow-x: hidden;
+        }
+
+
+        /* 背景の光 */
+
+        body::before,
+        body::after {
+            content: "";
+
+            position: fixed;
+
+            width: 430px;
+            height: 430px;
+
+            border-radius: 50%;
+
+            filter: blur(110px);
+
+            opacity: 0.25;
+
+            pointer-events: none;
+
+            z-index: 0;
+        }
+
+        body::before {
+            top: -150px;
+            left: -120px;
+
+            background: #4776e6;
+
+            animation: floating1 8s ease-in-out infinite;
+        }
+
+        body::after {
+            right: -130px;
+            bottom: -170px;
+
+            background: #8e54e9;
+
+            animation: floating2 9s ease-in-out infinite;
+        }
+
+        @keyframes floating1 {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(30px);
+            }
+        }
+
+        @keyframes floating2 {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-30px);
+            }
+        }
+
+
+        /* ログインカード */
+
+        .login-card {
+            position: relative;
+
+            z-index: 10;
+
+            width: 100%;
+            max-width: 480px;
+
+            padding: 50px;
+
+            border-radius: 30px;
+
+            background:
+                rgba(255, 255, 255, 0.07);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.13);
+
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+
+            box-shadow:
+                0 30px 70px rgba(0, 0, 0, 0.35);
+
+            animation: cardAppear 0.6s ease;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        /* アイコン */
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin: 0 auto 20px;
+
+            border-radius: 20px;
+
+            font-size: 29px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #4776e6,
+                    #8e54e9
+                );
+
+            box-shadow:
+                0 12px 35px rgba(71, 118, 230, 0.35);
+        }
+
+
+        /* タイトル */
+
+        h1 {
+            text-align: center;
+
+            font-size: 34px;
+            font-weight: 800;
+
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            margin-bottom: 38px;
+
+            text-align: center;
+
+            color: #9ca9c0;
+
+            font-size: 14px;
+
+            line-height: 1.7;
+        }
+
+
+        /* フォーム */
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #ccd5e6;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+
+        /* 入力欄 */
+
+        input {
+            width: 100%;
+
+            padding: 14px 16px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.13);
+
+            border-radius: 13px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(255, 255, 255, 0.065);
+
+            font-family: inherit;
+            font-size: 15px;
+
+            transition:
+                border-color 0.2s,
+                background 0.2s,
+                box-shadow 0.2s;
+        }
+
+        input:hover {
+            background:
+                rgba(255, 255, 255, 0.09);
+        }
+
+        input:focus {
+            border-color: #729fff;
+
+            background:
+                rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                0 0 0 4px rgba(71, 118, 230, 0.13);
+        }
+
+        input::placeholder {
+            color: #6f7c95;
+        }
+
+
+        /* ログインボタン */
+
+        button[type="submit"] {
+            width: 100%;
+
+            margin-top: 12px;
+
+            padding: 17px;
+
+            border: none;
+
+            border-radius: 14px;
+
+            color: #ffffff;
+
+            font-family: inherit;
+
+            font-size: 16px;
+            font-weight: 800;
+
+            cursor: pointer;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #4776e6,
+                    #8e54e9
+                );
+
+            box-shadow:
+                0 12px 30px rgba(71, 118, 230, 0.30);
+
+            transition:
+                transform 0.2s,
+                box-shadow 0.2s,
+                filter 0.2s;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 17px 38px rgba(71, 118, 230, 0.45);
+
+            filter: brightness(1.07);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+
+        /* 新規登録エリア */
+
+        .register-area {
+            margin-top: 30px;
+
+            padding-top: 28px;
+
+            text-align: center;
+
+            border-top:
+                1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .register-area p {
+            margin-bottom: 15px;
+
+            color: #8997af;
+
+            font-size: 13px;
+        }
+
+        .register-button {
+            display: block;
+
+            width: 100%;
+
+            padding: 15px;
+
+            border:
+                1px solid rgba(131, 170, 255, 0.35);
+
+            border-radius: 14px;
+
+            color: #9bbcff;
+
+            background:
+                rgba(71, 118, 230, 0.08);
+
+            text-align: center;
+
+            text-decoration: none;
+
+            font-size: 15px;
+            font-weight: 800;
+
+            transition:
+                background 0.2s,
+                border-color 0.2s,
+                color 0.2s,
+                transform 0.2s,
+                box-shadow 0.2s;
+        }
+
+        .register-button:hover {
+            color: #ffffff;
+
+            background:
+                rgba(71, 118, 230, 0.16);
+
+            border-color:
+                rgba(131, 170, 255, 0.65);
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 25px rgba(71, 118, 230, 0.15);
+        }
+
+        .register-button:active {
+            transform: translateY(0);
+        }
+
+
+        /* スマホ */
+
+        @media (max-width: 550px) {
+
+            body {
+                padding: 20px 14px;
+            }
+
+            .login-card {
+                padding: 38px 24px;
+
+                border-radius: 23px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .logo-icon {
+                width: 58px;
+                height: 58px;
+
+                font-size: 26px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <div class="login-card">
+
+        <div class="logo-icon">
+            ✦
+        </div>
+
+        <h1>
+            ログイン
+        </h1>
+
+        <p class="subtitle">
+            アカウントにログインして、<br>
+            続きを始めよう。
+        </p>
+
+
+        <!-- ログインフォーム -->
+        <form action="/login" method="POST">
+
+
+            <div class="form-group">
+
+                <label>
+                    ID
+                </label>
+
+                <input
+                    type="text"
+                    name="id"
+                    placeholder="IDを入力"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    パスワード
+                </label>
+
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="パスワードを入力"
+                >
+
+            </div>
+
+
+            <button type="submit">
+                ログイン →
+            </button>
+
+
+        </form>
+
+
+        <!-- 新規登録へのリンク -->
+
+        <div class="register-area">
+
+            <p>
+                まだアカウントをお持ちでないですか？
+            </p>
+
+            <a href="/register_page" class="register-button">
+                新規登録はこちら →
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+

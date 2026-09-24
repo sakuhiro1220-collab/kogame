@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>結果</title>
+</head>
+<body>
+
+<h1>マッチング結果</h1>
+
+<p>一致率：{{ match_rate }}%</p>
+
+{% if matched %}
+    <p>マッチング成功！</p>
+    {% if partner %}
+        <h3>相手のプロフィール</h3>
+        <img src="{{ partner.photo_url }}" width="150"><br>
+        名前：{{ partner.name }}<br>
+        性別：{{ partner.gender }}<br>
+        年齢：{{ partner.age }}<br>
+        自己紹介：{{ partner.intro }}<br>
+    {% endif %}
+{% else %}
+    <p>今回はマッチしませんでした</p>
+{% endif %}
+
+<a href="/home">ホームに戻る</a>
+
+</body>
+</html>
+

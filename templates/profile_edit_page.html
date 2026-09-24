@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>プロフィール編集</title>
+</head>
+<body>
+
+<h1>プロフィール編集</h1>
+
+<form action="/profile_edit" method="POST" enctype="multipart/form-data">
+    名前：<input type="text" name="name" value="{{ user.name }}"><br><br>
+
+    住んでいる県：<input type="text" name="address" value="{{ user.address }}"><br><br>
+
+    自己紹介：<br>
+    <textarea name="intro">{{ user.intro }}</textarea><br><br>
+
+    写真変更：<input type="file" name="photo"><br><br>
+
+    <button type="submit">更新する</button>
+</form>
+
+</body>
+</html>
+

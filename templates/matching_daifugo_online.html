@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>オンライン大富豪ロビー</title>
+<link rel="stylesheet" href="/static/daifugo.css">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body class="normal">
+
+<div class="lobby-container">
+    <h1>オンライン大富豪 ロビー</h1>
+
+    <div class="create-room">
+        <button id="create-btn" class="play-btn">部屋を作る</button>
+        <div id="created-room"></div>
+    </div>
+
+    <hr>
+
+    <div class="join-room">
+        <h2>部屋に入る</h2>
+        <input type="text" id="room-id-input" placeholder="部屋IDを入力" class="room-input">
+        <button id="join-btn" class="play-btn">参加する</button>
+        <div id="join-status"></div>
+    </div>
+</div>
+
+<script>
+const socket = io();
+
+// 部屋作成
+document.getElementById("create-btn").onclick = () => {
+    fetch("/daifugo_create_room", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("created-room").innerHTML =
+                `作成された部屋ID：<b>${data.room_id}</b>`;
+        });
+};
+
+// 部屋参加
+document.getElementById("join-btn").onclick = () => {
+    const room_id = document.getElementById("room-id-input").value;
+
+    fetch("/daifugo_join_room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room_id: room_id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            document.getElementById("join-status").innerHTML =
+                `<span style="color:red;">${data.error}</span>`;
+        } else {
+            // 参加成功 → プレイ画面へ
+            sessionStorage.setItem("room_id", room_id);
+            window.location.href =
+"/matching_daifugo_online_play?room_id="
++ data.room_id;
+        }
+    });
+};
+
+// ゲーム開始通知
+socket.on("daifugo_start", game => {
+    // すでに参加しているプレイヤーは自動でプレイ画面へ
+    window.location.href =
+"/matching_daifugo_online_play?room_id="
++ data.room_id;
+});
+</script>
+
+<style>
+.lobby-container {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.room-input {
+    padding: 10px;
+    font-size: 20px;
+    width: 200px;
+    margin-bottom: 10px;
+}
+</style>
+
+<div class="turn-indicator {{ turn }}">
+    現在のターン：{{ turn }}
+</div>
+
+<hr>
+
+<div class="room-list">
+    <h2>部屋一覧</h2>
+    <button id="reload-btn" class="play-btn">更新</button>
+    <div id="room-list-area"></div>
+</div>
+
+<script>
+function loadRoomList() {
+    fetch("/daifugo_room_list")
+        .then(res => res.json())
+        .then(list => {
+            let html = "<table class='result-table'><tr><th>部屋ID</th><th>人数</th><th>状態</th><th></th></tr>";
+
+            list.forEach(room => {
+                html += `
+                    <tr>
+                        <td>${room.room_id}</td>
+                        <td>${room.players} / 4</td>
+                        <td>${room.waiting ? "待機中" : "ゲーム中"}</td>
+                        <td>
+                            ${room.players < 4 && room.waiting
+                                ? `<button onclick="joinRoom('${room.room_id}')" class="play-btn">入る</button>`
+                                : "入れません"}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += "</table>";
+            document.getElementById("room-list-area").innerHTML = html;
+        });
+}
+
+document.getElementById("reload-btn").onclick = loadRoomList;
+
+function joinRoom(room_id) {
+    fetch("/daifugo_join_room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room_id: room_id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            sessionStorage.setItem("room_id", room_id);
+            window.location.href = "/matching_daifugo_online_play";
+        }
+    });
+}
+
+// 初回読み込み
+loadRoomList();
+</script>
+
+</body>
+</html>

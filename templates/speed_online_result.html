@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>SPEED 結果</title>
+<link rel="stylesheet" href="/static/speed.css">
+</head>
+
+<body>
+
+<h1>SPEED（オンライン）結果</h1>
+
+<div class="result-box">
+    <p>あなたの反応速度：<span id="my_time"></span> ms</p>
+    <p>相手の反応速度：<span id="opponent_time"></span> ms</p>
+
+    <h2 id="judge"></h2>
+
+    <button class="speed-btn" onclick="location.href='/matching_page'">
+        ゲーム選択に戻る
+    </button>
+</div>
+
+<script>
+const data = JSON.parse(sessionStorage.getItem("speed_result"));
+
+document.getElementById("my_time").innerText = data.my_time;
+document.getElementById("opponent_time").innerText = data.opponent_time;
+
+if (data.my_time < data.opponent_time) {
+    document.getElementById("judge").innerText = "あなたの勝ち！🎉";
+} else if (data.my_time > data.opponent_time) {
+    document.getElementById("judge").innerText = "あなたの負け…😢";
+} else {
+    document.getElementById("judge").innerText = "引き分け！";
+}
+</script>
+
+</body>
+</html>

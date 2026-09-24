@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ホームメニュー</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: #ff6b81;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .menu-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            background: white;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #333;
+            font-size: 18px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .menu-button:hover {
+            background: #ffe3ea;
+        }
+
+        .tabbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            border-top: 1px solid #ccc;
+        }
+
+        .tabbar a {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            text-decoration: none;
+            color: #555;
+            font-size: 16px;
+        }
+
+        .tabbar a:hover {
+            background: #ffe3ea;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">恋ゲーム</div>
+
+    <div class="container">
+        <a class="menu-button" href="/register_page">ユーザー登録</a>
+        <a class="menu-button" href="/answer_page">質問ページ</a>
+        <a class="menu-button" href="/face_page">顔公開ページ</a>
+        <a class="menu-button" href="/coin_add_page">コイン追加ページ</a>
+        <a class="menu-button" href="/coin_use_page">コイン使用ページ</a>
+        <a class="menu-button" href="/matching_page">マッチングページ</a>
+        <a class="menu-button" href="/chat_page">チャットページ</a>
+    </div>
+
+    <div class="tabbar">
+        <a href="/">ホーム</a>
+        <a href="/matching_page">マッチング</a>
+        <a href="/chat_page">チャット</a>
+    </div>
+
+</body>
+</html>
+

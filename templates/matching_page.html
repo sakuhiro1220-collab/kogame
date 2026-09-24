@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ゲームマッチング</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:"Segoe UI",sans-serif;
+    background:linear-gradient(
+        135deg,
+        #141e30,
+        #243b55
+    );
+    min-height:100vh;
+    color:white;
+}
+
+h1{
+    text-align:center;
+    padding-top:40px;
+    font-size:42px;
+    margin-bottom:40px;
+}
+
+.game-list{
+
+    max-width:1200px;
+
+    margin:auto;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(300px,1fr)
+        );
+
+    gap:25px;
+
+    padding:20px;
+}
+
+.game-card{
+
+    background:rgba(
+        255,
+        255,
+        255,
+        0.08
+    );
+
+    backdrop-filter:blur(10px);
+
+    border:1px solid rgba(
+        255,
+        255,
+        255,
+        0.15
+    );
+
+    border-radius:20px;
+
+    padding:25px;
+
+    cursor:pointer;
+
+    transition:0.25s;
+
+    box-shadow:
+        0 8px 25px rgba(
+            0,
+            0,
+            0,
+            0.3
+        );
+}
+
+.game-card:hover{
+
+    transform:
+        translateY(-8px)
+        scale(1.03);
+
+    background:rgba(
+        255,
+        255,
+        255,
+        0.15
+    );
+}
+
+.title{
+
+    font-size:26px;
+
+    font-weight:bold;
+
+    margin-bottom:12px;
+}
+
+.desc{
+
+    font-size:16px;
+
+    color:#d8d8d8;
+
+    line-height:1.6;
+}
+
+.footer{
+
+    text-align:center;
+
+    padding:40px;
+
+    color:#cfcfcf;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎮 オンラインゲームセンター</h1>
+
+<div class="game-list">
+
+    <!-- 質問ゲーム -->
+    <div class="game-card"
+         onclick="location.href='/matching_question'">
+
+        <div class="title">
+            💕 相性診断
+        </div>
+
+        <div class="desc">
+            5つの質問に答えて、
+            相性の良い相手を探そう。
+        </div>
+
+    </div>
+
+    <!-- 五目並べ -->
+    <div class="game-card"
+         onclick="location.href='/gomoku_home'">
+
+        <div class="title">
+            ⚫ 五目並べ
+        </div>
+
+        <div class="desc">
+            参加費 50Coin<br>
+            勝利報酬 100Coin<br><br>
+            先に5つ並べたら勝利！
+        </div>
+
+    </div>
+
+    <!-- SPEED -->
+    <div class="game-card"
+         onclick="location.href='/speed_online'">
+
+        <div class="title">
+            ⚡ SPEED
+        </div>
+
+        <div class="desc">
+            スピード勝負！
+            反射神経でライバルに勝て！
+        </div>
+
+    </div>
+
+    <!-- GeoGuess -->
+    <div class="game-card"
+         onclick="location.href='/geoguess_online'">
+
+        <div class="title">
+            🌎 マップあてゲーム
+        </div>
+
+        <div class="desc">
+            世界の風景写真から
+            場所を当てよう！
+        </div>
+
+    </div>
+
+</div>
+
+<div class="footer">
+    Made with ❤️ by Koigame
+</div>
+
+</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>コイン追加</title>
+</head>
+<body>
+
+<h1>コイン追加</h1>
+
+<p>※ このページは JavaScript で POST します</p>
+
+<input type="number" id="amount" placeholder="追加するコイン数">
+<button onclick="addCoin()">追加する</button>
+
+<script>
+function addCoin() {
+    const amount = Number(document.getElementById("amount").value);
+
+    fetch("/coin/add", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({amount})
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message));
+}
+</script>
+
+</body>
+</html>

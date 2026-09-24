@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>大富豪 対戦中</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+}
+
+/* 画面を四角形にする 3×3 グリッド */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    height: 100vh;
+}
+
+/* 各領域 */
+.cpu-left   { grid-column: 1; grid-row: 2; text-align: center; }
+.cpu-top    { grid-column: 2; grid-row: 1; text-align: center; }
+.cpu-right  { grid-column: 3; grid-row: 2; text-align: center; }
+.player     { grid-column: 2; grid-row: 3; text-align: center; }
+.field-area { grid-column: 2; grid-row: 2; text-align: center; }
+
+/* CPU手札（扇形） */
+.cpu-hand {
+    position: relative;
+    height: 180px;
+    margin-top: 10px;
+}
+.cpu-card {
+    position: absolute;
+    width: 90px;
+    transform-origin: bottom center;
+}
+
+/* 場札（重ねて少しずらす） */
+.field {
+    position: relative;
+    height: 180px;
+    margin-top: 20px;
+}
+.field .card {
+    position: absolute;
+    width: 110px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.4);
+}
+
+/* プレイヤー手札 */
+.hand {
+    position: relative;
+    height: 200px;
+    margin-top: 20px;
+}
+.card {
+    position: absolute;
+    width: 110px;
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: grab;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.4);
+    z-index: 10;
+}
+
+/* ★選択されたカードを浮かせる */
+input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 110px;
+    height: 160px;
+    cursor: pointer;
+    z-index: 20;
+}
+input[type="checkbox"]:checked + .card {
+    transform: translateY(-25px) scale(1.1);
+    box-shadow: 0 0 15px 5px rgba(0,150,255,0.8);
+}
+
+/* CPUカード出しアニメーション */
+.cpu-play-animation {
+    animation: cpuFly 0.6s forwards;
+}
+@keyframes cpuFly {
+    0% { transform: scale(1.2) translateY(20px); opacity: 1; }
+    100% { transform: scale(0.5) translateY(-200px); opacity: 0; }
+}
+
+/* プレイヤーのドラッグアニメーション */
+.card.dragging {
+    opacity: 0.95;
+    transform: scale(1.35) translateY(-60px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    cursor: grabbing;
+    z-index: 9999;
+}
+
+/* ドロップ領域 */
+#dropZone {
+    border: 3px dashed #888;
+    width: 60%;
+    height: 120px;
+    margin: 20px auto;
+    border-radius: 10px;
+    font-size: 20px;
+    padding-top: 30px;
+}
+#dropZone.dragover {
+    background: #d0f0ff;
+    border-color: #00aaff;
+}
+</style>
+
+<script>
+let draggedCard = null;
+
+/* プレイヤーのドラッグ＆ドロップ */
+function setupDragDrop() {
+    document.querySelectorAll(".cpu-card[data-rotation]").forEach((card) => {
+        card.style.transform = `rotate(${card.dataset.rotation}deg)`;
+    });
+
+    const cards = document.querySelectorAll(".card");
+
+    cards.forEach((card) => {
+        card.setAttribute("draggable", true);
+
+        card.addEventListener("dragstart", () => {
+            draggedCard = card;
+            card.classList.add("dragging");
+        });
+
+        card.addEventListener("dragend", () => {
+            card.classList.remove("dragging");
+        });
+    });
+
+    document.querySelectorAll(".hand-card").forEach((card) => {
+        card.style.left = `${card.dataset.left}px`;
+    });
+
+    document.querySelectorAll(".field-card").forEach((card) => {
+        card.style.left = `${card.dataset.left}px`;
+    });
+
+    const dropZone = document.getElementById("dropZone");
+
+    dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", () => {
+        dropZone.classList.remove("dragover");
+
+        if (draggedCard !== null) {
+            draggedCard.classList.add("played-animation");
+
+            const cb = draggedCard.previousElementSibling;
+            cb.checked = true;
+
+            setTimeout(() => {
+                document.getElementById("playForm").submit();
+            }, 500);
+        }
+    });
+}
+
+window.onload = setupDragDrop;
+</script>
+
+</head>
+
+<body>
+
+<div class="grid">
+
+    <!-- 上：CPU2 -->
+    <div class="cpu-top">
+        <h3>CPU2</h3>
+        <div class="cpu-hand">
+            {% for c in cpu2 %}
+                <img class="cpu-card" src="/static/card_back.png" style="left:50%; margin-left:-45px;" data-rotation="{{ -40 + loop.index0 * 6 }}">
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 左：CPU1 -->
+    <div class="cpu-left">
+        <h3>CPU1</h3>
+        <div class="cpu-hand">
+            {% for c in cpu1 %}
+                <img class="cpu-card" src="/static/card_back.png" style="left:50%; margin-left:-45px;" data-rotation="{{ -40 + loop.index0 * 6 }}">
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 右：CPU3 -->
+    <div class="cpu-right">
+        <h3>CPU3</h3>
+        <div class="cpu-hand">
+            {% for c in cpu3 %}
+                <img class="cpu-card" src="/static/card_back.png" style="left:50%; margin-left:-45px;" data-rotation="{{ -40 + loop.index0 * 6 }}">
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 中央：場札 -->
+    <div class="field-area">
+        <h2>場札</h2>
+        <div class="field">
+            {% for c in field %}
+                <img class="card field-card" src="{{ c.img }}" data-left="{{ loop.index0 * 25 }}">
+            {% endfor %}
+
+            {% if cpu_played %}
+                {% for c in cpu_played %}
+                    <img class="card cpu-play-animation" src="{{ c.img }}">
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div id="dropZone">ここにカードをドラッグすると出せます</div>
+    </div>
+
+    <!-- 下：あなた -->
+    <div class="player">
+        <h2>あなたの手札</h2>
+
+        <form id="playForm" action="/matching_daifugo_play_card" method="POST">
+            <div class="hand">
+                {% for c in p1 %}
+                    <label class="hand-card" data-left="{{ loop.index0 * 35 }}" style="position:absolute;">
+                        <input type="checkbox" name="cards" value="{{ loop.index0 }}">
+                        <img class="card" src="{{ c.img }}">
+                    </label>
+                {% endfor %}
+            </div>
+
+            <button type="button" onclick="animatePlayedCards()">選んだカードを出す</button>
+        </form>
+
+        <form action="/matching_daifugo_pass" method="POST">
+            <button type="submit">パスする</button>
+        </form>
+    </div>
+
+</div>
+
+{% if message %}
+<div style="background:#ffdddd; padding:10px; border:1px solid red; margin-bottom:10px;">
+    {{ message }}
+</div>
+{% endif %}
+
+<style>
+/* 注意メッセージのアニメーション */
+.alert-box {
+    background: #ffdddd;
+    border: 2px solid red;
+    padding: 10px;
+    margin-bottom: 10px;
+    animation: fadeIn 0.6s ease-out, shake 0.4s ease-in-out;
+}
+
+/* フェードイン */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* シェイク（揺れる） */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+/* 革命中の背景 */
+.revolution-bg {
+    background: linear-gradient(45deg, #ff4444, #660000);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    animation: fadeIn 0.5s ease-out;
+}
+</style>
+
+<div>
+    <h3>CPU2（残り {{ p2|length }} 枚）</h3>
+    {% for i in range(p2|length) %}
+        <img src="/static/cards/back.png" class="card">
+    {% endfor %}
+</div>
+
+<div>
+    <h3>CPU3（残り {{ p3|length }} 枚）</h3>
+    {% for i in range(p3|length) %}
+        <img src="/static/cards/back.png" class="card">
+    {% endfor %}
+</div>
+
+<div>
+    <h3>CPU4（残り {{ p4|length }} 枚）</h3>
+    {% for i in range(p4|length) %}
+        <img src="/static/cards/back.png" class="card">
+    {% endfor %}
+</div>
+
+<body class="{{ state_mode }}">
+  <div class="round-banner">
+    ラウンド {{ round }} / 3
+  </div>
+
+  <div class="state-banner {{ state_mode }}">
+    {{ state_message }}
+  </div>
+
+  <!-- あなたの手札・CPUの手札・場札など -->
+</body>
+
+<script>
+socket.on("final_result", data => {
+    // 結果画面へ遷移
+    sessionStorage.setItem("final_result", JSON.stringify(data));
+    window.location.href = "/matching_daifugo_online_result";
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

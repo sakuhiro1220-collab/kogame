@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>最終結果</title>
+<link rel="stylesheet" href="/static/daifugo.css">
+</head>
+
+<body>
+
+<h1>最終結果</h1>
+
+<div id="final-box"></div>
+
+<a href="/home">ホームへ戻る</a>
+
+<script>
+const data = JSON.parse(sessionStorage.getItem("final_result"));
+
+let html = "<h2>最終順位</h2><ul>";
+for (let pid in data.final_ranks) {
+    html += `<li>${pid}：${data.final_ranks[pid]}</li>`;
+}
+html += "</ul>";
+
+html += `<p>あなたの順位：${data.my_rank}</p>`;
+html += `<p>獲得コイン：${data.delta}</p>`;
+
+document.getElementById("final-box").innerHTML = html;
+</script>
+
+</body>
+</html>

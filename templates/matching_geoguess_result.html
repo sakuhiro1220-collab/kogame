@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>結果</title>
+<style>
+body { font-family:sans-serif; text-align:center; padding:40px; }
+.score { font-size:40px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<h2>結果発表！</h2>
+
+<div class="score">{{ score }} 点</div>
+
+<p>あなたの回答：{{ selected }}</p>
+<p>正解：{{ correct }}</p>
+
+{% if matched %}
+    <h3>🎉 マッチング成功！</h3>
+    <p>チャットと写真送信が解禁されました。</p>
+{% else %}
+    <h3>残念…</h3>
+    <p>また挑戦してみてね！</p>
+{% endif %}
+
+<a href="/matching_page">ゲーム一覧に戻る</a>
+
+</body>
+</html>

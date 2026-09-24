@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>五目並べロビー</title>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<style>
+
+body{
+    text-align:center;
+    font-family:sans-serif;
+    background:#f5f5f5;
+}
+
+.box{
+    width:500px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+}
+
+button{
+
+    padding:15px 30px;
+
+    font-size:20px;
+
+    cursor:pointer;
+}
+
+#status{
+
+    margin-top:20px;
+
+    font-size:20px;
+
+    font-weight:bold;
+}
+</style>
+
+</head>
+<body>
+
+<div class="box">
+
+<h1>五目並べオンライン</h1>
+
+<p>参加費 : 50 Coin</p>
+
+<p>勝利報酬 : 100 Coin</p>
+
+<p>敗北 : 0 Coin</p>
+
+<button onclick="startMatch()">
+マッチング開始
+</button>
+
+<div id="status">
+待機中
+</div>
+
+</div>
+
+<script>
+
+const socket = io();
+
+function startMatch(){
+
+    document.getElementById(
+        "status"
+    ).innerText =
+    "対戦相手を探しています...";
+
+    socket.emit(
+        "gomoku_match_request"
+    );
+}
+
+socket.on(
+    "gomoku_match_update",
+    data => {
+
+        document.getElementById(
+            "status"
+        ).innerText =
+        "待機人数 : " +
+        data.count +
+        " 人";
+    }
+);
+
+socket.on(
+    "match_error",
+    data => {
+
+        alert(
+            data.message
+        );
+    }
+);
+
+socket.on(
+    "gomoku_match_start",
+    data => {
+
+        window.location.href =
+            "/gomoku_play?room_id="
+            + data.room_id;
+    }
+);
+
+</script>
+
+</body>
+</html>

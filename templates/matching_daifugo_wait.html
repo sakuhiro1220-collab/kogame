@@ -1,0 +1,26 @@
+<h1>マッチング完了！ゲーム開始準備中…</h1>
+
+<div id="players"></div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+const room_id = "{{ room_id }}";
+
+socket.on("connect", () => {
+    socket.emit("join_wait_room", { room_id });
+});
+
+socket.on("daifugo_wait_update", data => {
+    const div = document.getElementById("players");
+    div.innerHTML = "";
+
+    data.players.forEach(p => {
+        div.innerHTML += `<p>${p}</p>`;
+    });
+});
+
+socket.on("daifugo_start", () => {
+    window.location.href = `/matching_daifugo_online_play?room_id=${room_id}`;
+});
+</script>

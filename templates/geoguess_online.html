@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+
+<title>🌎どこでしょう対戦</title>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<style>
+
+body{
+    font-family:sans-serif;
+    text-align:center;
+    background:#f5f5f5;
+    margin:0;
+    padding:20px;
+}
+
+.rule-box{
+    max-width:900px;
+    margin:20px auto;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 15px rgba(0,0,0,0.15);
+    text-align:left;
+}
+
+#matchBtn{
+    font-size:22px;
+    padding:15px 40px;
+    border:none;
+    border-radius:10px;
+    background:#27ae60;
+    color:white;
+    cursor:pointer;
+}
+
+#status{
+    margin-top:20px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+#gameArea{
+    display:none;
+}
+
+#photo{
+    max-width:90%;
+    max-height:450px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+.viewer{
+    margin:20px 0;
+}
+
+.viewer button{
+    padding:12px 20px;
+    font-size:18px;
+}
+
+#direction{
+    font-size:22px;
+    margin-bottom:10px;
+    font-weight:bold;
+}
+
+#map{
+    width:90%;
+    height:400px;
+    margin:20px auto;
+    border:2px solid #333;
+    border-radius:10px;
+}
+
+#answerBtn{
+    padding:15px 40px;
+    font-size:22px;
+    border:none;
+    border-radius:10px;
+    background:#3498db;
+    color:white;
+    cursor:pointer;
+}
+
+#answerBtn:disabled{
+    background:gray;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="lobby">
+
+<h1>🌎どこでしょう対戦</h1>
+
+<div class="rule-box">
+
+<h2>ルール説明</h2>
+
+<p>同じ場所の写真4枚が表示されます。</p>
+
+<p>前・右・後ろ・左を見ながら場所を推理してください。</p>
+
+<p>地図上をクリックして予想地点を回答します。</p>
+
+<p>正解地点との距離が近い方の勝利です。</p>
+
+<p>参加費：200コイン</p>
+
+<p>勝利報酬：400コイン</p>
+
+</div>
+
+<div id="status">
+マッチング待機中
+</div>
+
+
+<button id="matchBtn">
+🎮 マッチング開始
+</button>
+
+</div>
+
+<div id="gameArea">
+
+<h1>🌎どこでしょう対戦</h1>
+
+<div id="direction">
+👀 現在の視点：前方
+</div>
+
+<div class="viewer">
+
+<button id="leftBtn">
+◀ 左を見る
+</button>
+
+<br><br>
+
+<img id="photo">
+
+<br><br>
+
+<button id="rightBtn">
+右を見る ▶
+</button>
+
+</div>
+
+<div id="map"></div>
+
+<button id="answerBtn" disabled>
+📍ここだ！
+</button>
+
+</div>
+
+<script>
+
+const socket = io();
+
+const user_id = "{{ user_id }}";
+const room = "geo_room";
+
+let images = [];
+let currentIndex = 0;
+
+let guessLat;
+let guessLng;
+
+let map;
+let marker;
+
+const directions = [
+    "前方",
+    "右",
+    "後方",
+    "左"
+];
+
+document.getElementById("matchBtn").onclick = () => {
+
+    document.getElementById("matchBtn").disabled = true;
+
+    document.getElementById("status").innerHTML =
+        "🔍 対戦相手を探しています...";
+
+    socket.emit("geoguess_join", {
+        room: room,
+        user_id: user_id
+    });
+
+};
+
+socket.on("match_error", data => {
+
+    alert(data.message);
+
+    document.getElementById("matchBtn").disabled = false;
+
+    document.getElementById("status").innerHTML =
+        "マッチング待機中";
+
+});
+
+socket.on("geoguess_start", data => {
+
+    document.getElementById("lobby").style.display = "none";
+    document.getElementById("gameArea").style.display = "block";
+
+    images = data.images;
+    currentIndex = 0;
+
+    document.getElementById("photo").src =
+        images[0];
+
+    document.getElementById("direction").innerText =
+        "👀 現在の視点：前方";
+
+    map = L.map('map').setView([20, 0], 2);
+
+    L.tileLayer(
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            maxZoom: 19
+        }
+    ).addTo(map);
+
+    map.on("click", function(e){
+
+        guessLat = e.latlng.lat;
+        guessLng = e.latlng.lng;
+
+        if(marker){
+            map.removeLayer(marker);
+        }
+
+        marker = L.marker([
+            guessLat,
+            guessLng
+        ]).addTo(map);
+
+        document.getElementById(
+            "answerBtn"
+        ).disabled = false;
+
+    });
+
+});
+
+document.getElementById("rightBtn").onclick = () => {
+
+    currentIndex++;
+
+    if(currentIndex >= images.length){
+        currentIndex = 0;
+    }
+
+    document.getElementById("photo").src =
+        images[currentIndex];
+
+    document.getElementById("direction").innerText =
+        "👀 現在の視点：" +
+        directions[currentIndex];
+
+};
+
+document.getElementById("leftBtn").onclick = () => {
+
+    currentIndex--;
+
+    if(currentIndex < 0){
+        currentIndex = images.length - 1;
+    }
+
+    document.getElementById("photo").src =
+        images[currentIndex];
+
+    document.getElementById("direction").innerText =
+        "👀 現在の視点：" +
+        directions[currentIndex];
+
+};
+
+document.getElementById("answerBtn").onclick = () => {
+
+    socket.emit(
+        "geoguess_answer",
+        {
+            room: room,
+            user_id: user_id,
+            lat: guessLat,
+            lng: guessLng
+        }
+    );
+
+    document.getElementById(
+        "answerBtn"
+    ).disabled = true;
+
+};
+
+socket.on("geoguess_result", data => {
+
+    let result;
+
+    if(data.winner === user_id){
+
+        result = "🏆勝利！ +400コイン";
+
+    }else{
+
+        result = "😢敗北...";
+    }
+
+    document.body.innerHTML = `
+        <h1>${result}</h1>
+
+        <h2>正解地点</h2>
+
+        <p>緯度：${data.true_lat}</p>
+
+        <p>経度：${data.true_lng}</p>
+
+        <br>
+
+        <a href="/home">
+            ホームへ戻る
+        </a>
+    `;
+});
+
+</script>
+
+</body>
+</html>

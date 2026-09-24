@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>大富豪 結果</title>
+
+<style>
+body { font-family: sans-serif; background:#f5f5f5; text-align:center; padding:30px; }
+
+.result-box {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    width:300px;
+    margin:auto;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+.icon {
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    object-fit:cover;
+    margin-bottom:15px;
+}
+
+.rank {
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.coin {
+    font-size:22px;
+    color:#ff8800;
+    margin-bottom:10px;
+}
+
+.info {
+    font-size:18px;
+    margin-bottom:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="result-box">
+    <img src="{{ icon }}" class="icon">
+
+    <div class="rank">あなたは {{ rank }} 位！</div>
+
+    <div class="coin">獲得コイン：+{{ delta }} coin</div>
+
+    <div class="info">名前：{{ name }}</div>
+    <div class="info">性別：{{ gender }}</div>
+
+    <hr>
+
+    <div class="info">CPU2：{{ p2 }} 枚残り</div>
+    <div class="info">CPU3：{{ p3 }} 枚残り</div>
+    <div class="info">CPU4：{{ p4 }} 枚残り</div>
+
+    <br>
+    <a href="/home">ホームへ戻る</a>
+</div>
+
+</body>
+</html>
+

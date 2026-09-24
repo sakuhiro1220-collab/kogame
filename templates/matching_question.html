@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>質問で相性診断</title>
+<style>
+body { font-family:sans-serif; padding:20px; }
+.question { margin-bottom:20px; }
+button { padding:10px 20px; font-size:18px; }
+</style>
+</head>
+<body>
+
+<h2>📝 質問で相性診断</h2>
+
+<form action="/answer_question" method="POST">
+
+    <div class="question">
+        <p>Q1. 好きなデートは？</p>
+        <select name="q1">
+            <option value="A">映画</option>
+            <option value="B">カフェ</option>
+            <option value="C">ショッピング</option>
+        </select>
+    </div>
+
+    <div class="question">
+        <p>Q2. 好きな性格は？</p>
+        <select name="q2">
+            <option value="A">優しい</option>
+            <option value="B">明るい</option>
+            <option value="C">落ち着いてる</option>
+        </select>
+    </div>
+
+    <div class="question">
+        <p>Q3. 好きな休日の過ごし方は？</p>
+        <select name="q3">
+            <option value="A">家でゆっくり</option>
+            <option value="B">外出</option>
+            <option value="C">趣味</option>
+        </select>
+    </div>
+
+    <div class="question">
+        <p>Q4. 好きな音楽は？</p>
+        <select name="q4">
+            <option value="A">J-POP</option>
+            <option value="B">洋楽</option>
+            <option value="C">K-POP</option>
+        </select>
+    </div>
+
+    <div class="question">
+        <p>Q5. 好きな食べ物は？</p>
+        <select name="q5">
+            <option value="A">寿司</option>
+            <option value="B">ラーメン</option>
+            <option value="C">焼肉</option>
+        </select>
+    </div>
+
+    <button type="submit">診断する</button>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Welcome</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family:
+                "Segoe UI",
+                "Hiragino Sans",
+                "Yu Gothic",
+                sans-serif;
+
+            color: white;
+
+            background:
+                radial-gradient(
+                    circle at 20% 20%,
+                    rgba(71, 118, 230, 0.30),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 80% 80%,
+                    rgba(142, 84, 233, 0.25),
+                    transparent 35%
+                ),
+                linear-gradient(
+                    135deg,
+                    #090e1a,
+                    #111b35,
+                    #0c1325
+                );
+
+            overflow: hidden;
+        }
+
+
+        /* =========================
+           背景
+        ========================= */
+
+        .background-circle {
+            position: fixed;
+
+            width: 420px;
+            height: 420px;
+
+            border-radius: 50%;
+
+            filter: blur(90px);
+
+            opacity: 0.25;
+
+            pointer-events: none;
+
+            animation:
+                floating 8s ease-in-out infinite;
+        }
+
+        .circle-1 {
+            background: #4776e6;
+
+            top: -150px;
+            left: -100px;
+        }
+
+        .circle-2 {
+            background: #8e54e9;
+
+            right: -120px;
+            bottom: -170px;
+
+            animation-delay: -4s;
+        }
+
+        @keyframes floating {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(30px);
+            }
+        }
+
+
+        /* =========================
+           ヘッダー
+        ========================= */
+
+        .header {
+            width: 100%;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 28px 7%;
+
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+
+            letter-spacing: 1px;
+        }
+
+        .logo-icon {
+            margin-right: 7px;
+        }
+
+
+        /* =========================
+           メイン
+        ========================= */
+
+        .main {
+            min-height: calc(100vh - 90px);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 30px 20px 80px;
+
+            position: relative;
+
+            z-index: 5;
+        }
+
+
+        /* =========================
+           ガラスカード
+        ========================= */
+
+        .welcome-card {
+            width: 100%;
+            max-width: 650px;
+
+            padding: 60px 55px;
+
+            text-align: center;
+
+            border-radius: 30px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.07
+                );
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.13
+                );
+
+            backdrop-filter:
+                blur(20px);
+
+            -webkit-backdrop-filter:
+                blur(20px);
+
+            box-shadow:
+                0 30px 70px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.35
+                );
+
+            animation:
+                appear 0.7s ease;
+        }
+
+        @keyframes appear {
+
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        /* =========================
+           タイトル
+        ========================= */
+
+        .mini-title {
+            display: inline-block;
+
+            padding: 7px 15px;
+
+            margin-bottom: 22px;
+
+            border-radius: 50px;
+
+            background:
+                rgba(
+                    91,
+                    143,
+                    249,
+                    0.13
+                );
+
+            border:
+                1px solid
+                rgba(
+                    91,
+                    143,
+                    249,
+                    0.25
+                );
+
+            color: #8db5ff;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-size:
+                clamp(
+                    38px,
+                    7vw,
+                    64px
+                );
+
+            line-height: 1.15;
+
+            margin-bottom: 20px;
+
+            letter-spacing: -2px;
+        }
+
+        .gradient-text {
+            background:
+                linear-gradient(
+                    90deg,
+                    #61a5ff,
+                    #a175ff,
+                    #ff83c6
+                );
+
+            -webkit-background-clip:
+                text;
+
+            background-clip:
+                text;
+
+            color: transparent;
+        }
+
+        .description {
+            color: #aab5cb;
+
+            font-size: 17px;
+
+            line-height: 1.8;
+
+            margin:
+                0 auto 38px;
+
+            max-width: 480px;
+        }
+
+
+        /* =========================
+           ボタン
+        ========================= */
+
+        .buttons {
+            display: flex;
+
+            justify-content: center;
+
+            gap: 15px;
+
+            flex-wrap: wrap;
+        }
+
+        .button {
+            min-width: 190px;
+
+            padding: 16px 30px;
+
+            border-radius: 14px;
+
+            border: none;
+
+            text-decoration: none;
+
+            font-size: 16px;
+
+            font-weight: 700;
+
+            transition:
+                transform 0.2s,
+                box-shadow 0.2s,
+                background 0.2s;
+        }
+
+        .login-button {
+            color: white;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.09
+                );
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.18
+                );
+        }
+
+        .login-button:hover {
+            transform:
+                translateY(-4px);
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.15
+                );
+        }
+
+        .register-button {
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #4776e6,
+                    #8e54e9
+                );
+
+            box-shadow:
+                0 10px 30px
+                rgba(
+                    94,
+                    103,
+                    230,
+                    0.35
+                );
+        }
+
+        .register-button:hover {
+            transform:
+                translateY(-4px)
+                scale(1.02);
+
+            box-shadow:
+                0 15px 35px
+                rgba(
+                    94,
+                    103,
+                    230,
+                    0.5
+                );
+        }
+
+
+        /* =========================
+           特徴
+        ========================= */
+
+        .features {
+            display: flex;
+
+            justify-content: center;
+
+            gap: 25px;
+
+            margin-top: 40px;
+
+            color: #8e9bb4;
+
+            font-size: 13px;
+
+            flex-wrap: wrap;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+
+            gap: 6px;
+        }
+
+        .feature-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #62a4ff;
+
+            box-shadow:
+                0 0 10px #62a4ff;
+        }
+
+
+        /* =========================
+           スマホ
+        ========================= */
+
+        @media (
+            max-width: 600px
+        ) {
+
+            body {
+                overflow: auto;
+            }
+
+            .header {
+                padding:
+                    22px 20px;
+            }
+
+            .welcome-card {
+                padding:
+                    45px 25px;
+
+                border-radius: 24px;
+            }
+
+            h1 {
+                letter-spacing: -1px;
+            }
+
+            .description {
+                font-size: 15px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+
+            .features {
+                gap: 15px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <!-- 背景 -->
+    <div
+        class="background-circle circle-1">
+    </div>
+
+    <div
+        class="background-circle circle-2">
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header class="header">
+
+        <div class="logo">
+            <span class="logo-icon">
+                ✦
+            </span>
+
+            MATCH
+        </div>
+
+    </header>
+
+
+    <!-- メイン -->
+    <main class="main">
+
+        <section class="welcome-card">
+
+            <div class="mini-title">
+                WELCOME
+            </div>
+
+            <h1>
+                ようこそ、
+                <br>
+
+                <span class="gradient-text">
+                    新しい出会いへ。
+                </span>
+            </h1>
+
+
+            <p class="description">
+                気になる相手を見つけたり、
+                ゲームで一緒に遊んだり。
+                <br>
+                あなたらしい楽しみ方を
+                見つけてみよう。
+            </p>
+
+
+            <div class="buttons">
+
+                <a href="/login_page" class="button">
+                    ログイン
+                </a>
+
+
+                <a href="/register_page" class="button">
+                    新規登録 →
+                </a>
+
+            </div>
+
+
+            <div class="features">
+
+                <div class="feature">
+                    <span class="feature-dot"></span>
+                    スワイプ
+                </div>
+
+                <div class="feature">
+                    <span class="feature-dot"></span>
+                    チャット
+                </div>
+
+                <div class="feature">
+                    <span class="feature-dot"></span>
+                    オンラインゲーム
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

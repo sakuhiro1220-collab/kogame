@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SPEED対戦</title>
+
+<style>
+body { font-family:sans-serif; text-align:center; padding:40px; }
+#start { padding:20px; font-size:24px; }
+#push { padding:20px; font-size:24px; display:none; }
+</style>
+</head>
+<body>
+
+<h2>⚡ SPEED（対戦式）</h2>
+<p>あなた vs 3人の相手で反射神経勝負！</p>
+
+<button id="start">スタート</button>
+<button id="push">押せ！</button>
+
+<form id="form" action="/matching_speed_result" method="POST">
+    <input type="hidden" name="my_time" id="my_time">
+</form>
+
+<script>
+let startTime;
+
+document.getElementById("start").onclick = () => {
+    document.getElementById("start").style.display = "none";
+
+    setTimeout(() => {
+        document.getElementById("push").style.display = "inline-block";
+        startTime = Date.now();
+    }, Math.random() * 2000 + 1000);
+};
+
+document.getElementById("push").onclick = () => {
+    let reaction = (Date.now() - startTime) / 1000;
+    document.getElementById("my_time").value = reaction.toFixed(3);
+    document.getElementById("form").submit();
+};
+</script>
+
+</body>
+</html>
+

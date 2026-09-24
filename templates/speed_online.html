@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>オンラインスピードゲーム</title>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<link rel="stylesheet" href="/static/speed.css">
+</head>
+<body>
+
+<h2>オンライン対戦スピードゲーム</h2>
+
+<div id="status">相手を待っています…</div>
+<button id="btn" disabled>押す！</button>
+
+<script>
+const socket = io();
+const room = "room1";
+const user_id = "{{ user_id }}";
+
+// ★ サーバー側と同じイベント名に修正
+socket.emit("join_speed", {room: room, user_id: user_id});
+
+// ★ speed_ready を受け取る
+socket.on("speed_ready", data => {
+    document.getElementById("status").innerHTML = "準備中…";
+
+    setTimeout(() => {
+        document.getElementById("status").innerHTML = "GO!";
+        document.getElementById("btn").disabled = false;
+        window.startTime = Date.now();
+    }, data.delay * 1000);
+});
+
+// ★ speed_reaction を送る
+document.getElementById("btn").onclick = () => {
+    let reaction = Date.now() - window.startTime;
+    socket.emit("speed_reaction", {
+        room: room,
+        user_id: user_id,
+        reaction: reaction
+    });
+};
+
+// ★ speed_result を受け取る
+socket.on("speed_result", data => {
+    let msg = "";
+
+    if (data.winner == user_id) {
+        msg = "勝利！ +40 coin";
+    } else {
+        msg = "敗北… +20 coin";
+    }
+
+    document.body.innerHTML = `
+        <h2>${msg}</h2>
+        <p>あなたの反応速度：${data.winner == user_id ? data.r1 : data.r2} ms</p>
+        <p>相手の反応速度：${data.winner == user_id ? data.r2 : data.r1} ms</p>
+        <a href="/home">ホームへ戻る</a>
+    `;
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>質問ページ</title>
+</head>
+<body>
+    <h1>相性診断</h1>
+
+    <form action="/answer" method="post">
+        <label>Q1：好きな色は？</label><br>
+        <select name="q1">
+            <option value="A">赤</option>
+            <option value="B">青</option>
+            <option value="C">緑</option>
+        </select><br><br>
+
+        <label>Q2：休日は？</label><br>
+        <select name="q2">
+            <option value="A">家でゆっくり</option>
+            <option value="B">外出する</option>
+            <option value="C">ゲームする</option>
+        </select><br><br>
+
+        <label>Q3：好きな食べ物は？</label><br>
+        <select name="q3">
+            <option value="A">寿司</option>
+            <option value="B">ラーメン</option>
+            <option value="C">焼肉</option>
+        </select><br><br>
+
+        <label>Q4：性格は？</label><br>
+        <select name="q4">
+            <option value="A">明るい</option>
+            <option value="B">静か</option>
+            <option value="C">気分屋</option>
+        </select><br><br>
+
+        <label>Q5：好きなタイプは？</label><br>
+        <select name="q5">
+            <option value="A">優しい</option>
+            <option value="B">面白い</option>
+            <option value="C">落ち着いてる</option>
+        </select><br><br>
+
+        <button type="submit">診断する</button>
+    </form>
+</body>
+</html>

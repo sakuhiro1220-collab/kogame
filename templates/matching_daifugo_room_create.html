@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>大富豪：部屋作成</title>
+</head>
+
+<body>
+<h1>大富豪：部屋を作る</h1>
+
+<button onclick="createRoom()">部屋を作成する（参加費50コイン）</button>
+
+<p id="msg"></p>
+
+<script>
+async function createRoom() {
+    const res = await fetch("/daifugo_create_room", {
+        method: "POST"
+    });
+    const data = await res.json();
+
+    if (data.error) {
+        document.getElementById("msg").innerText = data.error;
+        return;
+    }
+
+    const room_id = data.room_id;
+
+    // ★ 部屋作成後すぐ参加する
+    const joinRes = await fetch("/daifugo_join_room", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ room_id })
+    });
+
+    const joinData = await joinRes.json();
+    if (joinData.error) {
+        document.getElementById("msg").innerText = joinData.error;
+        return;
+    }
+
+    // ★ 待機画面へ
+   window.location.href =
+    "/matching_daifugo_online_play?room_id=" + data.room_id;
+}
+</script>
+
+</body>
+</html>

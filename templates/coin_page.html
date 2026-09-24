@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>コイン購入</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            padding: 20px;
+            margin: 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+        }
+        .coin-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .coin-box:hover {
+            transform: scale(1.05);
+        }
+        .coin {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .price {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #555;
+        }
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>コイン購入</h1>
+
+<div class="grid">
+    <div class="coin-box" onclick="payStripe(100)">
+        <div class="coin">100 コイン</div>
+        <div class="price">980円</div>
+    </div>
+
+    <div class="coin-box" onclick="payStripe(500)">
+        <div class="coin">500 コイン</div>
+        <div class="price">3980円</div>
+    </div>
+
+    <div class="coin-box" onclick="payStripe(1000)">
+        <div class="coin">1000 コイン</div>
+        <div class="price">6980円</div>
+    </div>
+
+    <div class="coin-box" onclick="payStripe(10000)">
+        <div class="coin">10000 コイン</div>
+        <div class="price">59800円</div>
+    </div>
+</div>
+
+<a href="/home" class="back">ホームに戻る</a>
+
+<script>
+function payStripe(coin) {
+
+    fetch("/pay/stripe", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            amount: coin
+        })
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if (data.url) {
+
+            window.location.href = data.url;
+
+        } else {
+
+            alert(
+                "Stripeエラー: " +
+                (data.error || "不明なエラー")
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        alert(
+            "決済ページを開けませんでした"
+        );
+
+    });
+}
+</script>
+
+</body>
+</html>
+
+
+

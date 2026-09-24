@@ -1,0 +1,18 @@
+<form action="/profile_edit" method="POST" enctype="multipart/form-data">
+
+    <label>名前</label>
+    <input type="text" name="name" value="{{ user.name }}">
+
+    <label>住んでいる県</label>
+    <input type="text" name="address" value="{{ user.address }}">
+
+    <label>自己紹介</label>
+    <textarea name="intro">{{ user.intro }}</textarea>
+
+   
+    <button type="submit">保存</button>
+
+    <a href="/home">ホームに戻る</a>
+</form>
+
+

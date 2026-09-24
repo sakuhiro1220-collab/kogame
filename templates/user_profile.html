@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ user.name }}のプロフィール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .profile-card {
+            background: white;
+            padding: 20px;
+            margin: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .profile-card img {
+            width: 150px;
+            height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .btn {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .tab {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #fff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<h1 style="padding: 15px;">{{ user.name }}のプロフィール</h1>
+
+<div class="profile-card">
+    <img src="{{ user.photo_url }}">
+    <h2>{{ user.name }}</h2>
+    <p>性別：{{ user.gender }}</p>
+    <p>年齢：{{ user.age }}</p>
+    <p>{{ user.intro }}</p>
+
+    <!-- チャットへ飛ぶ -->
+    <a class="btn" href="/chat_room/{{ user.id }}">チャットする</a>
+</div>
+
+<div class="tab">
+    <a href="/home">ホーム</a>
+    <a href="/chat_page">チャット</a>
+    <a href="/board">掲示板</a>
+    <a href="/profile">プロフィール</a>
+    <a href="/coin_page">コイン</a>
+</div>
+
+</body>
+</html>

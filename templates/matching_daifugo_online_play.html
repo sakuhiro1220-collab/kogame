@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>オンライン大富豪</title>
+<link rel="stylesheet" href="/static/daifugo.css">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+
+    <div class="turn-info">
+
+現在のターン：
+<span id="turn-player"></span>
+
+</div>
+
+<div class="top-bar">
+    <div class="round">ラウンド <span id="round">{{ round }}</span> / 3</div>
+    <div class="state-banner">
+        <span id="state_message">{{ state_message }}</span>
+    </div>
+</div>
+
+<div style="
+font-size:24px;
+font-weight:bold;
+margin:10px;
+color:red;
+">
+
+現在のターン：
+<span id="turn-player"></span>
+
+</div>
+
+<div class="cpu-area" id="cpu-area">
+    {% for pid, hand in hands.items() %}
+        {% if pid != my_pid %}
+        <div class="cpu-box" id="cpu-{{ pid }}">
+            <h3>{{ pid }}</h3>
+            <div class="cpu-count">残り <span>{{ hand|length }}</span> 枚</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="field-area">
+    <h2>場札</h2>
+    <div id="field-cards" class="cards">
+        {% for c in field %}
+            <img src="{{ c.img }}" class="card">
+        {% endfor %}
+    </div>
+</div>
+
+<div class="player-area">
+    <h2>あなたの手札（<span id="my-count">{{ hands[my_pid]|length }}</span>枚）</h2>
+
+    <div id="my-cards" class="cards">
+        {% for c in hands[my_pid] %}
+            <label class="card-label">
+                <input type="checkbox" value="{{ loop.index0 }}">
+                <img src="{{ c.img }}" class="card">
+            </label>
+        {% endfor %}
+    </div>
+
+    <div class="buttons">
+        <button id="play-btn" class="play-btn">出す</button>
+        <button id="pass-btn" class="pass-btn">パス</button>
+    </div>
+</div>
+
+<script>
+const socket = io();
+const room_id = "{{ room_id }}";
+const my_pid = "{{ my_pid }}";
+
+socket.emit(
+    "join_daifugo_room",
+    {
+        room_id: room_id
+    }
+);
+// -------------------------
+// カードを出す
+// -------------------------
+document.getElementById("play-btn").onclick = () => {
+    const selected = [];
+    document.querySelectorAll("#my-cards input:checked").forEach(i => {
+        selected.push(parseInt(i.value));
+    });
+
+    socket.emit("play_card", {
+        room_id: room_id,
+        pid: my_pid,
+        selected: selected
+    });
+};
+
+// -------------------------
+// パス
+// -------------------------
+document.getElementById("pass-btn").onclick = () => {
+    socket.emit("pass", {
+        room_id: room_id,
+        pid: my_pid
+    });
+};
+
+// -------------------------
+// ゲーム更新（DOM更新）
+// -------------------------
+socket.on("update_game", data => {
+
+    console.log("update_game受信");
+    console.log(data);
+
+    const game = data.game;
+
+    // 状態メッセージ
+    document.getElementById("state_message").innerText = game.state_message;
+
+    // 誰のターンか表示
+if (game.turn === my_pid) {
+
+    document.getElementById(
+        "turn-player"
+    ).innerText = "あなた";
+
+}
+else {
+
+    document.getElementById(
+        "turn-player"
+    ).innerText = game.turn;
+
+}
+    // ラウンド
+    document.getElementById("round").innerText = game.round;
+
+    // 場札
+    const fieldDiv = document.getElementById("field-cards");
+    fieldDiv.innerHTML = "";
+    game.field.forEach(c => {
+        const img = document.createElement("img");
+        img.src = c.img;
+        img.className = "card";
+        fieldDiv.appendChild(img);
+    });
+
+    // CPUの残り枚数
+    for (let pid in game.hands) {
+        if (pid !== my_pid) {
+            const cpuBox = document.querySelector(`#cpu-${pid} .cpu-count span`);
+            if (cpuBox) cpuBox.innerText = game.hands[pid].length;
+        }
+    }
+
+    // 自分の手札
+    const myCardsDiv = document.getElementById("my-cards");
+    myCardsDiv.innerHTML = "";
+    game.hands[my_pid].forEach((c, idx) => {
+        const label = document.createElement("label");
+        label.className = "card-label";
+
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.value = idx;
+
+        const img = document.createElement("img");
+        img.src = c.img;
+        img.className = "card";
+
+        label.appendChild(input);
+        label.appendChild(img);
+        myCardsDiv.appendChild(label);
+    });
+
+    document.getElementById("my-count").innerText = game.hands[my_pid].length;
+});
+
+// -------------------------
+// ラウンド結果
+// -------------------------
+socket.on("round_result", data => {
+    sessionStorage.setItem("round_result", JSON.stringify(data));
+    window.location.href = "/matching_daifugo_online_round_result";
+});
+
+// -------------------------
+// 最終結果
+// -------------------------
+socket.on("final_result", data => {
+    sessionStorage.setItem("final_result", JSON.stringify(data));
+    window.location.href = "/matching_daifugo_online_finish";
+});
+</script>
+
+</body>
+</html>

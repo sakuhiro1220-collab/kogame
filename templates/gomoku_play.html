@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>五目並べ</title>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<style>
+
+body{
+    text-align:center;
+    font-family:sans-serif;
+}
+
+#board{
+    display:grid;
+    grid-template-columns:repeat(15,40px);
+    width:600px;
+    margin:auto;
+}
+
+.cell{
+    width:40px;
+    height:40px;
+    border:1px solid #999;
+    background:#d7a85d;
+    cursor:pointer;
+    box-sizing:border-box;
+}
+
+.black{
+    width:30px;
+    height:30px;
+    background:black;
+    border-radius:50%;
+    margin:4px;
+}
+
+.white{
+    width:30px;
+    height:30px;
+    background:white;
+    border:1px solid black;
+    border-radius:50%;
+    margin:4px;
+}
+
+#timer{
+    color:red;
+    font-size:24px;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>五目並べ</h1>
+
+<h2 id="turnInfo">
+接続中...
+</h2>
+
+<h3 id="timer">
+残り時間 : 20
+</h3>
+
+<div id="board"></div>
+
+<script>
+
+const socket = io();
+
+const roomId = "{{ room_id }}";
+
+let remainingTime = 20;
+
+let timerInterval = null;
+
+function drawBoard(board){
+
+    const boardDiv =
+        document.getElementById("board");
+
+    boardDiv.innerHTML = "";
+
+    for(let y = 0; y < 15; y++){
+
+        for(let x = 0; x < 15; x++){
+
+            const cell =
+                document.createElement("div");
+
+            cell.className = "cell";
+
+            cell.onclick = () => {
+
+                socket.emit(
+                    "gomoku_place",
+                    {
+                        room_id: roomId,
+                        x: x,
+                        y: y
+                    }
+                );
+            };
+
+            if(board[y][x] === 1){
+
+                const stone =
+                    document.createElement("div");
+
+                stone.className =
+                    "black";
+
+                cell.appendChild(stone);
+            }
+
+            if(board[y][x] === 2){
+
+                const stone =
+                    document.createElement("div");
+
+                stone.className =
+                    "white";
+
+                cell.appendChild(stone);
+            }
+
+            boardDiv.appendChild(cell);
+        }
+    }
+}
+
+/* 最初に空盤面を表示 */
+
+drawBoard(
+
+    Array.from(
+        {length:15},
+        () => Array(15).fill(0)
+    )
+
+);
+
+socket.emit(
+    "join_gomoku_room",
+    {
+        room_id: roomId
+    }
+);
+
+socket.on(
+    "gomoku_update",
+    data => {
+
+        drawBoard(
+            data.board
+        );
+
+        document.getElementById(
+            "turnInfo"
+        ).innerText =
+            "現在のターン : "
+            + data.turn;
+
+        remainingTime = 20;
+
+        if(timerInterval){
+
+            clearInterval(
+                timerInterval
+            );
+        }
+
+        timerInterval = setInterval(
+            () => {
+
+                remainingTime--;
+
+                document.getElementById(
+                    "timer"
+                ).innerText =
+                    "残り時間 : "
+                    + remainingTime;
+
+                if(
+                    remainingTime <= 0
+                ){
+
+                    clearInterval(
+                        timerInterval
+                    );
+
+                    socket.emit(
+                        "gomoku_timeout",
+                        {
+                            room_id: roomId
+                        }
+                    );
+                }
+
+            },
+            1000
+        );
+    }
+);
+
+socket.on(
+    "gomoku_finish",
+    data => {
+
+        console.log(
+            "gomoku_finish受信"
+        );
+
+        if(data.winner){
+
+            window.location.href =
+                "/gomoku_result?result="
+                + (
+                    data.winner === "{{ session['user_id'] }}"
+                    ? "win"
+                    : "lose"
+                );
+        }
+    }
+);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>チャット履歴</title>
+</head>
+<body>
+    <h1>チャット履歴</h1>
+
+    {% if history %}
+        {% for item in history %}
+            <p>{{ item.message }}</p>
+        {% endfor %}
+    {% else %}
+        <p>履歴はありません。</p>
+    {% endif %}
+
+    <a href="/chat_page">戻る</a>
+</body>
+</html>

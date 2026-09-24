@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head><link rel="stylesheet" href="/static/css/chat_room.css">
+
+<meta charset="UTF-8">
+<title>{{ partner_user.name }}とのチャット</title>
+
+<script>
+
+const partnerId = "{{ partner }}";
+
+function openPartnerProfile() {
+
+    window.location.href =
+        "/profile/" +
+        encodeURIComponent(partnerId);
+}
+
+</script>
+
+<style>
+.chat-top-buttons {
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 12px 20px;
+
+    box-sizing: border-box;
+
+    background: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.chat-back-button,
+.profile-button {
+    border: none;
+    border-radius: 12px;
+
+    padding: 10px 16px;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.chat-back-button {
+    background: #eeeeee;
+    color: #333;
+}
+
+.profile-button {
+    background: #ff4d6d;
+    color: white;
+}
+
+.chat-back-button:hover,
+.profile-button:hover {
+    transform: translateY(-2px);
+}
+
+.chat-back-button:hover {
+    background: #dddddd;
+}
+
+.profile-button:hover {
+    background: #e93d5e;
+}
+
+body { font-family: sans-serif; background:#f5f5f5; margin:0; }
+
+.chat-area {
+    padding:15px;
+    height: calc(100vh - 160px);
+    overflow-y: scroll;
+}
+
+.bubble {
+    max-width:70%;
+    padding:10px 15px;
+    border-radius:12px;
+    margin-bottom:10px;
+}
+
+.me { background:#DCF8C6; margin-left:auto; }
+.partner { background:white; margin-right:auto; }
+
+.gift {
+    background:#ffe0f5;
+    border:2px solid #ff66cc;
+    color:#cc0077;
+    font-weight:bold;
+}
+
+.photo-img { max-width:200px; border-radius:10px; margin-top:5px; }
+.read { font-size:12px; color:#888; margin-left:10px; }
+
+.input-area {
+    position:fixed; bottom:0; width:100%;
+    background:white; padding:10px; border-top:1px solid #ddd;
+    display:flex; gap:10px;
+}
+
+.gift-btn {
+    background:#ff66cc;
+    color:white;
+    padding:10px 15px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    font-size:16px;
+}
+.gift-btn:hover { background:#ff88dd; }
+
+/* ギフトモーダル */
+.modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display:none;
+}
+.modal-content {
+    background:white;
+    padding:20px;
+    margin:100px auto;
+    width:80%;
+    border-radius:10px;
+    text-align:center;
+}
+.modal-content button {
+    display:block;
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    font-size:18px;
+}
+
+/* アニメーションレイヤー */
+#giftEffectLayer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+</style>
+</head>
+<body>
+
+<div class="chat-top-buttons">
+
+    <button
+        class="chat-back-button"
+        onclick="location.href='/chat_page'"
+    >
+        ← チャット一覧
+    </button>
+
+    <button
+        class="profile-button"
+        onclick="openPartnerProfile()"
+    >
+        👤 相手のプロフィール
+    </button>
+
+</div>
+
+<div class="chat-area" id="chatArea">
+    {% for msg in history %}
+        {% if msg.sender == user_id %}
+            <div class="bubble me {% if msg.gift %}gift{% endif %}">
+                {{ msg.message }}
+                {% if msg.photo %}
+                    <img src="{{ msg.photo }}" class="photo-img">
+                {% endif %}
+                {% if msg.read %}<span class="read">既読</span>{% endif %}
+            </div>
+        {% else %}
+            <div class="bubble partner {% if msg.gift %}gift{% endif %}">
+                {{ msg.message }}
+                {% if msg.photo %}
+                    <img src="{{ msg.photo }}" class="photo-img">
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="input-area">
+    <form action="/chat_room/{{ partner }}" method="POST" enctype="multipart/form-data" style="flex:1;">
+        <input type="text" name="message" style="width:60%; padding:10px;">
+        <input type="file" name="photo">
+        <button type="submit">送信</button>
+    </form>
+
+    <button onclick="openGiftMenu()" class="gift-btn">🎁 ギフト</button>
+</div>
+
+<!-- ギフトメニュー -->
+<div id="giftModal" class="modal">
+    <div class="modal-content">
+        <h3>ギフトを送る</h3>
+
+        <!-- 既存ギフト -->
+        <button onclick="sendRankGift('銅')">🥉 銅（10コイン / +5）</button>
+        <button onclick="sendRankGift('銀')">🥈 銀（30コイン / +15）</button>
+        <button onclick="sendRankGift('金')">🥇 金（60コイン / +30）</button>
+        <button onclick="sendRankGift('サファイア')">🔷 サファイア（120コイン / +70）</button>
+        <button onclick="sendRankGift('エメラルド')">💚 エメラルド（200コイン / +120）</button>
+        <button onclick="sendRankGift('ダイヤモンド')">💎 ダイヤモンド（500コイン / +300）</button>
+        <button onclick="sendRankGift('プラチナ')">👑 プラチナ（1000コイン / +700）</button>
+
+        <hr>
+
+        <!-- 新ギフト -->
+        <button onclick="sendRankGift('氷の柱')">❄ 氷の柱（10000コイン / +2000）</button>
+        <button onclick="sendRankGift('ハートの雨')">💗 ハートの雨（30000コイン / +5000）</button>
+        <button onclick="sendRankGift('宝石の爆発')">💎 宝石の爆発（50000コイン / +10000）</button>
+        <button onclick="sendRankGift('恋の龍')">🐉 恋の龍（100000コイン / +50000）</button>
+
+        <button onclick="closeGiftMenu()">閉じる</button>
+    </div>
+</div>
+
+<div id="giftEffectLayer"></div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<script>
+const socket = io();
+
+// ★ 自分の user_id の部屋に入る（重要）
+socket.emit("join_room", {
+    room: "{{ user_id }}",
+    user_id: "{{ user_id }}"
+});
+
+// ★ ギフトメニューを空白タップで閉じる
+document.getElementById("giftModal").addEventListener("click", function(e) {
+    if (e.target === this) {
+        closeGiftMenu();
+    }
+});
+
+function openGiftMenu() {
+    document.getElementById("giftModal").style.display = "block";
+}
+function closeGiftMenu() {
+    document.getElementById("giftModal").style.display = "none";
+}
+
+function sendRankGift(rank) {
+
+    console.log("ギフト押下");
+    console.log(rank);
+
+    socket.emit("send_rank_gift", {
+        partner: "{{ partner }}",
+        rank: rank
+    });
+
+    console.log("emit完了");
+
+    playGiftAnimation(rank);
+    closeGiftMenu();
+}
+
+socket.on("gift_received", function(data) {
+    addMessage(`🎁 ${data.rank}ギフトを受け取りました！（+${data.stars}）`, false);
+    playGiftAnimation(data.rank);
+});
+
+function addMessage(text, me=true) {
+    const div = document.createElement("div");
+    div.className = "bubble " + (me ? "me" : "partner");
+    div.innerText = text;
+    document.getElementById("chatArea").appendChild(div);
+    document.getElementById("chatArea").scrollTop = document.getElementById("chatArea").scrollHeight;
+}
+
+/* 特殊効果アニメーション */
+function playGiftAnimation(rank) {
+    const layer = document.getElementById("giftEffectLayer");
+    layer.innerHTML = "";
+
+    switch(rank) {
+
+        case "氷の柱":
+            let ice = document.createElement("div");
+            ice.innerHTML = "❄";
+            ice.style.position = "absolute";
+            ice.style.left = "50%";
+            ice.style.top = "-20%";
+            ice.style.fontSize = "150px";
+            layer.appendChild(ice);
+
+            ice.animate([
+                { transform: "translate(-50%, 0)" },
+                { transform: "translate(-50%, 60vh)" }
+            ], { duration: 700, easing: "ease-out" });
+
+            for (let i = 0; i < 40; i++) {
+                let shard = document.createElement("div");
+                shard.innerHTML = "❄";
+                shard.style.position = "absolute";
+                shard.style.left = "50%";
+                shard.style.top = "50%";
+                shard.style.fontSize = "20px";
+                layer.appendChild(shard);
+
+                shard.animate([
+                    { transform: "translate(0,0)", opacity: 1 },
+                    { transform: `translate(${(Math.random()-0.5)*400}px, ${(Math.random()-0.5)*400}px)`, opacity: 0 }
+                ], { duration: 1500 });
+            }
+            break;
+
+        case "ハートの雨":
+            for (let i = 0; i < 60; i++) {
+                let heart = document.createElement("div");
+                heart.innerHTML = "💗";
+                heart.style.position = "absolute";
+                heart.style.left = `${Math.random()*100}%`;
+                heart.style.top = "-10%";
+                heart.style.fontSize = "30px";
+                layer.appendChild(heart);
+
+                heart.animate([
+                    { transform: "translateY(0)", opacity: 1 },
+                    { transform: "translateY(120vh)", opacity: 0 }
+                ], { duration: 2000 + Math.random()*1000 });
+            }
+            break;
+
+        case "宝石の爆発":
+            for (let i = 0; i < 30; i++) {
+                let gem = document.createElement("div");
+                gem.innerHTML = ["💎","🔷","🔶","🔺","🔹"][Math.floor(Math.random()*5)];
+                gem.style.position = "absolute";
+                gem.style.left = "50%";
+                gem.style.top = "50%";
+                gem.style.fontSize = "30px";
+                layer.appendChild(gem);
+
+                gem.animate([
+                    { transform: "translate(0,0)", opacity: 1 },
+                    { transform: `translate(${(Math.random()-0.5)*500}px, ${(Math.random()-0.5)*500}px)`, opacity: 0 }
+                ], { duration: 1500 });
+            }
+            break;
+
+        case "恋の龍":
+            let dragon = document.createElement("div");
+            dragon.innerHTML = "🐉";
+            dragon.style.position = "absolute";
+            dragon.style.left = "-20%";
+            dragon.style.top = "40%";
+            dragon.style.fontSize = "150px";
+            layer.appendChild(dragon);
+
+            dragon.animate([
+                { transform: "translateX(0)" },
+                { transform: "translateX(140vw)" }
+            ], { duration: 2000, easing: "ease-in-out" });
+
+            break;
+            
+    }
+
+    setTimeout(() => { layer.innerHTML = ""; }, 2000);
+}
+</script>
+
+</body>
+</html>
+
+
+
+

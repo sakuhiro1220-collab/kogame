@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>対局結果</title>
+
+<style>
+
+body{
+    text-align:center;
+    font-family:sans-serif;
+    padding-top:80px;
+}
+
+.win{
+    color:gold;
+    font-size:50px;
+}
+
+.lose{
+    color:#777;
+    font-size:50px;
+}
+
+.coin{
+    font-size:30px;
+    margin-top:20px;
+}
+
+button{
+    margin-top:30px;
+    padding:15px 40px;
+    font-size:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+{% if result == "win" %}
+
+<h1 class="win">
+🏆 勝利
+</h1>
+
+<p class="coin">
++100 Coin
+</p>
+
+{% else %}
+
+<h1 class="lose">
+😭 敗北
+</h1>
+
+<p class="coin">
++0 Coin
+</p>
+
+{% endif %}
+
+<p>
+現在の所持コイン：
+{{ coins }}
+</p>
+
+<button
+onclick="location.href='/home'"
+>
+ホームへ戻る
+</button>
+
+</body>
+</html>

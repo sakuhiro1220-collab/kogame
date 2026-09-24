@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{{ user.name }}のプロフィール</title>
+
+<style>
+body{
+    font-family:"Hiragino Sans","Noto Sans JP",sans-serif;
+    background:#f5f7fa;
+    margin:0;
+    padding:0;
+}
+
+.container{
+    max-width:480px;
+    margin:40px auto;
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+.icon{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    object-fit:cover;
+    display:block;
+    margin:0 auto 15px auto;
+    border:4px solid #eee;
+}
+
+h2{
+    text-align:center;
+    margin-bottom:5px;
+}
+
+.verified{
+    text-align:center;
+    font-size:14px;
+    margin-bottom:15px;
+}
+
+.verified span{
+    background:#4CAF50;
+    color:white;
+    padding:4px 10px;
+    border-radius:12px;
+}
+
+.not-verified span{
+    background:#e74c3c;
+    color:white;
+    padding:4px 10px;
+    border-radius:12px;
+}
+
+.info-box{
+    background:#fafafa;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:20px;
+    border:1px solid #eee;
+}
+
+.info-box p{
+    margin:8px 0;
+}
+
+.stats-box{
+    background:#fff8e6;
+    padding:15px;
+    border-radius:12px;
+    border:1px solid #f1d28c;
+    margin-bottom:20px;
+}
+
+.edit-btn{
+    display:block;
+    width:100%;
+    background:#3498db;
+    color:white;
+    text-align:center;
+    padding:12px;
+    border-radius:10px;
+    text-decoration:none;
+    margin-top:10px;
+}
+
+.back-btn{
+    display:block;
+    width:100%;
+    background:#95a5a6;
+    color:white;
+    text-align:center;
+    padding:10px;
+    border-radius:10px;
+    text-decoration:none;
+    margin-top:15px;
+}
+
+.coin-box{
+    background:linear-gradient(45deg,#ffd700,#fff2a8);
+    padding:15px;
+    border-radius:12px;
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+{% set is_me = (user.id == session['user_id']) %}
+
+<img
+    src="{{ user.photo_url if user.photo_url else '/static/default.png' }}"
+    class="icon"
+    alt="プロフィール画像"
+
+{% if user.verified %}
+<div class="verified">
+<span>✔ 年齢確認済み</span>
+</div>
+{% else %}
+<div class="not-verified">
+<span>✖ 年齢未確認</span>
+</div>
+{% endif %}
+
+{% if is_me %}
+<div class="coin-box">
+🪙 {{ user.coins }} Coin
+</div>
+{% endif %}
+
+<div class="info-box">
+
+<p><strong>名前：</strong>{{ user.name }}</p>
+
+<p><strong>住んでいる県：</strong>{{ user.address }}</p>
+
+<p><strong>性別：</strong>{{ user.gender }}</p>
+
+<p><strong>年齢：</strong>{{ user.age }}</p>
+
+<p>
+<strong>自己紹介：</strong><br>
+{{ user.intro }}
+</p>
+
+</div>
+
+<div class="stats-box">
+
+<p>
+<strong>いいね数：</strong>
+❤️ {{ received_likes }}
+</p>
+
+<p>
+<strong>スター値：</strong>
+⭐ {{ user.stars }}
+</p>
+
+</div>
+
+{% if is_me %}
+<a href="/profile_edit_page" class="edit-btn">
+プロフィール編集
+</a>
+{% endif %}
+
+<a href="/home">ホームに戻る</a>
+</a>
+
+</div>
+
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>メールボックス</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            color: white;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 20px 30px;
+
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .back-button {
+            padding: 10px 18px;
+
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+
+            cursor: pointer;
+            font-size: 14px;
+
+            transition: 0.2s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            width: min(900px, 92%);
+            margin: 30px auto;
+        }
+
+        .mail-count {
+            margin-bottom: 18px;
+            color: #d9e6ff;
+        }
+
+        .mail-card {
+            position: relative;
+
+            margin-bottom: 15px;
+            padding: 20px;
+
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+
+            background: rgba(255, 255, 255, 0.08);
+
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+
+            transition: 0.2s;
+        }
+
+        .mail-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .mail-card.unread {
+            border-left: 5px solid #4da3ff;
+        }
+
+        .mail-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .mail-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .mail-date {
+            color: #aebbd0;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .mail-message {
+            margin-top: 12px;
+
+            color: #e5eaf2;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .mail-type {
+            display: inline-block;
+
+            margin-top: 12px;
+            padding: 5px 10px;
+
+            border-radius: 999px;
+
+            font-size: 12px;
+            font-weight: bold;
+
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .like {
+            color: #ff8fb3;
+        }
+
+        .system {
+            color: #78bdff;
+        }
+
+        .gift {
+            color: #ffd86b;
+        }
+
+        .unread-badge {
+            display: inline-block;
+
+            margin-left: 8px;
+            padding: 3px 8px;
+
+            border-radius: 999px;
+
+            background: #ff3b5c;
+            color: white;
+
+            font-size: 11px;
+        }
+
+        .reward-box {
+            margin-top: 15px;
+            padding: 15px;
+
+            border-radius: 14px;
+
+            background: rgba(255, 202, 40, 0.12);
+            border: 1px solid rgba(255, 202, 40, 0.25);
+        }
+
+        .claim-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: linear-gradient(135deg, #ffbf35, #ff8f1f);
+            color: #162033;
+
+            font-weight: bold;
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .claim-button:hover {
+            transform: scale(1.04);
+        }
+
+        .claimed {
+            margin-top: 10px;
+            color: #85e6a3;
+            font-weight: bold;
+        }
+
+        .empty {
+            padding: 60px 20px;
+
+            text-align: center;
+
+            border-radius: 20px;
+
+            background: rgba(255, 255, 255, 0.06);
+
+            color: #bac7da;
+        }
+
+        .empty-icon {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .mail-top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+
+    <h1>
+        📬 メールボックス
+    </h1>
+
+    <button
+        class="back-button"
+        onclick="location.href='/home'"
+    >
+        ← ホームへ戻る
+    </button>
+
+</div>
+
+
+<div class="container">
+
+    <div class="mail-count">
+        未読メール：
+        <strong>{{ unread_count }}</strong>
+        件
+    </div>
+
+
+    {% if mails %}
+
+        {% for mail in mails %}
+
+        <div class="mail-card {% if not mail.read %}unread{% endif %}">
+
+            <div class="mail-top">
+
+                <div class="mail-title">
+
+                    {% if mail.type == "like" %}
+                        ❤️
+                    {% elif mail.type == "gift" %}
+                        🎁
+                    {% else %}
+                        📢
+                    {% endif %}
+
+                    {{ mail.title }}
+
+                    {% if not mail.read %}
+                    <span class="unread-badge">
+                        NEW
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <div class="mail-date">
+                    {{ mail.created_at }}
+                </div>
+
+            </div>
+
+
+            <div class="mail-message">
+                {{ mail.message }}
+            </div>
+
+
+            {% if mail.type == "like" %}
+
+                <div class="mail-type like">
+                    ❤️ いいね
+                </div>
+
+            {% elif mail.type == "gift" %}
+
+                <div class="mail-type gift">
+                    🎁 プレゼント
+                </div>
+
+            {% else %}
+
+                <div class="mail-type system">
+                    📢 運営
+                </div>
+
+            {% endif %}
+
+
+            {% if mail.reward_coin and mail.reward_coin > 0 %}
+
+                <div class="reward-box">
+
+                    🎁
+                    <strong>
+                        {{ mail.reward_coin }} Coin
+                    </strong>
+
+                    {% if not mail.reward_claimed %}
+
+                        /mailbox/claim/{{ mail.id }}
+
+                            <button
+                                type="submit"
+                                class="claim-button"
+                            >
+                                受け取る
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <div class="claimed">
+                            ✓ 受取済み
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+
+    {% else %}
+
+        <div class="empty">
+
+            <div class="empty-icon">
+                📭
+            </div>
+
+            <h2>
+                メールはありません
+            </h2>
+
+            <p>
+                いいね通知や運営からのお知らせ、
+                プレゼントがここに届きます。
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+</body>
+</html>

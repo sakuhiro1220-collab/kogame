@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>オンライン大富豪 - ラウンド結果</title>
+<link rel="stylesheet" href="/static/daifugo.css">
+</head>
+
+<body class="normal">
+
+<div class="result-container">
+    <h1>ラウンド結果</h1>
+
+    <div id="result-area"></div>
+
+    <div class="buttons">
+        <button id="next-btn" class="play-btn">次のラウンドへ</button>
+    </div>
+</div>
+
+<script>
+const data = JSON.parse(sessionStorage.getItem("round_result"));
+const area = document.getElementById("result-area");
+
+let html = `
+    <h2>ラウンド ${data.round} の結果</h2>
+    <table class="result-table">
+        <tr><th>プレイヤー</th><th>階級</th><th>累計ポイント</th></tr>
+`;
+
+for (const pid in data.ranks) {
+    html += `
+        <tr>
+            <td>${pid}</td>
+            <td>${data.ranks[pid]}</td>
+            <td>${data.total_points[pid]}</td>
+        </tr>
+    `;
+}
+
+html += "</table>";
+area.innerHTML = html;
+
+// 次ラウンドへ
+document.getElementById("next-btn").onclick = () => {
+    fetch("/matching_daifugo_online_next_round", { method: "POST" })
+        .then(() => {
+            window.location.href = "/matching_daifugo_online_play";
+        });
+};
+</script>
+
+<style>
+.result-container {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.result-table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    width: 60%;
+    background: rgba(255,255,255,0.8);
+}
+
+.result-table th, .result-table td {
+    padding: 12px;
+    border: 1px solid #ccc;
+    font-size: 20px;
+}
+
+.result-table th {
+    background: #2196f3;
+    color: #fff;
+}
+
+.play-btn {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 10px 20px;
+    background: #2196f3;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 20px;
+}
+</style>
+
+</body>
+</html>

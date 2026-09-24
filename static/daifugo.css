@@ -1,0 +1,156 @@
+body {
+    margin: 0;
+    font-family: "Noto Sans JP", sans-serif;
+    transition: background 0.4s ease;
+}
+
+/* 状態別背景 */
+body.normal { background: #f5f5f5; }
+body.revolution { background: linear-gradient(135deg, #ff4d4d, #ffe6e6); }
+body.jback { background: linear-gradient(135deg, #4d79ff, #e6f0ff); }
+body.eightcut { background: linear-gradient(135deg, #fff04d, #fff9c4); }
+body.skip { background: linear-gradient(135deg, #9c27b0, #f3e5f5); }
+body.bind { background: linear-gradient(135deg, #4caf50, #e8f5e9); }
+
+/* ターン表示 */
+.turn-indicator {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    padding: 15px;
+    margin: 20px auto;
+    width: 60%;
+    border-radius: 12px;
+    color: #fff;
+    animation: pulse 1.2s infinite alternate;
+}
+.turn-indicator.p1 { background: #2196f3; }
+.turn-indicator.p2,
+.turn-indicator.p3,
+.turn-indicator.p4 { background: #e53935; }
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+/* カード表示など…（省略） */
+
+.turn-indicator {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    padding: 15px;
+    margin: 20px auto;
+    width: 60%;
+    border-radius: 12px;
+    color: #fff;
+    text-shadow: 0 0 5px #000;
+    animation: pulse 1.2s infinite alternate;
+}
+
+/* 自分の番（青く光る） */
+.turn-indicator.p1 {
+    background: #2196f3;
+}
+
+/* CPUの番（赤く光る） */
+.turn-indicator.p2,
+.turn-indicator.p3,
+.turn-indicator.p4 {
+    background: #e53935;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+/* 全体 */
+body {
+    margin: 0;
+    padding: 0;
+    background: #f5f5f5;
+    font-family: sans-serif;
+}
+
+/* 上部バー */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: #333;
+    color: white;
+    font-size: 18px;
+}
+
+/* CPUエリア */
+.cpu-area {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 10px;
+}
+
+.cpu-box {
+    background: #fff;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    width: 45%;
+    text-align: center;
+}
+
+/* 場札 */
+.field-area {
+    text-align: center;
+    padding: 10px;
+}
+
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* カード画像（スマホ対応） */
+.card {
+    width: 70px;
+    margin: 4px;
+}
+
+@media (max-width: 600px) {
+    .card {
+        width: 55px;
+    }
+}
+
+/* 手札 */
+.player-area {
+    text-align: center;
+    padding: 10px;
+}
+
+.card-label {
+    display: inline-block;
+    margin: 4px;
+}
+
+/* ボタン */
+.buttons {
+    margin-top: 10px;
+}
+
+.play-btn, .pass-btn {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin: 5px;
+    border-radius: 8px;
+    border: none;
+    background: #007bff;
+    color: white;
+}
+
+.pass-btn {
+    background: #888;
+}
