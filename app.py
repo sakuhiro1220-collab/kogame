@@ -1,5 +1,8 @@
 import socket
 
+from flask_socketio import SocketIO, join_room
+
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -8,30 +11,7 @@ from flask import (
     Flask, request, jsonify, render_template,
     session, redirect, url_for
 )
-try:
-    from importlib import import_module
-    _socketio = import_module("flask_socketio")
-    SocketIO = _socketio.SocketIO
-    join_room = _socketio.join_room
-except ImportError:
-    # Flask-SocketIO がないとき用の代替クラス
-    class SocketIO:
-        def __init__(self, app):
-            self.app = app
 
-        def on(self, *_args, **_kwargs):
-            return lambda func: func
-
-        def emit(self, *_args, **_kwargs):
-            return None
-
-        def run(self, *args, **kwargs):
-            # host/port は Flask に任せる。debug だけ拾う
-            debug = kwargs.get("debug", True)
-            return self.app.run(debug=debug)
-
-    def join_room(_room):
-        return None
 
 import os
 import json
@@ -459,7 +439,9 @@ class GeoAnswer(db.Model):
 
 socketio = SocketIO(
     app,
-    async_mode="threading"
+    async_mode="threading",
+    logger=True,
+    engineio_logger=True
 )
 
 
