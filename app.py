@@ -1,5 +1,9 @@
 import socket
 
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+
 from flask import (
     Flask, request, jsonify, render_template,
     session, redirect, url_for
@@ -41,6 +45,7 @@ import uuid
 import threading
 from datetime import date
 
+from werkzeug.security import generate_password_hash, check_password_hash
 FREE_SWIPE_LIMIT = 5
 SWIPE_UNLOCK_COST = 50
 
@@ -90,8 +95,202 @@ CPU_WAIT_SECONDS = 300
 daifugo_rooms = {}
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
-socketio = SocketIO(app, async_mode="threading")
+
+# =========================
+# Flask Secret Key
+# =========================
+
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
+
+if not app.secret_key:
+    raise RuntimeError(
+        "FLASK_SECRET_KEY が設定されていません"
+    )
+
+
+# =========================
+# PostgreSQL
+# =========================
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL が設定されていません"
+    )
+
+# 古い形式のURLにも対応
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://",
+        "postgresql+psycopg://",
+        1
+    )
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgresql://",
+        "postgresql+psycopg://",
+        1
+    )
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+
+# DB初期化
+db = SQLAlchemy(app)
+
+migrate = Migrate(app, db)
+
+# =========================
+# Database Models
+# =========================
+
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(
+        db.String(100),
+        primary_key=True
+    )
+
+    password = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    name = db.Column(
+        db.String(100)
+    )
+
+    gender = db.Column(
+        db.String(50)
+    )
+
+    age = db.Column(
+        db.Integer
+    )
+
+    intro = db.Column(
+        db.Text
+    )
+
+    photo_url = db.Column(
+        db.Text
+    )
+
+    coins = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
+    stars = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
+    birthday = db.Column(
+        db.String(20)
+    )
+
+    address = db.Column(
+        db.String(255)
+    )
+
+    id_photo = db.Column(
+        db.Text
+    )
+
+    verified = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
+
+    verified = db.Column(
+            db.Boolean,
+            nullable=False,
+            default=False
+        )
+    
+    can_send_photo = db.Column(
+            db.Boolean,
+            nullable=False,
+            default=False
+        )
+
+class StripePayment(db.Model):
+    __tablename__ = "stripe_payments"
+
+    session_id = db.Column(
+        db.String(255),
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    coin = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    processed = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
+
+class Like(db.Model):
+    __tablename__ = "likes"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    sender_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    receiver_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "sender_id",
+            "receiver_id",
+            name="uq_like_sender_receiver"
+        ),
+    )
+
+
+    
+# =========================
+# Socket.IO
+# =========================
+
+socketio = SocketIO(
+    app,
+    async_mode="threading"
+)
+
 
 
 rooms = {}  # スピード＆ジオゲッサー用オンライン対戦ルーム
@@ -110,11 +309,11 @@ STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.environ.get(
     "STRIPE_WEBHOOK_SECRET"
 )
-
 BASE_URL = os.environ.get(
     "BASE_URL",
     "http://127.0.0.1:5000"
 )
+
 
 if not STRIPE_SECRET_KEY:
     raise RuntimeError(
@@ -252,70 +451,99 @@ def register_page():
 
 @app.route("/register", methods=["POST"])
 def register():
-    from datetime import date, datetime
 
-    user_id = request.form.get("id")
-    password = request.form.get("password")
-    name = request.form.get("name")
-    gender = request.form.get("gender")
-    intro = request.form.get("intro")
-    address = request.form.get("address")
-    birthday = request.form.get("birthday")
+    user_id = request.form.get("user_id", "").strip()
+    password = request.form.get("password", "")
+    name = request.form.get("name", "").strip()
 
-    # 年齢計算
-    age_calc = None
-    if birthday:
-        birth = datetime.strptime(birthday, "%Y-%m-%d").date()
-        today = date.today()
-        age_calc = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+    gender = request.form.get("gender", "")
+    birthday = request.form.get("birthday", "")
+    address = request.form.get("address", "")
+    intro = request.form.get("intro", "")
 
-        if age_calc < 18:
-            return "18歳未満は利用できません"
+    # -------------------------
+    # 入力チェック
+    # -------------------------
 
-    # プロフィール画像
-    photo_url = None
-    file = request.files.get("photo")
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(save_path)
-        photo_url = "/" + save_path.replace("\\", "/")
+    if not user_id:
+        return "ユーザーIDを入力してください", 400
 
-    # 身分証画像（ここが重要）
-    id_photo = request.files.get("id_photo")
-    id_photo_url = None
-    if id_photo and allowed_file(id_photo.filename):
-        filename = secure_filename("id_" + id_photo.filename)
-        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        id_photo.save(save_path)
-        id_photo_url = "/" + save_path.replace("\\", "/")
+    if not password:
+        return "パスワードを入力してください", 400
 
-    if not user_id or not password:
-        return "IDとパスワードは必須です"
+    if not name:
+        return "名前を入力してください", 400
 
-    users[user_id] = {
-        "id": user_id,
-        "password": password,
-        "name": name,
-        "gender": gender,
-        "age": age_calc,
-        "intro": intro,
-        "photo_url": photo_url,
-        "coins": 0,
-        "can_send_photo": False,
-        "likes": [],
-        "stars": 0,
-        "locked_info": True,
-        "birthday": birthday,
-        "address": address,
-        "id_photo": id_photo_url,
-        "verified": False
-    }
 
-    save_json(USERS_FILE, users)
+    # -------------------------
+    # ID重複チェック
+    # -------------------------
+
+    existing_user = db.session.get(
+        User,
+        user_id
+    )
+
+    if existing_user:
+        return "そのユーザーIDは既に使用されています", 409
+
+
+    # -------------------------
+    # パスワードをハッシュ化
+    # -------------------------
+
+    password_hash = generate_password_hash(
+        password
+    )
+
+
+    # -------------------------
+    # DB用ユーザー作成
+    # -------------------------
+
+    new_user = User(
+        id=user_id,
+        password=password_hash,
+        name=name,
+        gender=gender,
+        birthday=birthday,
+        address=address,
+        intro=intro,
+        coins=0,
+        stars=0,
+        verified=False
+    )
+
+
+    try:
+
+        db.session.add(new_user)
+
+        db.session.commit()
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "ユーザー登録DBエラー:",
+            str(e)
+        )
+
+        return "ユーザー登録に失敗しました", 500
+
+
+    # -------------------------
+    # ログイン状態にする
+    # -------------------------
 
     session["user_id"] = user_id
-    return redirect(url_for("home"))
+
+
+    return redirect(
+        url_for("home")
+    )
 
 
 # -------------------------
@@ -325,18 +553,65 @@ def register():
 def login_page():
     return render_template("login_page.html")
 
-
 @app.route("/login", methods=["POST"])
 def login():
-    user_id = request.form.get("id")
-    password = request.form.get("password")
 
-    user = users.get(user_id)
-    if not user or user["password"] != password:
-        return "IDまたはパスワードが違います"
+    user_id = request.form.get(
+        "user_id",
+        ""
+    ).strip()
 
-    session["user_id"] = user_id
-    return redirect(url_for("home"))
+    password = request.form.get(
+        "password",
+        ""
+    )
+
+    # -------------------------
+    # 入力チェック
+    # -------------------------
+
+    if not user_id or not password:
+        return "ユーザーIDとパスワードを入力してください", 400
+
+
+    # -------------------------
+    # PostgreSQLからユーザー取得
+    # -------------------------
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+
+    # -------------------------
+    # ユーザー存在チェック
+    # -------------------------
+
+    if not user:
+        return "ユーザーIDまたはパスワードが違います", 401
+
+
+    # -------------------------
+    # パスワード確認
+    # -------------------------
+
+    if not check_password_hash(
+        user.password,
+        password
+    ):
+        return "ユーザーIDまたはパスワードが違います", 401
+
+
+    # -------------------------
+    # ログイン成功
+    # -------------------------
+
+    session["user_id"] = user.id
+
+    return redirect(
+        url_for("home")
+    )
 
 
 # -------------------------
@@ -344,18 +619,31 @@ def login():
 # -------------------------
 @app.route("/home")
 def home():
+
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("top"))
 
-    current_user = users.get(user_id)
+    current_user = db.session.get(
+        User,
+        user_id
+    )
 
-    filtered_users = []
-    for uid, u in users.items():
-        if uid != user_id:
-            filtered_users.append(u)
+    if not current_user:
+        session.pop("user_id", None)
+        return redirect(url_for("top"))
 
-    return render_template("home.html", user=current_user, filtered_users=filtered_users)
+    filtered_users = db.session.execute(
+        db.select(User)
+        .where(User.id != user_id)
+    ).scalars().all()
+
+    return render_template(
+        "home.html",
+        user=current_user,
+        filtered_users=filtered_users
+    )
 
 # -------------------------
 # スワイプ用 次のユーザー
@@ -371,9 +659,24 @@ def swipe_record():
             "message": "ログインしてください"
         }), 401
 
-    data = get_daily_swipe_count(user_id)
+    user = db.session.get(
+        User,
+        user_id
+    )
 
-    unlock_data = get_swipe_daily_data(user_id)
+    if not user:
+        return jsonify({
+            "success": False,
+            "message": "ユーザーが見つかりません"
+        }), 404
+
+    data = get_daily_swipe_count(
+        user_id
+    )
+
+    unlock_data = get_swipe_daily_data(
+        user_id
+    )
 
     extra_cards = unlock_data.get(
         "extra_cards",
@@ -385,7 +688,6 @@ def swipe_record():
         + extra_cards
     )
 
-    # すでに上限
     if data["count"] >= limit:
 
         return jsonify({
@@ -393,13 +695,9 @@ def swipe_record():
             "locked": True,
             "count": data["count"],
             "limit": limit,
-            "coins": users[user_id].get(
-                "coins",
-                0
-            )
+            "coins": user.coins
         })
 
-    # 1枚スワイプ
     data["count"] += 1
 
     swipe_daily[user_id] = data
@@ -418,10 +716,7 @@ def swipe_record():
         "locked": locked,
         "count": data["count"],
         "limit": limit,
-        "coins": users[user_id].get(
-            "coins",
-            0
-        )
+        "coins": user.coins
     })
 
 @app.route("/swipe/next")
@@ -435,86 +730,100 @@ def swipe_next():
             "message": "ログインしてください"
         }), 401
 
+    current_user = db.session.get(
+        User,
+        user_id
+    )
+
+    if not current_user:
+        return jsonify({
+            "success": False,
+            "message": "ユーザーが見つかりません"
+        }), 404
+
     now = time.time()
     one_day = 60 * 60 * 24
 
-    user_history = swipe_history.get(user_id, {})
+    user_history = swipe_history.get(
+        user_id,
+        {}
+    )
 
-    # 24時間以上前の履歴を削除
     user_history = {
         uid: timestamp
-        for uid, timestamp in user_history.items()
+        for uid, timestamp
+        in user_history.items()
         if now - timestamp < one_day
     }
 
     swipe_history[user_id] = user_history
 
-    # 今日の追加解放枚数
-    daily_data = get_swipe_daily_data(user_id)
+    daily_data = get_swipe_daily_data(
+        user_id
+    )
 
     extra_cards = daily_data.get(
         "extra_cards",
         0
     )
 
-    # 今日表示可能な総数
     allowed_count = (
         FREE_SWIPE_LIMIT
         + extra_cards
     )
 
-    # 今日すでに表示した枚数
-    viewed_count = len(user_history)
+    viewed_count = len(
+        user_history
+    )
 
-    # 上限に到達
     if viewed_count >= allowed_count:
-
-        current_user = users.get(
-            user_id,
-            {}
-        )
 
         return jsonify({
             "success": False,
             "locked": True,
-            "message": "本日の無料カードをすべて見ました",
-            "cost": SWIPE_UNLOCK_COST,
-            "coins": current_user.get("coins", 0)
+            "message":
+                "本日の無料カードをすべて見ました",
+            "cost":
+                SWIPE_UNLOCK_COST,
+            "coins":
+                current_user.coins
         })
 
-    # 候補
+    all_users = db.session.execute(
+        db.select(User)
+        .where(User.id != user_id)
+    ).scalars().all()
+
     candidates = []
 
-    for uid, user_data in users.items():
+    for candidate in all_users:
 
-        # 自分自身
-        if uid == user_id:
+        if candidate.id in user_history:
             continue
 
-        # 24時間以内に表示済み
-        if uid in user_history:
-            continue
+        candidates.append(
+            candidate
+        )
 
-        candidates.append(user_data)
-
-    # 全ユーザーを見終わった
     if not candidates:
 
         return jsonify({
             "success": False,
             "locked": False,
-            "message": "現在表示できるユーザーはいません"
+            "message":
+                "現在表示できるユーザーはいません"
         })
 
-    # ランダムで1人
     selected_user = random.choice(
         candidates
     )
 
-    selected_id = selected_user["id"]
+    selected_id = selected_user.id
 
-    # 表示履歴保存
-    swipe_history[user_id][selected_id] = now
+    swipe_history.setdefault(
+        user_id,
+        {}
+    )[selected_id] = now
 
     save_json(
         SWIPE_HISTORY_FILE,
@@ -525,17 +834,21 @@ def swipe_next():
         "success": True,
 
         "user": {
-            "id": selected_user.get("id"),
-            "name": selected_user.get("name"),
-            "age": selected_user.get("age"),
-            "gender": selected_user.get("gender"),
-            "address": selected_user.get("address"),
-            "intro": selected_user.get("intro"),
-            "photo_url": selected_user.get("photo_url")
+            "id": selected_user.id,
+            "name": selected_user.name,
+            "age": selected_user.age,
+            "gender": selected_user.gender,
+            "address": selected_user.address,
+            "intro": selected_user.intro,
+            "photo_url":
+                selected_user.photo_url
         },
 
-        "viewed": viewed_count + 1,
-        "limit": allowed_count
+        "viewed":
+            viewed_count + 1,
+
+        "limit":
+            allowed_count
     })
 
 @app.route(
@@ -544,67 +857,97 @@ def swipe_next():
 )
 def swipe_unlock():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
 
     if not user_id:
+
         return jsonify({
             "success": False,
-            "message": "ログインしてください"
+            "message":
+                "ログインしてください"
         }), 401
 
-    user = users.get(user_id)
+    user = db.session.get(
+        User,
+        user_id
+    )
 
     if not user:
+
         return jsonify({
             "success": False,
-            "message": "ユーザーが見つかりません"
+            "message":
+                "ユーザーが見つかりません"
         }), 404
 
-    coins = user.get("coins", 0)
+    coins = user.coins or 0
 
-    # コイン不足
     if coins < SWIPE_UNLOCK_COST:
 
         return jsonify({
             "success": False,
-            "message": "コインが足りません",
+            "message":
+                "コインが足りません",
             "coins": coins
         })
 
-    # 50 coin消費
-    user["coins"] = (
-        coins - SWIPE_UNLOCK_COST
-    )
+    try:
 
-    # 追加カード +1
-    daily_data = get_swipe_daily_data(
-        user_id
-    )
+        user.coins = (
+            coins
+            - SWIPE_UNLOCK_COST
+        )
 
-    daily_data["extra_cards"] = (
-        daily_data.get(
-            "extra_cards",
-            0
-        ) + 1
-    )
+        daily_data = (
+            get_swipe_daily_data(
+                user_id
+            )
+        )
 
-    swipe_unlocks[user_id] = daily_data
+        daily_data[
+            "extra_cards"
+        ] = (
+            daily_data.get(
+                "extra_cards",
+                0
+            )
+            + 1
+        )
 
-    # 保存
-    save_json(
-        USERS_FILE,
-        users
-    )
+        swipe_unlocks[
+            user_id
+        ] = daily_data
 
-    save_json(
-        SWIPE_UNLOCKS_FILE,
-        swipe_unlocks
-    )
+        db.session.commit()
+
+        save_json(
+            SWIPE_UNLOCKS_FILE,
+            swipe_unlocks
+        )
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "スワイプ解放エラー:",
+            str(e)
+        )
+
+        return jsonify({
+            "success": False,
+            "message":
+                "処理に失敗しました"
+        }), 500
 
     return jsonify({
         "success": True,
-        "message": "カードを1枚解放しました",
-        "coins": user["coins"]
+        "message":
+            "カードを1枚解放しました",
+        "coins":
+            user.coins
     })
 # =========================
 # メールボックス
@@ -664,34 +1007,125 @@ def like(partner):
 # -------------------------
 @app.route("/profile")
 def profile():
-    user_id = session.get("user_id")
-    if not user_id:
-        return redirect(url_for("top"))
-    return render_template("profile.html", user=users[user_id])
 
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return redirect(
+            url_for("top")
+        )
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+    if not user:
+        session.pop(
+            "user_id",
+            None
+        )
+
+        return redirect(
+            url_for("top")
+        )
+
+    return render_template(
+        "profile.html",
+        user=user
+    )
 
 @app.route("/profile_edit_page")
 def profile_edit_page():
-    user_id = session.get("user_id")
+
+    user_id = session.get(
+        "user_id"
+    )
+
     if not user_id:
-        return redirect(url_for("top"))
-    return render_template("profile_edit_page.html", user=users[user_id])
+        return redirect(
+            url_for("top")
+        )
 
+    user = db.session.get(
+        User,
+        user_id
+    )
 
-@app.route("/profile_edit", methods=["POST"])
-def profile_edit():
-    user_id = session.get("user_id")
-    if not user_id:
-        return redirect(url_for("top"))
+    if not user:
+        return redirect(
+            url_for("top")
+        )
 
-    user = users[user_id]
+    return render_template(
+        "profile_edit_page.html",
+        user=user
+    )
 
-    user["name"] = request.form.get("name")
-    user["address"] = request.form.get("address")
-    user["intro"] = request.form.get("intro")
     
-    save_json(USERS_FILE, users)
-    return render_template("profile_edit_result.html", user=user)
+
+
+@app.route(
+    "/profile_edit",
+    methods=["POST"]
+)
+def profile_edit():
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return redirect(
+            url_for("top")
+        )
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+    if not user:
+        return redirect(
+            url_for("top")
+        )
+
+    user.name = request.form.get(
+        "name"
+    )
+
+    user.address = request.form.get(
+        "address"
+    )
+
+    user.intro = request.form.get(
+        "intro"
+    )
+
+    try:
+
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "プロフィール更新エラー:",
+            str(e)
+        )
+
+        return (
+            "プロフィール更新に失敗しました",
+            500
+        )
+
+    return render_template(
+        "profile_edit_result.html",
+        user=user
+    )
 
 
 # -------------------------
@@ -727,40 +1161,93 @@ def handle_join_room(data):
 # -------------------------
 @app.route("/chat_room/<partner>", methods=["GET", "POST"])
 def chat_room(partner):
+
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("top"))
 
-    partner_user = users.get(partner)
+    # PostgreSQLから取得
+    current_user = db.session.get(User, user_id)
+    partner_user = db.session.get(User, partner)
+
+    if not current_user:
+        session.pop("user_id", None)
+        return redirect(url_for("top"))
+
+    if not partner_user:
+        return "相手ユーザーが存在しません", 404
 
     # 既読処理
     for msg in chats.get(user_id, []):
-        if msg["partner"] == partner and msg["sender"] != user_id:
+        if (
+            msg.get("partner") == partner
+            and msg.get("sender") != user_id
+        ):
             msg["read"] = True
+
     save_json(CHATS_FILE, chats)
 
+    # -------------------------
     # メッセージ送信
+    # -------------------------
     if request.method == "POST":
+
         message = request.form.get("message")
         photo = request.files.get("photo")
 
-        if users[user_id]["coins"] < 30:
-            return jsonify({"error": "コイン不足（30必要）"})
-
-        users[user_id]["coins"] -= 30
-        save_json(USERS_FILE, users)
+        if (current_user.coins or 0) < 30:
+            return jsonify({
+                "error": "コイン不足（30必要）"
+            }), 403
 
         photo_url = None
+
         if photo and allowed_file(photo.filename):
-            filename = secure_filename(photo.filename)
-            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+            filename = secure_filename(
+                photo.filename
+            )
+
+            save_path = os.path.join(
+                app.config["UPLOAD_FOLDER"],
+                filename
+            )
+
             photo.save(save_path)
-            photo_url = "/" + save_path.replace("\\", "/")
+
+            photo_url = "/" + save_path.replace(
+                "\\",
+                "/"
+            )
+
+        try:
+
+            # PostgreSQLで30コイン消費
+            current_user.coins -= 30
+
+            db.session.commit()
+
+        except Exception as e:
+
+            db.session.rollback()
+
+            print(
+                "チャットコイン消費エラー:",
+                str(e)
+            )
+
+            return jsonify({
+                "error": "コイン処理に失敗しました"
+            }), 500
 
         now = time.time()
 
         # 自分側
-        chats.setdefault(user_id, []).append({
+        chats.setdefault(
+            user_id,
+            []
+        ).append({
             "partner": partner,
             "sender": user_id,
             "message": message,
@@ -771,7 +1258,10 @@ def chat_room(partner):
         })
 
         # 相手側
-        chats.setdefault(partner, []).append({
+        chats.setdefault(
+            partner,
+            []
+        ).append({
             "partner": user_id,
             "sender": user_id,
             "message": message,
@@ -781,14 +1271,26 @@ def chat_room(partner):
             "timestamp": now
         })
 
-        save_json(CHATS_FILE, chats)
+        save_json(
+            CHATS_FILE,
+            chats
+        )
 
-    # 履歴取得
+    # -------------------------
+    # 履歴
+    # -------------------------
     history = [
-        item for item in chats.get(user_id, [])
+        item
+        for item in chats.get(user_id, [])
         if item.get("partner") == partner
     ]
-    history.sort(key=lambda x: x.get("timestamp", 0))
+
+    history.sort(
+        key=lambda x: x.get(
+            "timestamp",
+            0
+        )
+    )
 
     return render_template(
         "chat_room.html",
@@ -808,15 +1310,12 @@ def handle_send_rank_gift(data):
     print("===== ギフト送信 =====")
 
     user_id = session.get("user_id")
-    print("user_id =", user_id)
 
-    partner = data["partner"]
-    print("partner =", partner)
+    if not user_id:
+        return
 
-    rank = data["rank"]
-    print("rank =", rank)
-
-    print("受信データ =", data)
+    partner = data.get("partner")
+    rank = data.get("rank")
 
     star_map = {
         "銅": 5,
@@ -846,10 +1345,26 @@ def handle_send_rank_gift(data):
         "恋の龍": 100000
     }
 
-    stars = star_map.get(rank, 0)
-    cost = cost_map.get(rank, 0)
+    if rank not in cost_map:
+        return
 
-    if users[user_id]["coins"] < cost:
+    sender_user = db.session.get(
+        User,
+        user_id
+    )
+
+    receiver_user = db.session.get(
+        User,
+        partner
+    )
+
+    if not sender_user or not receiver_user:
+        return
+
+    stars = star_map[rank]
+    cost = cost_map[rank]
+
+    if (sender_user.coins or 0) < cost:
 
         socketio.emit(
             "gift_error",
@@ -861,34 +1376,69 @@ def handle_send_rank_gift(data):
 
         return
 
-    users[user_id]["coins"] -= cost
+    try:
 
-    users[partner]["stars"] = (
-        users[partner].get("stars", 0)
-        + stars
-    )
+        # 送信者のコインを減らす
+        sender_user.coins -= cost
 
-    save_json(USERS_FILE, users)
+        # 受信者のスターを増やす
+        receiver_user.stars = (
+            (receiver_user.stars or 0)
+            + stars
+        )
+
+        # 2つまとめてDBへ保存
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "ギフトDB処理エラー:",
+            str(e)
+        )
+
+        socketio.emit(
+            "gift_error",
+            {
+                "message": "ギフト処理に失敗しました"
+            },
+            room=user_id
+        )
+
+        return
 
     timestamp = time.time()
 
-    chats.setdefault(user_id, []).append({
+    chats.setdefault(
+        user_id,
+        []
+    ).append({
         "partner": partner,
         "sender": user_id,
-        "message": f"{rank}ギフトを送りました！（+{stars}）",
+        "message":
+            f"{rank}ギフトを送りました！（+{stars}）",
         "gift": True,
         "timestamp": timestamp
     })
 
-    chats.setdefault(partner, []).append({
+    chats.setdefault(
+        partner,
+        []
+    ).append({
         "partner": user_id,
         "sender": user_id,
-        "message": f"{rank}ギフトを受け取りました！（+{stars}）",
+        "message":
+            f"{rank}ギフトを受け取りました！（+{stars}）",
         "gift": True,
         "timestamp": timestamp
     })
 
-    save_json(CHATS_FILE, chats)
+    save_json(
+        CHATS_FILE,
+        chats
+    )
 
     socketio.emit(
         "gift_received",
@@ -907,23 +1457,65 @@ def handle_send_rank_gift(data):
 # -------------------------
 @app.route("/chat/send", methods=["POST"])
 def chat_send():
-    data = request.json
+
+    data = request.get_json(
+        silent=True
+    ) or {}
+
     user_id = data.get("id")
     partner = data.get("partner")
     message = data.get("message")
 
-    if user_id not in users:
-        return jsonify({"error": "ユーザーが存在しません"}), 404
+    user = db.session.get(
+        User,
+        user_id
+    )
 
-    if users[user_id]["coins"] < 30:
-        return jsonify({"error": "コイン不足（30必要）"}), 403
+    partner_user = db.session.get(
+        User,
+        partner
+    )
 
-    users[user_id]["coins"] -= 30
-    save_json(USERS_FILE, users)
+    if not user:
+        return jsonify({
+            "error": "ユーザーが存在しません"
+        }), 404
+
+    if not partner_user:
+        return jsonify({
+            "error": "相手が存在しません"
+        }), 404
+
+    if (user.coins or 0) < 30:
+        return jsonify({
+            "error": "コイン不足（30必要）"
+        }), 403
+
+    try:
+
+        user.coins -= 30
+
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "チャットAPI DBエラー:",
+            str(e)
+        )
+
+        return jsonify({
+            "error": "コイン処理に失敗しました"
+        }), 500
 
     now = time.time()
 
-    chats.setdefault(user_id, []).append({
+    chats.setdefault(
+        user_id,
+        []
+    ).append({
         "partner": partner,
         "sender": user_id,
         "message": message,
@@ -933,7 +1525,10 @@ def chat_send():
         "timestamp": now
     })
 
-    chats.setdefault(partner, []).append({
+    chats.setdefault(
+        partner,
+        []
+    ).append({
         "partner": user_id,
         "sender": user_id,
         "message": message,
@@ -943,14 +1538,16 @@ def chat_send():
         "timestamp": now
     })
 
-    save_json(CHATS_FILE, chats)
+    save_json(
+        CHATS_FILE,
+        chats
+    )
 
-    return jsonify({"message": "送信完了", "coins": users[user_id]["coins"]})
+    return jsonify({
+        "message": "送信完了",
+        "coins": user.coins
+    })
 
-
-# -------------------------
-# ギフト送信API（Flutter用）
-# -------------------------
 GIFTS = {
     "bronze": {"name": "銅", "coins": 10, "star": 5},
     "silver": {"name": "銀", "coins": 30, "star": 15},
@@ -965,46 +1562,95 @@ GIFTS = {
     "love_dragon": {"name": "恋の龍", "coins": 100000, "star": 50000}
 }
 
+    
 @app.route("/send_gift", methods=["POST"])
 def send_gift():
 
-    data = request.json
+    data = request.get_json(
+        silent=True
+    ) or {}
 
-    sender = session.get("user_id")
+    sender = session.get(
+        "user_id"
+    )
 
     if not sender:
         return jsonify({
             "error": "ログインしてください"
-        })
+        }), 401
 
-    receiver = data.get("receiver")
-    gift_id = data.get("gift_id")
+    receiver = data.get(
+        "receiver"
+    )
 
-    if receiver not in users:
-        return jsonify({
-            "error": "相手が存在しません"
-        })
+    gift_id = data.get(
+        "gift_id"
+    )
 
     if gift_id not in GIFTS:
+
         return jsonify({
             "error": "ギフトが存在しません"
-        })
+        }), 400
+
+    sender_user = db.session.get(
+        User,
+        sender
+    )
+
+    receiver_user = db.session.get(
+        User,
+        receiver
+    )
+
+    if not sender_user:
+
+        return jsonify({
+            "error": "送信者が存在しません"
+        }), 404
+
+    if not receiver_user:
+
+        return jsonify({
+            "error": "相手が存在しません"
+        }), 404
 
     gift = GIFTS[gift_id]
 
-    if users[sender]["coins"] < gift["coins"]:
+    if (
+        sender_user.coins or 0
+    ) < gift["coins"]:
+
         return jsonify({
             "error": "コインが足りません"
-        })
+        }), 403
 
-    users[sender]["coins"] -= gift["coins"]
+    try:
 
-    users[receiver]["stars"] = (
-        users[receiver].get("stars", 0)
-        + gift["star"]
-    )
+        sender_user.coins -= (
+            gift["coins"]
+        )
 
-    save_json(USERS_FILE, users)
+        receiver_user.stars = (
+            (receiver_user.stars or 0)
+            + gift["star"]
+        )
+
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "ギフトAPI DBエラー:",
+            str(e)
+        )
+
+        return jsonify({
+            "error":
+                "ギフト処理に失敗しました"
+        }), 500
 
     print(
         f"{sender} → {receiver} に "
@@ -1015,9 +1661,9 @@ def send_gift():
         "ok": True,
         "gift": gift["name"],
         "star_added": gift["star"],
-        "coins_left": users[sender]["coins"]
+        "coins_left":
+            sender_user.coins
     })
-
 # -------------------------
 # チャットAPI（自動更新）
 # -------------------------
@@ -1223,103 +1869,134 @@ def pay_stripe():
                 "決済処理でエラーが発生しました"
         }), 500
 
+def fulfill_coin_payment(checkout_session):
 
-def fulfill_coin_payment(
-    checkout_session
-):
+    # Stripe Sessionを通常のdictへ変換
+    if hasattr(checkout_session, "to_dict"):
+        checkout_session = checkout_session.to_dict()
 
-    session_id = checkout_session.get(
-        "id"
-    )
+    # -------------------------
+    # Stripe Session ID
+    # -------------------------
+
+    session_id = checkout_session.get("id")
 
     if not session_id:
-        return False
-
-
-    # すでに処理した決済なら何もしない
-    if session_id in stripe_payments:
-        return False
-
-
-    # Stripeで支払い済みか確認
-    if (
-        checkout_session.get(
-            "payment_status"
+        raise ValueError(
+            "Stripe Session ID がありません"
         )
-        != "paid"
-    ):
-        return False
 
+    # -------------------------
+    # 支払い状態
+    # -------------------------
 
-    metadata = checkout_session.get(
-        "metadata",
-        {}
+    payment_status = checkout_session.get(
+        "payment_status"
     )
 
+    if payment_status != "paid":
+        print(
+            "未決済のためコイン付与しません:",
+            session_id,
+            payment_status
+        )
+        return
+
+    # -------------------------
+    # metadata取得
+    # -------------------------
+
+    metadata = checkout_session.get(
+        "metadata"
+    ) or {}
 
     user_id = metadata.get(
         "user_id"
     )
 
     coin_value = metadata.get(
-        "coin"
+        "coins"
     )
 
+    if not user_id:
+        raise ValueError(
+            "metadata.user_id がありません"
+        )
 
-    if user_id not in users:
-        return False
-
+    if not coin_value:
+        raise ValueError(
+            "metadata.coins がありません"
+        )
 
     try:
-        coin = int(coin_value)
-
+        coins = int(coin_value)
     except (TypeError, ValueError):
-        return False
-
-
-    # 登録商品のみ許可
-    if coin not in COIN_PRODUCTS:
-        return False
-
-
-    # コイン付与
-    users[user_id]["coins"] = (
-        users[user_id].get(
-            "coins",
-            0
+        raise ValueError(
+            "metadata.coins が不正です"
         )
-        + coin
+
+    # -------------------------
+    # User取得
+    # -------------------------
+
+    user = db.session.get(
+        User,
+        user_id
     )
 
+    if not user:
+        raise ValueError(
+            f"ユーザーが存在しません: {user_id}"
+        )
 
-    # このStripe Sessionは処理済み
-    stripe_payments[session_id] = {
-        "user_id": user_id,
-        "coin": coin,
-        "processed": True,
-        "processed_at": time.time()
-    }
+    # -------------------------
+    # 二重付与防止
+    # -------------------------
 
-
-    save_json(
-        USERS_FILE,
-        users
+    existing_payment = db.session.get(
+        StripePayment,
+        session_id
     )
 
-    save_json(
-        STRIPE_PAYMENTS_FILE,
-        stripe_payments
-    )
+    if existing_payment:
+        print(
+            "処理済みStripe Session:",
+            session_id
+        )
+        return
 
+    try:
 
-    print(
-        f"Stripe決済完了: "
-        f"{user_id} +{coin} coin"
-    )
+        # コイン付与
+        user.coins = (
+            (user.coins or 0)
+            + coins
+        )
 
+        # 決済履歴
+        payment = StripePayment(
+            session_id=session_id,
+            user_id=user_id,
+            coin=coins,
+            processed=True
+        )
 
-    return True
+        db.session.add(payment)
 
+        # PostgreSQLへ確定
+        db.session.commit()
+
+        print(
+            f"Stripe決済完了: "
+            f"user={user_id}, "
+            f"coins=+{coins}, "
+            f"session={session_id}"
+        )
+
+    except Exception:
+        db.session.rollback()
+        raise
+    
 @app.route(
     "/stripe/webhook",
     methods=["POST"]
@@ -1332,27 +2009,25 @@ def stripe_webhook():
         "Stripe-Signature"
     )
 
-
     if not STRIPE_WEBHOOK_SECRET:
-
         print(
-            "STRIPE_WEBHOOK_SECRET "
-            "が設定されていません"
+            "STRIPE_WEBHOOK_SECRET が設定されていません"
         )
-
         return "", 500
 
+    if not signature:
+        print(
+            "Stripe-Signature がありません"
+        )
+        return "", 400
 
     try:
 
-        event = (
-            stripe.Webhook.construct_event(
-                payload,
-                signature,
-                STRIPE_WEBHOOK_SECRET
-            )
+        event = stripe.Webhook.construct_event(
+            payload,
+            signature,
+            STRIPE_WEBHOOK_SECRET
         )
-
 
     except ValueError:
 
@@ -1362,11 +2037,7 @@ def stripe_webhook():
 
         return "", 400
 
-
-    except (
-        stripe.error
-        .SignatureVerificationError
-    ):
+    except stripe.error.SignatureVerificationError:
 
         print(
             "Webhook署名エラー"
@@ -1374,20 +2045,29 @@ def stripe_webhook():
 
         return "", 400
 
+    try:
 
-    if (
-        event["type"]
-        == "checkout.session.completed"
-    ):
+        if (
+            event["type"]
+            == "checkout.session.completed"
+        ):
 
-        checkout_session = (
-            event["data"]["object"]
+            checkout_session = (
+                event["data"]["object"]
+            )
+
+            fulfill_coin_payment(
+                checkout_session
+            )
+
+    except Exception as e:
+
+        print(
+            "Webhook処理エラー:",
+            str(e)
         )
 
-        fulfill_coin_payment(
-            checkout_session
-        )
-
+        return "", 500
 
     return "", 200
 
