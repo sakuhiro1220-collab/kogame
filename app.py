@@ -280,8 +280,92 @@ class Like(db.Model):
         ),
     )
 
+class SpeedRoom(db.Model):
+    __tablename__ = "speed_rooms"
 
-    
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    room_code = db.Column(
+        db.String(100),
+        unique=True,
+        nullable=False
+    )
+
+    status = db.Column(
+        db.String(20),
+        nullable=False,
+        default="waiting"
+    )
+
+    player1_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    player2_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    go_time = db.Column(
+        db.Float,
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+
+    finished_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+class SpeedResult(db.Model):
+    __tablename__ = "speed_results"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    room_id = db.Column(
+        db.Integer,
+        db.ForeignKey("speed_rooms.id"),
+        nullable=False
+    )
+
+    user_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    reaction_time = db.Column(
+        db.Float,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "room_id",
+            "user_id",
+            name="uq_speed_result_room_user"
+        ),
+    )   
 # =========================
 # Socket.IO
 # =========================
@@ -3657,80 +3741,518 @@ def finish_daifugo_game(room_id):
 # -------------------------
 # ゲーム3：スピードゲーム（オンライン対戦）
 # -------------------------
+# =========================
+# スピードゲーム
+# PostgreSQL + 複数卓対応
+# =========================
+
+SPEED_ENTRY_COST = 30
+SPEED_WIN_REWARD = 40
+SPEED_LOSE_REWARD = 20
+
+
 @app.route("/speed_online")
 def speed_online():
+
     user_id = session.get("user_id")
+
     if not user_id:
-        return redirect(url_for("top"))
+        return redirect(
+            url_for("top")
+        )
 
-    if users[user_id]["coins"] < 30:
-        return "コイン不足（参加費30コインが必要です）"
+    user = db.session.get(
+        User,
+        user_id
+    )
 
-    users[user_id]["coins"] -= 30
-    save_json(USERS_FILE, users)
+    if not user:
+        session.pop("user_id", None)
 
-    return render_template("speed_online.html", user_id=user_id)
+        return redirect(
+            url_for("top")
+        )
 
+    # ここではまだ参加費を引かない
+    return render_template(
+        "speed_online.html",
+        user_id=user_id,
+        coins=user.coins or 0
+    )
+
+
+# =========================
+# マッチング開始
+# =========================
 
 @socketio.on("join_speed")
 def on_join_speed(data):
-    room = data["room"]
-    user_id = data["user_id"]
 
-    join_room(room)
+    user_id = session.get("user_id")
 
-    if room not in rooms:
-        rooms[room] = {"p1": user_id, "p2": None, "go_time": 0}
-    else:
-        rooms[room]["p2"] = user_id
+    if not user_id:
+        socketio.emit(
+            "speed_error",
+            {
+                "message":
+                    "ログインしてください"
+            }
+        )
+        return
 
-        delay = random.uniform(2, 5)
-        rooms[room]["go_time"] = time.time() + delay
+    user = db.session.get(
+        User,
+        user_id
+    )
 
-        socketio.emit("speed_ready", {"delay": delay}, room=room)
+    if not user:
+        socketio.emit(
+            "speed_error",
+            {
+                "message":
+                    "ユーザーが存在しません"
+            }
+        )
+        return
 
+    # -------------------------
+    # すでに参加中か確認
+    # -------------------------
+
+    existing_room = db.session.execute(
+        db.select(SpeedRoom)
+        .where(
+            SpeedRoom.status.in_([
+                "waiting",
+                "playing"
+            ])
+        )
+        .where(
+            db.or_(
+                SpeedRoom.player1_id == user_id,
+                SpeedRoom.player2_id == user_id
+            )
+        )
+    ).scalars().first()
+
+    if existing_room:
+
+        room_code = (
+            existing_room.room_code
+        )
+
+        join_room(room_code)
+
+        socketio.emit(
+            "speed_joined",
+            {
+                "room": room_code,
+                "status":
+                    existing_room.status
+            }
+        )
+
+        return
+
+
+    # -------------------------
+    # コイン確認
+    # -------------------------
+
+    if (
+        user.coins or 0
+    ) < SPEED_ENTRY_COST:
+
+        socketio.emit(
+            "speed_error",
+            {
+                "message":
+                    "参加には30コイン必要です",
+                "coins":
+                    user.coins or 0
+            }
+        )
+
+        return
+
+
+    # -------------------------
+    # 待機中の卓を探す
+    # -------------------------
+
+    waiting_room = db.session.execute(
+        db.select(SpeedRoom)
+        .where(
+            SpeedRoom.status
+            == "waiting"
+        )
+        .where(
+            SpeedRoom.player2_id
+            .is_(None)
+        )
+        .order_by(
+            SpeedRoom.created_at.asc()
+        )
+    ).scalars().first()
+
+
+    try:
+
+        # =========================
+        # 待機卓がない
+        # → 新しい卓を作成
+        # =========================
+
+        if not waiting_room:
+
+            user.coins -= SPEED_ENTRY_COST
+
+            room_code = (
+                "speed_"
+                + uuid.uuid4().hex[:12]
+            )
+
+            new_room = SpeedRoom(
+                room_code=room_code,
+                status="waiting",
+                player1_id=user_id,
+                player2_id=None
+            )
+
+            db.session.add(
+                new_room
+            )
+
+            db.session.commit()
+
+            join_room(
+                room_code
+            )
+
+            socketio.emit(
+                "speed_waiting",
+                {
+                    "room":
+                        room_code,
+
+                    "message":
+                        "対戦相手を待っています",
+
+                    "coins":
+                        user.coins
+                }
+            )
+
+            return
+
+
+        # =========================
+        # 待機卓がある
+        # → 2人目として参加
+        # =========================
+
+        user.coins -= SPEED_ENTRY_COST
+
+        waiting_room.player2_id = (
+            user_id
+        )
+
+        waiting_room.status = (
+            "playing"
+        )
+
+        delay = random.uniform(
+            2,
+            5
+        )
+
+        waiting_room.go_time = (
+            time.time()
+            + delay
+        )
+
+        db.session.commit()
+
+        room_code = (
+            waiting_room.room_code
+        )
+
+        join_room(
+            room_code
+        )
+
+        # 2人とも同じ卓へ通知
+        socketio.emit(
+            "speed_ready",
+            {
+                "room":
+                    room_code,
+
+                "delay":
+                    delay,
+
+                "player1":
+                    waiting_room.player1_id,
+
+                "player2":
+                    waiting_room.player2_id
+            },
+            room=room_code
+        )
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "Speedマッチングエラー:",
+            str(e)
+        )
+
+        socketio.emit(
+            "speed_error",
+            {
+                "message":
+                    "マッチング処理に失敗しました"
+            }
+        )
+    return render_template("speed_online_result.html")
 
 @socketio.on("speed_reaction")
 def on_speed_reaction(data):
-    room = data["room"]
-    user_id = data["user_id"]
-    reaction_time = data["reaction"]
 
-    room_data = rooms.get(room)
-    if not room_data:
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
         return
 
-    if "speed_results" not in room_data:
-        room_data["speed_results"] = []
+    room_code = data.get(
+        "room"
+    )
 
-    room_data["speed_results"].append((user_id, reaction_time))
+    try:
+        reaction_time = float(
+            data.get("reaction")
+        )
+    except (TypeError, ValueError):
 
-    if len(room_data["speed_results"]) == 2:
-        p1, r1 = room_data["speed_results"][0]
-        p2, r2 = room_data["speed_results"][1]
+        socketio.emit(
+            "speed_error",
+            {
+                "message":
+                    "リアクションタイムが不正です"
+            }
+        )
 
-        if r1 < r2:
-            winner = p1
-            loser = p2
-        else:
-            winner = p2
-            loser = p1
+        return
 
-        users[winner]["coins"] += 40
-        users[loser]["coins"] += 20
-        save_json(USERS_FILE, users)
 
-        socketio.emit("speed_result", {
-            "winner": winner,
-            "loser": loser,
-            "r1": r1,
-            "r2": r2
-        }, room=room)
+    # -------------------------
+    # 卓取得
+    # -------------------------
 
-@app.route("/speed_online_result")
-def speed_online_result():
-    return render_template("speed_online_result.html")
+    speed_room = db.session.execute(
+        db.select(SpeedRoom)
+        .where(
+            SpeedRoom.room_code
+            == room_code
+        )
+    ).scalars().first()
 
+
+    if not speed_room:
+
+        socketio.emit(
+            "speed_error",
+            {
+                "message":
+                    "対戦卓が見つかりません"
+            }
+        )
+
+        return
+
+
+    if speed_room.status != "playing":
+        return
+
+
+    # -------------------------
+    # この卓の参加者か
+    # -------------------------
+
+    if user_id not in (
+        speed_room.player1_id,
+        speed_room.player2_id
+    ):
+
+        return
+
+
+    # -------------------------
+    # 二重送信確認
+    # -------------------------
+
+    old_result = db.session.execute(
+        db.select(SpeedResult)
+        .where(
+            SpeedResult.room_id
+            == speed_room.id
+        )
+        .where(
+            SpeedResult.user_id
+            == user_id
+        )
+    ).scalars().first()
+
+
+    if old_result:
+        return
+
+
+    try:
+
+        result = SpeedResult(
+            room_id=speed_room.id,
+            user_id=user_id,
+            reaction_time=reaction_time
+        )
+
+        db.session.add(
+            result
+        )
+
+        db.session.commit()
+
+
+        # -------------------------
+        # 両者の結果取得
+        # -------------------------
+
+        results = db.session.execute(
+            db.select(SpeedResult)
+            .where(
+                SpeedResult.room_id
+                == speed_room.id
+            )
+            .order_by(
+                SpeedResult.reaction_time.asc()
+            )
+        ).scalars().all()
+
+
+        # まだ1人
+        if len(results) < 2:
+
+            socketio.emit(
+                "speed_opponent_wait",
+                {
+                    "message":
+                        "相手の入力を待っています"
+                }
+            )
+
+            return
+
+
+        # -------------------------
+        # 勝敗決定
+        # -------------------------
+
+        winner_result = results[0]
+        loser_result = results[1]
+
+        winner = db.session.get(
+            User,
+            winner_result.user_id
+        )
+
+        loser = db.session.get(
+            User,
+            loser_result.user_id
+        )
+
+
+        if not winner or not loser:
+            raise ValueError(
+                "対戦ユーザーが見つかりません"
+            )
+
+
+        # -------------------------
+        # 賞金付与
+        # -------------------------
+
+        winner.coins = (
+            (winner.coins or 0)
+            + SPEED_WIN_REWARD
+        )
+
+        loser.coins = (
+            (loser.coins or 0)
+            + SPEED_LOSE_REWARD
+        )
+
+        speed_room.status = (
+            "finished"
+        )
+
+        speed_room.finished_at = (
+            db.func.now()
+        )
+
+        db.session.commit()
+
+
+        # -------------------------
+        # 両者へ結果送信
+        # -------------------------
+
+        socketio.emit(
+            "speed_result",
+            {
+                "winner":
+                    winner.id,
+
+                "loser":
+                    loser.id,
+
+                "winner_reaction":
+                    winner_result.reaction_time,
+
+                "loser_reaction":
+                    loser_result.reaction_time,
+
+                "winner_reward":
+                    SPEED_WIN_REWARD,
+
+                "loser_reward":
+                    SPEED_LOSE_REWARD
+            },
+            room=room_code
+        )
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "Speedゲーム結果エラー:",
+            str(e)
+        )
+
+        socketio.emit(
+            "speed_error",
+            {
+                "message":
+                    "対戦結果の処理に失敗しました"
+            }
+        )
+        
 # -------------------------
 # ゲーム4：ジオゲッサー（オンライン対戦・参加費200）
 # -------------------------
