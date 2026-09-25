@@ -1758,10 +1758,12 @@ def pay_stripe():
             "error": "ログインしてください"
         }), 401
 
-    if user_id not in users:
-        return jsonify({
-            "error": "ユーザーが存在しません"
-        }), 404
+    user = db.session.get(User, user_id)
+
+    if not user:
+      return jsonify({
+        "error": "ユーザーが存在しません"
+    }), 404
 
     data = request.get_json(
         silent=True
@@ -1821,7 +1823,7 @@ def pay_stripe():
 
                 metadata={
                     "user_id": user_id,
-                    "coin": str(coin)
+                    "coins": str(coin)
                 },
 
                 success_url=(
@@ -1996,7 +1998,7 @@ def fulfill_coin_payment(checkout_session):
     except Exception:
         db.session.rollback()
         raise
-    
+
 @app.route(
     "/stripe/webhook",
     methods=["POST"]
