@@ -3625,20 +3625,22 @@ def gomoku_result():
 # ==========================================
 # 20秒ターン制限
 # ==========================================
+# ==========================================
+# 五目並べ
+# 20秒時間切れ監視
+# ==========================================
 
 def check_gomoku_timeout():
 
     while True:
 
-        time.sleep(1)
-
+        socketio.sleep(1)
 
         try:
 
             with app.app_context():
 
                 now = time.time()
-
 
                 playing_rooms = (
                     db.session.execute(
@@ -3649,11 +3651,10 @@ def check_gomoku_timeout():
 
                         .where(
                             GomokuRoom.status
-                                == "playing"
+                            == "playing"
                         )
 
                     )
-
                     .scalars()
                     .all()
                 )
@@ -3661,61 +3662,167 @@ def check_gomoku_timeout():
 
                 for room in playing_rooms:
 
+                    # すでに終了している場合
                     if room.winner_id:
 
                         continue
 
 
+                    # 時刻がまだ設定されていない場合
                     if not room.last_move_time:
 
-                        room.last_move_time = (
-                            now
-                        )
+                        room.last_move_time = now
+
+                        db.session.commit()
 
                         continue
 
 
-                    if (
+                    elapsed = (
                         now
                         - room.last_move_time
+                    )
+
+
+                    # まだ20秒経っていない
+                    if (
+                        elapsed
                         <= GOMOKU_TURN_SECONDS
                     ):
 
                         continue
 
 
-                    # ======================
-                    # 時間切れ
-                    # 手番交代
-                    # ======================
+                    # ==================================
+                    # 時間切れになったプレイヤー
+                    # ==================================
 
-                    room.turn = (
-                        "white"
-                        if room.turn == "black"
-                        else "black"
+                    if room.turn == "black":
+
+                        loser_id = (
+                            room.black_player_id
+                        )
+
+                        winner_id = (
+                            room.white_player_id
+                        )
+
+                    else:
+
+                        loser_id = (
+                            room.white_player_id
+                        )
+
+                        winner_id = (
+                            room.black_player_id
+                        )
+
+
+                    # 念のため確認
+                    if (
+                        not winner_id
+                        or
+                        not loser_id
+                    ):
+
+                        continue
+
+
+                    winner = db.session.get(
+                        User,
+                        winner_id
                     )
 
 
-                    room.last_move_time = (
-                        now
+                    if not winner:
+
+                        continue
+
+
+                    # ==================================
+                    # 勝者へ100コイン
+                    # ==================================
+
+                    winner.coins = (
+                        (winner.coins or 0)
+                        + GOMOKU_WIN_REWARD
+                    )
+
+
+                    # ==================================
+                    # 対局終了
+                    # ==================================
+
+                    room.winner_id = (
+                        winner_id
+                    )
+
+
+                    room.status = (
+                        "finished"
+                    )
+
+
+                    room.finished_at = (
+                        db.func.now()
                     )
 
 
                     db.session.commit()
 
 
+                    print(
+                        "GOMOKU TIMEOUT:"
+                    )
+
+                    print(
+                        "LOSER:",
+                        loser_id
+                    )
+
+                    print(
+                        "WINNER:",
+                        winner_id
+                    )
+
+
+                    # ==================================
+                    # 2人へ時間切れ通知
+                    # ==================================
+
                     socketio.emit(
-                        "gomoku_update",
+                        "gomoku_timeout_finish",
+
                         {
-                            "board":
-                                room.board,
+                            "winner":
+                                winner_id,
 
-                            "turn":
-                                room.turn,
+                            "loser":
+                                loser_id,
 
-                            "timeout":
-                                True
+                            "reward":
+                                GOMOKU_WIN_REWARD
                         },
+
+                        room=room.room_code
+                    )
+
+
+                    # 通常の終了イベントも送る
+                    socketio.emit(
+                        "gomoku_finish",
+
+                        {
+                            "winner":
+                                winner_id,
+
+                            "reward":
+                                GOMOKU_WIN_REWARD,
+
+                            "reason":
+                                "timeout"
+                        },
+
                         room=room.room_code
                     )
 
@@ -3724,12 +3831,10 @@ def check_gomoku_timeout():
 
             db.session.rollback()
 
-
             print(
                 "GOMOKU TIMEOUT ERROR:",
                 str(e)
             )
-
 
 # ==========================================
 # タイムアウト監視開始

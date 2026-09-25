@@ -1706,7 +1706,8 @@ socket.on(
 
         finishGame(
             data.winner,
-            data.reward
+            data.reward,
+            data.reason
         );
     }
 );
@@ -1718,7 +1719,8 @@ socket.on(
 
 function finishGame(
     winner,
-    reward
+    reward,
+    reason = null
 ) {
 
     if (gameFinished) {
