@@ -366,6 +366,93 @@ class SpeedResult(db.Model):
             name="uq_speed_result_room_user"
         ),
     )   
+
+class GeoRoom(db.Model):
+    __tablename__ = "geo_rooms"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    room_code = db.Column(
+        db.String(100),
+        unique=True,
+        nullable=False
+    )
+
+    status = db.Column(
+        db.String(20),
+        nullable=False,
+        default="waiting"
+    )
+
+    player1_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    player2_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    location_index = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+
+    finished_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+
+class GeoAnswer(db.Model):
+    __tablename__ = "geo_answers"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    room_id = db.Column(
+        db.Integer,
+        db.ForeignKey("geo_rooms.id"),
+        nullable=False
+    )
+
+    user_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    guess_lat = db.Column(
+        db.Float,
+        nullable=False
+    )
+
+    guess_lng = db.Column(
+        db.Float,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "room_id",
+            "user_id",
+            name="uq_geo_answer_room_user"
+        ),
+    )
 # =========================
 # Socket.IO
 # =========================
@@ -4256,118 +4343,37 @@ def on_speed_reaction(data):
 # -------------------------
 # ゲーム4：ジオゲッサー（オンライン対戦・参加費200）
 # -------------------------
+GEO_ENTRY_COST = 200
+GEO_WIN_REWARD = 400
+
+
 @app.route("/geoguess_online")
 def geoguess_online():
 
     user_id = session.get("user_id")
 
     if not user_id:
-        return redirect(url_for("top"))
+        return redirect(
+            url_for("top")
+        )
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+    if not user:
+        session.pop("user_id", None)
+
+        return redirect(
+            url_for("top")
+        )
 
     return render_template(
         "geoguess_online.html",
-        user_id=user_id
+        user_id=user_id,
+        coins=user.coins or 0
     )
-
-
-geo_rooms = {}
-
-
-@socketio.on("geoguess_join")
-def geoguess_join(data):
-
-    room = data["room"]
-    user_id = data["user_id"]
-
-    # マッチングボタンを押した時点で所持コイン確認
-    if users[user_id]["coins"] < 200:
-
-        socketio.emit(
-            "match_error",
-            {
-                "message": "参加費200コインが必要です"
-            }
-        )
-
-        return
-
-    join_room(room)
-
-    # ---------------------
-    # 1人目
-    # ---------------------
-    if room not in geo_rooms:
-
-        place = random.choice(LOCATIONS)
-
-        geo_rooms[room] = {
-            "p1": user_id,
-            "p2": None,
-            "place": place,
-            "answers": []
-        }
-
-        return
-
-    # ---------------------
-    # 2人目
-    # ---------------------
-    if geo_rooms[room]["p2"] is None:
-
-        geo_rooms[room]["p2"] = user_id
-
-        p1 = geo_rooms[room]["p1"]
-        p2 = user_id
-
-        # 開始直前に再確認
-        if users[p1]["coins"] < 200:
-
-            socketio.emit(
-                "match_error",
-                {
-                    "message":
-                    "対戦相手のコインが不足しています"
-                },
-                room=room
-            )
-
-            del geo_rooms[room]
-            return
-
-        if users[p2]["coins"] < 200:
-
-            socketio.emit(
-                "match_error",
-                {
-                    "message":
-                    "コインが不足しています"
-                },
-                room=room
-            )
-
-            del geo_rooms[room]
-            return
-
-        # ---------------------
-        # 試合開始時に徴収
-        # ---------------------
-        users[p1]["coins"] -= 200
-        users[p2]["coins"] -= 200
-
-        save_json(USERS_FILE, users)
-
-        place = geo_rooms[room]["place"]
-
-        socketio.emit(
-            "geoguess_start",
-            {
-                "images": place["images"],
-                "lat": place["lat"],
-                "lng": place["lng"]
-            },
-            room=room
-        )
-
 
 LOCATIONS = [
     {
@@ -4385,61 +4391,701 @@ LOCATIONS = [
     }
 ]
 
-@socketio.on("geoguess_answer")
-def geoguess_answer(data):
-    room = data["room"]
-    user_id = data["user_id"]
-    guess_lat = float(data["lat"])
-    guess_lng = float(data["lng"])
+@socketio.on("geoguess_join")
+def geoguess_join(data):
 
-    room_data = geo_rooms.get(room)
-    if not room_data:
+    user_id = session.get("user_id")
+
+    if not user_id:
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "ログインしてください"
+            }
+        )
         return
 
-    if "answers" not in room_data:
-        room_data["answers"] = []
+    user = db.session.get(
+        User,
+        user_id
+    )
 
-    room_data["answers"].append({
-        "user_id": user_id,
-        "lat": guess_lat,
-        "lng": guess_lng
-    })
+    if not user:
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "ユーザーが存在しません"
+            }
+        )
+        return
 
-    if len(room_data["answers"]) == 2:
-        true_lat = room_data["place"]["lat"]
-        true_lng = room_data["place"]["lng"]
 
-        def distance(a_lat, a_lng, b_lat, b_lng):
-            return ((a_lat - b_lat) ** 2 + (a_lng - b_lng) ** 2) ** 0.5
+    # =========================
+    # すでに参加中の卓
+    # =========================
 
-        a = room_data["answers"][0]
-        b = room_data["answers"][1]
+    existing_room = db.session.execute(
+        db.select(GeoRoom)
+        .where(
+            GeoRoom.status.in_([
+                "waiting",
+                "playing"
+            ])
+        )
+        .where(
+            db.or_(
+                GeoRoom.player1_id
+                == user_id,
 
-        dist_a = distance(a["lat"], a["lng"], true_lat, true_lng)
-        dist_b = distance(b["lat"], b["lng"], true_lat, true_lng)
+                GeoRoom.player2_id
+                == user_id
+            )
+        )
+    ).scalars().first()
 
-        if dist_a < dist_b:
-            winner = a["user_id"]
-            loser = b["user_id"]
+
+    if existing_room:
+
+        join_room(
+            existing_room.room_code
+        )
+
+        socketio.emit(
+            "geoguess_joined",
+            {
+                "room":
+                    existing_room.room_code,
+
+                "status":
+                    existing_room.status
+            }
+        )
+
+        return
+
+
+    # =========================
+    # コイン確認
+    # =========================
+
+    if (
+        user.coins or 0
+    ) < GEO_ENTRY_COST:
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "参加費200コインが必要です",
+
+                "coins":
+                    user.coins or 0
+            }
+        )
+
+        return
+
+
+    try:
+
+        # =========================
+        # 待機卓を探す
+        # =========================
+
+        waiting_room = db.session.execute(
+            db.select(GeoRoom)
+            .where(
+                GeoRoom.status
+                == "waiting"
+            )
+            .where(
+                GeoRoom.player2_id
+                .is_(None)
+            )
+            .order_by(
+                GeoRoom.created_at.asc()
+            )
+            .with_for_update(
+                skip_locked=True
+            )
+        ).scalars().first()
+
+
+        # =========================
+        # 待機卓なし
+        # =========================
+
+        if not waiting_room:
+
+            location_index = (
+                random.randrange(
+                    len(LOCATIONS)
+                )
+            )
+
+            room_code = (
+                "geo_"
+                + uuid.uuid4().hex[:12]
+            )
+
+            new_room = GeoRoom(
+                room_code=room_code,
+                status="waiting",
+                player1_id=user_id,
+                player2_id=None,
+                location_index=
+                    location_index
+            )
+
+            db.session.add(
+                new_room
+            )
+
+            db.session.commit()
+
+            join_room(
+                room_code
+            )
+
+            socketio.emit(
+                "geoguess_waiting",
+                {
+                    "room":
+                        room_code,
+
+                    "message":
+                        "対戦相手を待っています",
+
+                    "coins":
+                        user.coins or 0
+                }
+            )
+
+            return
+
+
+        # =========================
+        # 2人目として参加
+        # =========================
+
+        player1 = db.session.execute(
+            db.select(User)
+            .where(
+                User.id
+                == waiting_room.player1_id
+            )
+            .with_for_update()
+        ).scalar_one_or_none()
+
+        player2 = db.session.execute(
+            db.select(User)
+            .where(
+                User.id == user_id
+            )
+            .with_for_update()
+        ).scalar_one_or_none()
+
+
+        if not player1 or not player2:
+            raise ValueError(
+                "対戦ユーザーが見つかりません"
+            )
+
+
+        # =========================
+        # 両者のコイン確認
+        # =========================
+
+        if (
+            player1.coins or 0
+        ) < GEO_ENTRY_COST:
+
+            waiting_room.status = (
+                "cancelled"
+            )
+
+            db.session.commit()
+
+            socketio.emit(
+                "match_error",
+                {
+                    "message":
+                        "対戦相手のコインが不足しています"
+                },
+                room=waiting_room.room_code
+            )
+
+            return
+
+
+        if (
+            player2.coins or 0
+        ) < GEO_ENTRY_COST:
+
+            socketio.emit(
+                "match_error",
+                {
+                    "message":
+                        "参加費200コインが必要です"
+                }
+            )
+
+            db.session.rollback()
+
+            return
+
+
+        # =========================
+        # 参加費
+        # =========================
+
+        player1.coins -= (
+            GEO_ENTRY_COST
+        )
+
+        player2.coins -= (
+            GEO_ENTRY_COST
+        )
+
+
+        # =========================
+        # 試合開始
+        # =========================
+
+        waiting_room.player2_id = (
+            user_id
+        )
+
+        waiting_room.status = (
+            "playing"
+        )
+
+        db.session.commit()
+
+
+        room_code = (
+            waiting_room.room_code
+        )
+
+        join_room(
+            room_code
+        )
+
+        place = LOCATIONS[
+            waiting_room.location_index
+        ]
+
+
+        socketio.emit(
+            "geoguess_start",
+            {
+                "room":
+                    room_code,
+
+                "images":
+                    place["images"],
+
+                "player1":
+                    waiting_room.player1_id,
+
+                "player2":
+                    waiting_room.player2_id
+            },
+            room=room_code
+        )
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "GeoGuessマッチングエラー:",
+            str(e)
+        )
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "マッチングに失敗しました"
+            }
+        )
+
+
+
+@socketio.on("geoguess_answer")
+def geoguess_answer(data):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+    room_code = data.get(
+        "room"
+    )
+
+    try:
+
+        guess_lat = float(
+            data.get("lat")
+        )
+
+        guess_lng = float(
+            data.get("lng")
+        )
+
+    except (TypeError, ValueError):
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "回答地点が正しくありません"
+            }
+        )
+
+        return
+
+
+    # =========================
+    # 卓取得
+    # =========================
+
+    geo_room = db.session.execute(
+        db.select(GeoRoom)
+        .where(
+            GeoRoom.room_code
+            == room_code
+        )
+    ).scalars().first()
+
+
+    if not geo_room:
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "対戦卓が見つかりません"
+            }
+        )
+
+        return
+
+
+    if geo_room.status != "playing":
+        return
+
+
+    # =========================
+    # この卓の参加者か確認
+    # =========================
+
+    if user_id not in (
+        geo_room.player1_id,
+        geo_room.player2_id
+    ):
+        return
+
+
+    # =========================
+    # 二重回答防止
+    # =========================
+
+    existing_answer = (
+        db.session.execute(
+            db.select(GeoAnswer)
+            .where(
+                GeoAnswer.room_id
+                == geo_room.id
+            )
+            .where(
+                GeoAnswer.user_id
+                == user_id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+
+    if existing_answer:
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "すでに回答しています"
+            }
+        )
+
+        return
+
+
+    try:
+
+        answer = GeoAnswer(
+            room_id=geo_room.id,
+            user_id=user_id,
+            guess_lat=guess_lat,
+            guess_lng=guess_lng
+        )
+
+        db.session.add(
+            answer
+        )
+
+        db.session.commit()
+
+
+        # =========================
+        # 2人の回答確認
+        # =========================
+
+        answers = db.session.execute(
+            db.select(GeoAnswer)
+            .where(
+                GeoAnswer.room_id
+                == geo_room.id
+            )
+            .order_by(
+                GeoAnswer.created_at.asc()
+            )
+        ).scalars().all()
+
+
+        if len(answers) < 2:
+
+            socketio.emit(
+                "geoguess_wait_answer",
+                {
+                    "message":
+                        "相手の回答を待っています"
+                }
+            )
+
+            return
+
+
+        # =========================
+        # 正解地点
+        # =========================
+
+        place = LOCATIONS[
+            geo_room.location_index
+        ]
+
+        true_lat = float(
+            place["lat"]
+        )
+
+        true_lng = float(
+            place["lng"]
+        )
+
+
+        # =========================
+        # 距離計算
+        # Haversine
+        # =========================
+
+        def distance_km(
+            lat1,
+            lon1,
+            lat2,
+            lon2
+        ):
+
+            from math import (
+                radians,
+                sin,
+                cos,
+                sqrt,
+                atan2
+            )
+
+            earth_radius = 6371.0
+
+            dlat = radians(
+                lat2 - lat1
+            )
+
+            dlon = radians(
+                lon2 - lon1
+            )
+
+            a = (
+                sin(dlat / 2) ** 2
+                +
+                cos(radians(lat1))
+                * cos(radians(lat2))
+                * sin(dlon / 2) ** 2
+            )
+
+            c = 2 * atan2(
+                sqrt(a),
+                sqrt(1 - a)
+            )
+
+            return (
+                earth_radius * c
+            )
+
+
+        answer_a = answers[0]
+        answer_b = answers[1]
+
+
+        dist_a = distance_km(
+            answer_a.guess_lat,
+            answer_a.guess_lng,
+            true_lat,
+            true_lng
+        )
+
+        dist_b = distance_km(
+            answer_b.guess_lat,
+            answer_b.guess_lng,
+            true_lat,
+            true_lng
+        )
+
+
+        # =========================
+        # 勝者
+        # =========================
+
+        if dist_a <= dist_b:
+
+            winner_id = (
+                answer_a.user_id
+            )
+
+            loser_id = (
+                answer_b.user_id
+            )
+
         else:
-            winner = b["user_id"]
-            loser = a["user_id"]
 
-        users[winner]["coins"] += 400
-        save_json(USERS_FILE, users)
+            winner_id = (
+                answer_b.user_id
+            )
 
-        socketio.emit("geoguess_result", {
-            "winner": winner,
-            "loser": loser,
-            "true_lat": true_lat,
-            "true_lng": true_lng,
-            "a_user": a["user_id"],
-            "a_lat": a["lat"],
-            "a_lng": a["lng"],
-            "b_user": b["user_id"],
-            "b_lat": b["lat"],
-            "b_lng": b["lng"],
-        }, room=room)
+            loser_id = (
+                answer_a.user_id
+            )
+
+
+        winner = db.session.execute(
+            db.select(User)
+            .where(
+                User.id == winner_id
+            )
+            .with_for_update()
+        ).scalar_one_or_none()
+
+
+        if not winner:
+            raise ValueError(
+                "勝者ユーザーが存在しません"
+            )
+
+
+        # =========================
+        # 400コイン
+        # =========================
+
+        winner.coins = (
+            (winner.coins or 0)
+            + GEO_WIN_REWARD
+        )
+
+        geo_room.status = (
+            "finished"
+        )
+
+        geo_room.finished_at = (
+            db.func.now()
+        )
+
+        db.session.commit()
+
+
+        # =========================
+        # 結果送信
+        # =========================
+
+        socketio.emit(
+            "geoguess_result",
+            {
+                "winner":
+                    winner_id,
+
+                "loser":
+                    loser_id,
+
+                "true_lat":
+                    true_lat,
+
+                "true_lng":
+                    true_lng,
+
+                "location_name":
+                    place["name"],
+
+                "a_user":
+                    answer_a.user_id,
+
+                "a_lat":
+                    answer_a.guess_lat,
+
+                "a_lng":
+                    answer_a.guess_lng,
+
+                "a_distance":
+                    round(dist_a, 2),
+
+                "b_user":
+                    answer_b.user_id,
+
+                "b_lat":
+                    answer_b.guess_lat,
+
+                "b_lng":
+                    answer_b.guess_lng,
+
+                "b_distance":
+                    round(dist_b, 2),
+
+                "reward":
+                    GEO_WIN_REWARD
+            },
+            room=room_code
+        )
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "GeoGuess回答処理エラー:",
+            str(e)
+        )
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "回答処理に失敗しました"
+            }
+        )
 
 
 if __name__ == "__main__":

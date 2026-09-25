@@ -1,36 +1,2124 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>GeoGuess マッチング</title>
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Geo Battle</title>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<!-- Leaflet -->
+<link
+    rel="stylesheet"
+    href="https://unpkg<script
+    src="https://unpkg.com/t/leaflet.js</script>
 
 <style>
-body { font-family: sans-serif; background:#f5f5f5; margin:0; padding:20px; }
-img { width:100%; border-radius:15px; margin-bottom:20px; }
-button { padding:10px 20px; font-size:18px; margin-top:20px; }
+
+/* ==================================
+   BASE
+================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    color: white;
+
+    overflow-x: hidden;
+
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(0, 229, 255, 0.22),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 85% 80%,
+            rgba(139, 92, 246, 0.28),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #020617,
+            #07162c,
+            #100924,
+            #041323
+        );
+
+    background-size:
+        160% 160%;
+
+    animation:
+        backgroundMove 12s
+        ease-in-out infinite alternate;
+}
+
+
+@keyframes backgroundMove {
+
+    0% {
+        background-position:
+            0% 0%;
+    }
+
+    100% {
+        background-position:
+            100% 100%;
+    }
+}
+
+
+/* ==================================
+   GRID BACKGROUND
+================================== */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        50px 50px;
+
+    pointer-events: none;
+
+    animation:
+        gridMove 20s linear infinite;
+
+    z-index: 0;
+}
+
+
+@keyframes gridMove {
+
+    from {
+        transform:
+            translate(0, 0);
+    }
+
+    to {
+        transform:
+            translate(50px, 50px);
+    }
+}
+
+
+/* ==================================
+   FLOATING LIGHTS
+================================== */
+
+.light {
+
+    position: fixed;
+
+    width: 300px;
+    height: 300px;
+
+    border-radius:
+        50%;
+
+    filter:
+        blur(100px);
+
+    opacity:
+        0.18;
+
+    pointer-events:
+        none;
+
+    animation:
+        floatLight 9s
+        ease-in-out infinite alternate;
+}
+
+.light.one {
+
+    left: -100px;
+    top: 15%;
+
+    background:
+        #00d9ff;
+}
+
+.light.two {
+
+    right: -100px;
+    bottom: 10%;
+
+    background:
+        #8b5cf6;
+
+    animation-delay:
+        -3s;
+}
+
+@keyframes floatLight {
+
+    from {
+        transform:
+            translateY(-40px)
+            scale(0.9);
+    }
+
+    to {
+        transform:
+            translateY(80px)
+            scale(1.2);
+    }
+}
+
+
+/* ==================================
+   MAIN
+================================== */
+
+.wrapper {
+
+    position: relative;
+
+    z-index: 5;
+
+    width: 100%;
+
+    max-width: 1250px;
+
+    margin: 0 auto;
+
+    padding:
+        35px 20px 70px;
+}
+
+
+/* ==================================
+   HEADER
+================================== */
+
+.header {
+
+    text-align: center;
+
+    padding-top:
+        15px;
+
+    animation:
+        headerIn 0.8s ease both;
+}
+
+@keyframes headerIn {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(-30px);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+.globe {
+
+    display: inline-block;
+
+    font-size: 55px;
+
+    animation:
+        globeFloat 3s
+        ease-in-out infinite;
+}
+
+@keyframes globeFloat {
+
+    0%,
+    100% {
+
+        transform:
+            translateY(0)
+            rotate(-4deg);
+    }
+
+    50% {
+
+        transform:
+            translateY(-10px)
+            rotate(4deg);
+    }
+}
+
+
+.game-label {
+
+    margin-top:
+        8px;
+
+    color:
+        #70dfff;
+
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        7px;
+}
+
+
+h1 {
+
+    margin-top:
+        7px;
+
+    font-size:
+        clamp(
+            40px,
+            8vw,
+            75px
+        );
+
+    line-height:
+        1;
+
+    font-weight:
+        950;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #62e5ff,
+            #b18cff
+        );
+
+    background-clip:
+        text;
+
+    -webkit-background-clip:
+        text;
+
+    color:
+        transparent;
+}
+
+
+.subtitle {
+
+    margin-top:
+        12px;
+
+    color:
+        #8998b4;
+
+    font-size:
+        14px;
+}
+
+
+/* ==================================
+   INFO
+================================== */
+
+.info-bar {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        13px;
+
+    max-width:
+        750px;
+
+    margin:
+        32px auto 0;
+}
+
+
+.info-box {
+
+    padding:
+        14px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius:
+        15px;
+
+    background:
+        rgba(255,255,255,0.055);
+
+    backdrop-filter:
+        blur(15px);
+}
+
+
+.info-title {
+
+    font-size:
+        10px;
+
+    color:
+        #71819d;
+
+    letter-spacing:
+        2px;
+}
+
+
+.info-value {
+
+    margin-top:
+        5px;
+
+    font-size:
+        16px;
+
+    font-weight:
+        900;
+
+    color:
+        #eaf3ff;
+}
+
+
+/* ==================================
+   STATUS CARD
+================================== */
+
+.status-card {
+
+    max-width:
+        750px;
+
+    margin:
+        22px auto;
+
+    padding:
+        24px;
+
+    text-align:
+        center;
+
+    border-radius:
+        20px;
+
+    border:
+        1px solid
+        rgba(101,220,255,0.18);
+
+    background:
+        rgba(5,14,35,0.76);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 20px 60px
+        rgba(0,0,0,0.30);
+}
+
+
+#status {
+
+    color:
+        #d9efff;
+
+    font-size:
+        20px;
+
+    font-weight:
+        900;
+}
+
+
+#subStatus {
+
+    margin-top:
+        8px;
+
+    color:
+        #7889a7;
+
+    font-size:
+        13px;
+}
+
+
+/* ==================================
+   SEARCH ANIMATION
+================================== */
+
+.searching {
+
+    width:
+        70px;
+
+    height:
+        70px;
+
+    margin:
+        25px auto 5px;
+
+    position:
+        relative;
+}
+
+
+.searching::before,
+.searching::after {
+
+    content: "";
+
+    position:
+        absolute;
+
+    inset: 0;
+
+    border-radius:
+        50%;
+
+    border:
+        2px solid
+        #4cdcff;
+
+    animation:
+        radar 2s linear infinite;
+}
+
+.searching::after {
+
+    animation-delay:
+        1s;
+}
+
+
+@keyframes radar {
+
+    0% {
+
+        opacity: 1;
+
+        transform:
+            scale(0.2);
+    }
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(1.8);
+    }
+}
+
+
+/* ==================================
+   VS
+================================== */
+
+#versus {
+
+    display:
+        none;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        25px;
+
+    margin:
+        25px 0;
+}
+
+
+.player {
+
+    flex:
+        1;
+
+    max-width:
+        250px;
+
+    padding:
+        22px;
+
+    border-radius:
+        18px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+}
+
+
+.player.left {
+
+    animation:
+        playerLeft 0.6s
+        ease both;
+}
+
+.player.right {
+
+    animation:
+        playerRight 0.6s
+        ease both;
+}
+
+
+@keyframes playerLeft {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateX(-120px);
+    }
+}
+
+
+@keyframes playerRight {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateX(120px);
+    }
+}
+
+
+.vs-text {
+
+    font-size:
+        34px;
+
+    font-weight:
+        950;
+
+    color:
+        #7ce9ff;
+
+    text-shadow:
+        0 0 25px
+        rgba(124,233,255,0.7);
+
+    animation:
+        vsPop 0.8s ease both;
+}
+
+
+@keyframes vsPop {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.2)
+            rotate(-20deg);
+    }
+
+    70% {
+
+        transform:
+            scale(1.3)
+            rotate(6deg);
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+    }
+}
+
+
+/* ==================================
+   GAME
+================================== */
+
+#gameArea {
+
+    display:
+        none;
+
+    animation:
+        gameAppear
+        0.8s ease both;
+}
+
+
+@keyframes gameAppear {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(40px);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+/* ==================================
+   PHOTOS
+================================== */
+
+.photo-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap:
+        14px;
+
+    margin-top:
+        25px;
+}
+
+
+.photo-card {
+
+    position:
+        relative;
+
+    overflow:
+        hidden;
+
+    min-height:
+        240px;
+
+    border-radius:
+        19px;
+
+    background:
+        #080e1c;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 18px 40px
+        rgba(0,0,0,0.28);
+
+    opacity: 0;
+
+    transform:
+        scale(0.85)
+        translateY(35px);
+
+    animation:
+        photoIn
+        0.7s ease forwards;
+}
+
+
+.photo-card:nth-child(1) {
+    animation-delay:
+        0.05s;
+}
+
+.photo-card:nth-child(2) {
+    animation-delay:
+        0.18s;
+}
+
+.photo-card:nth-child(3) {
+    animation-delay:
+        0.31s;
+}
+
+.photo-card:nth-child(4) {
+    animation-delay:
+        0.44s;
+}
+
+
+@keyframes photoIn {
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            scale(1)
+            translateY(0);
+    }
+}
+
+
+.photo-card img {
+
+    width:
+        100%;
+
+    height:
+        100%;
+
+    min-height:
+        240px;
+
+    display:
+        block;
+
+    object-fit:
+        cover;
+
+    transition:
+        transform 0.45s ease,
+        filter 0.45s ease;
+}
+
+
+.photo-card:hover img {
+
+    transform:
+        scale(1.08);
+
+    filter:
+        brightness(1.08);
+}
+
+
+.direction {
+
+    position:
+        absolute;
+
+    top:
+        12px;
+
+    left:
+        12px;
+
+    padding:
+        7px 11px;
+
+    border-radius:
+        9px;
+
+    color:
+        white;
+
+    background:
+        rgba(0,0,0,0.66);
+
+    backdrop-filter:
+        blur(10px);
+
+    font-size:
+        12px;
+
+    font-weight:
+        900;
+}
+
+
+/* ==================================
+   MAP
+================================== */
+
+.map-card {
+
+    margin-top:
+        25px;
+
+    padding:
+        18px;
+
+    border-radius:
+        22px;
+
+    background:
+        rgba(8,15,35,0.82);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    box-shadow:
+        0 20px 60px
+        rgba(0,0,0,0.30);
+}
+
+
+.map-title {
+
+    margin-bottom:
+        13px;
+
+    font-size:
+        17px;
+
+    font-weight:
+        900;
+}
+
+
+#map {
+
+    width:
+        100%;
+
+    height:
+        430px;
+
+    border-radius:
+        16px;
+
+    overflow:
+        hidden;
+}
+
+
+.guess-info {
+
+    margin-top:
+        14px;
+
+    padding:
+        12px;
+
+    border-radius:
+        12px;
+
+    background:
+        rgba(255,255,255,0.05);
+
+    color:
+        #8fa3c3;
+
+    text-align:
+        center;
+
+    font-size:
+        13px;
+}
+
+
+/* ==================================
+   ANSWER BUTTON
+================================== */
+
+#answerButton {
+
+    width:
+        100%;
+
+    margin-top:
+        15px;
+
+    padding:
+        17px;
+
+    border:
+        none;
+
+    border-radius:
+        14px;
+
+    color:
+        white;
+
+    font-size:
+        16px;
+
+    font-weight:
+        900;
+
+    cursor:
+        pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #119dff,
+            #755cff
+        );
+
+    box-shadow:
+        0 12px 35px
+        rgba(33,146,255,0.27);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+#answerButton:hover {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 18px 45px
+        rgba(33,146,255,0.42);
+}
+
+
+#answerButton:disabled {
+
+    opacity:
+        0.4;
+
+    cursor:
+        not-allowed;
+
+    transform:
+        none;
+}
+
+
+/* ==================================
+   MODAL
+================================== */
+
+.modal {
+
+    display:
+        none;
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    z-index:
+        9999;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    padding:
+        20px;
+
+    background:
+        rgba(0,0,0,0.72);
+
+    backdrop-filter:
+        blur(12px);
+}
+
+
+.modal.show {
+
+    display:
+        flex;
+}
+
+
+.modal-card {
+
+    width:
+        100%;
+
+    max-width:
+        470px;
+
+    padding:
+        38px 30px;
+
+    text-align:
+        center;
+
+    border-radius:
+        27px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #111d39,
+            #070d1d
+        );
+
+    border:
+        1px solid
+        rgba(255,255,255,0.14);
+
+    box-shadow:
+        0 40px 120px
+        rgba(0,0,0,0.70);
+
+    animation:
+        modalPop 0.45s ease both;
+}
+
+
+@keyframes modalPop {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.7)
+            translateY(40px);
+    }
+
+    70% {
+
+        transform:
+            scale(1.04);
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+    }
+}
+
+
+.modal-icon {
+
+    font-size:
+        65px;
+
+    animation:
+        iconBounce
+        1.4s ease-in-out infinite;
+}
+
+
+@keyframes iconBounce {
+
+    50% {
+        transform:
+            translateY(-8px)
+            scale(1.08);
+    }
+}
+
+
+.modal-title {
+
+    margin-top:
+        12px;
+
+    font-size:
+        29px;
+}
+
+
+.modal-message {
+
+    margin-top:
+        13px;
+
+    color:
+        #97a9c7;
+
+    line-height:
+        1.7;
+}
+
+
+.result-box {
+
+    margin-top:
+        20px;
+
+    padding:
+        17px;
+
+    border-radius:
+        15px;
+
+    background:
+        rgba(255,255,255,0.055);
+
+    line-height:
+        1.8;
+}
+
+
+.reward {
+
+    margin-top:
+        15px;
+
+    color:
+        #ffd75e;
+
+    font-size:
+        28px;
+
+    font-weight:
+        950;
+
+    animation:
+        rewardGlow 1s
+        ease-in-out infinite alternate;
+}
+
+
+@keyframes rewardGlow {
+
+    from {
+
+        text-shadow:
+            0 0 5px
+            rgba(255,215,94,0.2);
+    }
+
+    to {
+
+        text-shadow:
+            0 0 30px
+            rgba(255,215,94,0.95);
+    }
+}
+
+
+.home-button {
+
+    display:
+        block;
+
+    margin-top:
+        22px;
+
+    padding:
+        14px;
+
+    border-radius:
+        13px;
+
+    color:
+        white;
+
+    text-decoration:
+        none;
+
+    font-weight:
+        900;
+
+    background:
+        linear-gradient(
+            135deg,
+            #238fff,
+            #7959ff
+        );
+}
+
+
+/* ==================================
+   MOBILE
+================================== */
+
+@media (
+    max-width: 700px
+) {
+
+    .wrapper {
+
+        padding:
+            25px 12px 50px;
+    }
+
+    .info-bar {
+
+        grid-template-columns:
+            1fr;
+    }
+
+    .photo-grid {
+
+        grid-template-columns:
+            1fr;
+    }
+
+    #versus {
+
+        gap:
+            8px;
+    }
+
+    .player {
+
+        padding:
+            15px 7px;
+
+        font-size:
+            12px;
+    }
+
+    .vs-text {
+
+        font-size:
+            23px;
+    }
+
+    #map {
+
+        height:
+            360px;
+    }
+}
+
 </style>
 </head>
+
 <body>
 
-<h2>🌍 写真の場所を当ててマッチング！</h2>
 
-<img src="/static/geoguess/{{ image }}">
+<div class="light one"></div>
+<div class="light two"></div>
 
-<form action="/matching_geoguess_answer" method="POST">
-    <input type="hidden" name="correct" value="{{ correct }}">
 
-    <label>この写真はどこの国？</label><br><br>
+<div class="wrapper">
 
-    <select name="selected" style="font-size:20px; padding:10px;">
-        <option value="Japan">日本</option>
-        <option value="USA">アメリカ</option>
-        <option value="France">フランス</option>
-        <option value="Brazil">ブラジル</option>
-    </select>
 
-    <br><br>
-    <button type="submit">回答する</button>
-</form>
+<!-- HEADER -->
+
+<header class="header">
+
+    <div class="globe">
+        🌍
+    </div>
+
+    <div class="game-label">
+        ONLINE LOCATION BATTLE
+    </div>
+
+    <h1>
+        GEO BATTLE
+    </h1>
+
+    <p class="subtitle">
+        4枚の写真から場所を推理して、
+        相手より正解地点へ近づけ。
+    </p>
+
+</header>
+
+
+<!-- INFO -->
+
+<div class="info-bar">
+
+    <div class="info-box">
+
+        <div class="info-title">
+            PLAYER
+        </div>
+
+        <div class="info-value">
+            {{ user_id }}
+        </div>
+
+    </div>
+
+    <div class="info-box">
+
+        <div class="info-title">
+            COINS
+        </div>
+
+        <div
+            class="info-value"
+            id="coinValue"
+        >
+            {{ coins }}
+        </div>
+
+    </div>
+
+    <div class="info-box">
+
+        <div class="info-title">
+            TABLE
+        </div>
+
+        <div
+            class="info-value"
+            id="roomValue"
+        >
+            SEARCHING
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- STATUS -->
+
+<section class="status-card">
+
+    <div id="status">
+        対戦相手を検索しています
+    </div>
+
+    <div id="subStatus">
+        参加可能な卓を探しています...
+    </div>
+
+    <div
+        class="searching"
+        id="searching"
+    ></div>
+
+
+    <!-- VS -->
+
+    <div id="versus">
+
+        <div class="player left">
+
+            <div>
+                PLAYER 1
+            </div>
+
+            <strong id="player1">
+                ???
+            </strong>
+
+        </div>
+
+
+        <div class="vs-text">
+            VS
+        </div>
+
+
+        <div class="player right">
+
+            <div>
+                PLAYER 2
+            </div>
+
+            <strong id="player2">
+                ???
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- GAME -->
+
+<section id="gameArea">
+
+
+    <!-- PHOTOS -->
+
+    <div class="photo-grid">
+
+        <div class="photo-card">
+
+            <img id="photo0">
+
+            <span class="direction">
+                ① VIEW
+            </span>
+
+        </div>
+
+
+        <div class="photo-card">
+
+            <img id="photo1">
+
+            <span class="direction">
+                ② VIEW
+            </span>
+
+        </div>
+
+
+        <div class="photo-card">
+
+            <img id="photo2">
+
+            <span class="direction">
+                ③ VIEW
+            </span>
+
+        </div>
+
+
+        <div class="photo-card">
+
+            <img id="photo3">
+
+            <span class="direction">
+                ④ VIEW
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAP -->
+
+    <div class="map-card">
+
+        <div class="map-title">
+            🗺️ ここだと思う場所をクリック
+        </div>
+
+        <div id="map"></div>
+
+        <div
+            class="guess-info"
+            id="guessInfo"
+        >
+            まだ場所を選択していません
+        </div>
+
+        <button
+            id="answerButton"
+            disabled
+        >
+            この場所で回答する
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- MODAL -->
+
+<div
+    id="modal"
+    class="modal"
+>
+
+    <div class="modal-card">
+
+        <div
+            class="modal-icon"
+            id="modalIcon"
+        >
+            🌍
+        </div>
+
+        <h2
+            class="modal-title"
+            id="modalTitle"
+        ></h2>
+
+        <div
+            class="modal-message"
+            id="modalMessage"
+        ></div>
+
+        /home
+            ホームへ戻る
+        </a>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* ==================================
+   SOCKET
+================================== */
+
+const socket = io();
+
+const userId = "{{ user_id }}";
+
+let currentRoom = null;
+
+let selectedLat = null;
+let selectedLng = null;
+
+let marker = null;
+
+let answered = false;
+
+
+/* ==================================
+   ELEMENTS
+================================== */
+
+const statusEl =
+    document.getElementById(
+        "status"
+    );
+
+const subStatusEl =
+    document.getElementById(
+        "subStatus"
+    );
+
+const searching =
+    document.getElementById(
+        "searching"
+    );
+
+const gameArea =
+    document.getElementById(
+        "gameArea"
+    );
+
+const versus =
+    document.getElementById(
+        "versus"
+    );
+
+const roomValue =
+    document.getElementById(
+        "roomValue"
+    );
+
+const coinValue =
+    document.getElementById(
+        "coinValue"
+    );
+
+const answerButton =
+    document.getElementById(
+        "answerButton"
+    );
+
+const guessInfo =
+    document.getElementById(
+        "guessInfo"
+    );
+
+
+/* ==================================
+   地図
+================================== */
+
+const map = L.map(
+    "map"
+).setView(
+    [20, 0],
+    2
+);
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        maxZoom: 19,
+        attribution:
+            "&copy; OpenStreetMap contributors"
+    }
+).addTo(map);
+
+
+map.on(
+    "click",
+    event => {
+
+        if (answered) {
+            return;
+        }
+
+        selectedLat =
+            event.latlng.lat;
+
+        selectedLng =
+            event.latlng.lng;
+
+        if (marker) {
+
+            marker.setLatLng(
+                event.latlng
+            );
+
+        } else {
+
+            marker = L.marker(
+                event.latlng
+            ).addTo(map);
+        }
+
+        guessInfo.textContent =
+            "選択地点: "
+            + selectedLat.toFixed(4)
+            + ", "
+            + selectedLng.toFixed(4);
+
+        answerButton.disabled =
+            false;
+    }
+);
+
+
+/* ==================================
+   中央モーダル
+================================== */
+
+function showModal(
+    icon,
+    title,
+    message
+) {
+
+    document.getElementById(
+        "modalIcon"
+    ).textContent =
+        icon;
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        title;
+
+    document.getElementById(
+        "modalMessage"
+    ).innerHTML =
+        message;
+
+    document.getElementById(
+        "modal"
+    ).classList.add(
+        "show"
+    );
+}
+
+
+/* ==================================
+   Socket接続
+================================== */
+
+socket.on(
+    "connect",
+    () => {
+
+        statusEl.textContent =
+            "対戦相手を検索しています";
+
+        subStatusEl.textContent =
+            "参加可能な卓を探しています...";
+
+        socket.emit(
+            "geoguess_join",
+            {}
+        );
+    }
+);
+
+
+/* ==================================
+   待機中
+================================== */
+
+socket.on(
+    "geoguess_waiting",
+    data => {
+
+        currentRoom =
+            data.room;
+
+        roomValue.textContent =
+            currentRoom;
+
+        if (
+            data.coins !== undefined
+        ) {
+            coinValue.textContent =
+                data.coins;
+        }
+
+        statusEl.textContent =
+            "対戦相手を待っています";
+
+        subStatusEl.textContent =
+            "参加者が見つかると自動的に開始します";
+    }
+);
+
+
+/* ==================================
+   既存卓へ復帰
+================================== */
+
+socket.on(
+    "geoguess_joined",
+    data => {
+
+        currentRoom =
+            data.room;
+
+        roomValue.textContent =
+            currentRoom;
+
+        if (
+            data.status === "waiting"
+        ) {
+
+            statusEl.textContent =
+                "対戦相手を待っています";
+
+            subStatusEl.textContent =
+                "参加者が見つかると自動的に開始します";
+
+        } else {
+
+            statusEl.textContent =
+                "対戦へ復帰しました";
+
+            subStatusEl.textContent =
+                "ゲーム情報を確認しています";
+        }
+    }
+);
+
+
+/* ==================================
+   マッチング成立
+================================== */
+
+socket.on(
+    "geoguess_start",
+    data => {
+
+        currentRoom =
+            data.room;
+
+        roomValue.textContent =
+            currentRoom;
+
+        searching.style.display =
+            "none";
+
+        document.getElementById(
+            "player1"
+        ).textContent =
+            data.player1;
+
+        document.getElementById(
+            "player2"
+        ).textContent =
+            data.player2;
+
+        versus.style.display =
+            "flex";
+
+        statusEl.textContent =
+            "マッチング成立！";
+
+        subStatusEl.textContent =
+            "対戦を開始します";
+
+        const images =
+            data.images || [];
+
+        for (
+            let i = 0;
+            i < 4;
+            i++
+        ) {
+
+            const image =
+                document.getElementById(
+                    "photo" + i
+                );
+
+            if (images[i]) {
+
+                image.src =
+                    images[i];
+
+                image.parentElement
+                    .style.display =
+                        "block";
+
+            } else {
+
+                image.parentElement
+                    .style.display =
+                        "none";
+            }
+        }
+
+        setTimeout(
+            () => {
+
+                versus.style.display =
+                    "none";
+
+                gameArea.style.display =
+                    "block";
+
+                statusEl.textContent =
+                    "場所を当てろ！";
+
+                subStatusEl.textContent =
+                    "写真を手がかりに地図から場所を選んでください";
+
+                setTimeout(
+                    () => {
+                        map.invalidateSize();
+                    },
+                    150
+                );
+            },
+            1900
+        );
+    }
+);
+
+
+/* ==================================
+   回答
+================================== */
+
+answerButton.addEventListener(
+    "click",
+    () => {
+
+        if (
+            answered
+            || !currentRoom
+            || selectedLat === null
+            || selectedLng === null
+        ) {
+            return;
+        }
+
+        answered = true;
+
+        answerButton.disabled =
+            true;
+
+        answerButton.textContent =
+            "回答送信済み ✓";
+
+        socket.emit(
+            "geoguess_answer",
+            {
+                room: currentRoom,
+                lat: selectedLat,
+                lng: selectedLng
+            }
+        );
+
+        statusEl.textContent =
+            "回答完了";
+
+        subStatusEl.textContent =
+            "相手の回答を待っています...";
+    }
+);
+
+
+/* ==================================
+   相手回答待ち
+================================== */
+
+socket.on(
+    "geoguess_wait_answer",
+    data => {
+
+        statusEl.textContent =
+            "回答完了";
+
+        subStatusEl.textContent =
+            data.message
+            || "相手の回答を待っています";
+    }
+);
+
+
+/* ==================================
+   結果
+================================== */
+
+socket.on(
+    "geoguess_result",
+    data => {
+
+        answered = true;
+
+        answerButton.disabled =
+            true;
+
+        const win =
+            data.winner === userId;
+
+        let myDistance;
+        let opponentDistance;
+
+        if (
+            data.a_user === userId
+        ) {
+
+            myDistance =
+                data.a_distance;
+
+            opponentDistance =
+                data.b_distance;
+
+        } else {
+
+            myDistance =
+                data.b_distance;
+
+            opponentDistance =
+                data.a_distance;
+        }
+
+        showModal(
+            win ? "🏆" : "🌍",
+
+            win
+                ? "あなたの勝ち！"
+                : "あなたの負け",
+
+            `
+                正解地点<br>
+
+                <strong>
+                    ${data.location_name}
+                </strong>
+
+                <div class="result-box">
+
+                    あなたの距離<br>
+
+                    <strong>
+                        ${Number(
+                            myDistance
+                        ).toFixed(2)}
+                        km
+                    </strong>
+
+                    <br><br>
+
+                    相手の距離<br>
+
+                    <strong>
+                        ${Number(
+                            opponentDistance
+                        ).toFixed(2)}
+                        km
+                    </strong>
+
+                </div>
+
+                ${
+                    win
+                    ? `
+                        <div class="reward">
+                            +${data.reward} COIN
+                        </div>
+                    `
+                    : ""
+                }
+            `
+        );
+    }
+);
+
+
+/* ==================================
+   エラー
+================================== */
+
+socket.on(
+    "match_error",
+    data => {
+
+        searching.style.display =
+            "none";
+
+        showModal(
+            "⚠️",
+            "参加できません",
+
+            data.message
+            || "エラーが発生しました"
+        );
+    }
+);
+
+</script>
 
 </body>
 </html>
