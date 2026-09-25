@@ -693,5 +693,367 @@ socket.on(
     }
 );
 
+/* =====================
+   1人目：待機
+===================== */
+
+socket.on(
+    "speed_waiting",
+
+    data => {
+
+        currentRoom =
+            data.room;
+
+        roomValue.textContent =
+            currentRoom;
+
+        if (
+            data.coins !== undefined
+        ) {
+
+            coinValue.textContent =
+                data.coins;
+        }
+
+        statusEl.textContent =
+            "対戦相手を待っています";
+
+        subStatusEl.textContent =
+            "相手が参加すると自動的に開始します";
+
+        loader.style.display =
+            "block";
+    }
+);
+
+
+/* =====================
+   既存の部屋へ復帰
+===================== */
+
+socket.on(
+    "speed_joined",
+
+    data => {
+
+        currentRoom =
+            data.room;
+
+        roomValue.textContent =
+            currentRoom;
+
+        if (
+            data.status === "waiting"
+        ) {
+
+            statusEl.textContent =
+                "対戦相手を待っています";
+
+            subStatusEl.textContent =
+                "相手が参加すると自動的に開始します";
+
+            loader.style.display =
+                "block";
+
+        } else {
+
+            statusEl.textContent =
+                "対戦へ復帰しました";
+
+            subStatusEl.textContent =
+                "ゲーム状態を確認しています";
+
+            loader.style.display =
+                "block";
+        }
+    }
+);
+
+
+/* =====================
+   2人揃った
+===================== */
+
+socket.on(
+    "speed_ready",
+
+    data => {
+
+        currentRoom =
+            data.room;
+
+        roomValue.textContent =
+            currentRoom;
+
+        loader.style.display =
+            "none";
+
+        statusEl.textContent =
+            "READY...";
+
+        subStatusEl.textContent =
+            "合図が出るまで押さないでください";
+
+        button.style.display =
+            "inline-block";
+
+        button.disabled =
+            true;
+
+        button.textContent =
+            "WAIT";
+
+        alreadyPressed =
+            false;
+
+        startTime =
+            null;
+
+        setTimeout(
+            () => {
+
+                statusEl.textContent =
+                    "GO!";
+
+                statusEl.classList.add(
+                    "go"
+                );
+
+                subStatusEl.textContent =
+                    "今すぐ押せ！";
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "PUSH!";
+
+                startTime =
+                    performance.now();
+
+            },
+
+            Number(data.delay) * 1000
+        );
+    }
+);
+
+
+/* =====================
+   PUSHボタン
+===================== */
+
+button.addEventListener(
+    "click",
+
+    () => {
+
+        if (
+            button.disabled
+            ||
+            alreadyPressed
+            ||
+            startTime === null
+            ||
+            !currentRoom
+        ) {
+
+            return;
+        }
+
+        alreadyPressed =
+            true;
+
+        button.disabled =
+            true;
+
+        button.textContent =
+            "DONE";
+
+        const reaction =
+            (
+                performance.now()
+                - startTime
+            ) / 1000;
+
+        statusEl.textContent =
+            "回答完了";
+
+        statusEl.classList.remove(
+            "go"
+        );
+
+        subStatusEl.textContent =
+            "相手の結果を待っています...";
+
+        socket.emit(
+            "speed_reaction",
+
+            {
+                room:
+                    currentRoom,
+
+                reaction:
+                    reaction
+            }
+        );
+    }
+);
+
+
+/* =====================
+   相手の入力待ち
+===================== */
+
+socket.on(
+    "speed_opponent_wait",
+
+    data => {
+
+        statusEl.textContent =
+            "相手を待っています";
+
+        subStatusEl.textContent =
+            data.message
+            || "相手の入力を待っています";
+    }
+);
+
+
+/* =====================
+   対戦結果
+===================== */
+
+socket.on(
+    "speed_result",
+
+    data => {
+
+        button.disabled =
+            true;
+
+        statusEl.classList.remove(
+            "go"
+        );
+
+        const isWinner =
+            data.winner === userId;
+
+        let myTime;
+        let opponentTime;
+        let reward;
+
+        if (isWinner) {
+
+            myTime =
+                data.winner_reaction;
+
+            opponentTime =
+                data.loser_reaction;
+
+            reward =
+                data.winner_reward;
+
+        } else {
+
+            myTime =
+                data.loser_reaction;
+
+            opponentTime =
+                data.winner_reaction;
+
+            reward =
+                data.loser_reward;
+        }
+
+        showModal(
+            isWinner
+                ? "🏆"
+                : "⚡",
+
+            isWinner
+                ? "あなたの勝ち！"
+                : "あなたの負け",
+
+            `
+                <div class="result-time">
+
+                    あなたの反応時間
+
+                    <br>
+
+                    <strong>
+                        ${Number(
+                            myTime
+                        ).toFixed(3)}
+                        秒
+                    </strong>
+
+                    <br><br>
+
+                    相手の反応時間
+
+                    <br>
+
+                    <strong>
+                        ${Number(
+                            opponentTime
+                        ).toFixed(3)}
+                        秒
+                    </strong>
+
+                </div>
+
+                <br>
+
+                獲得コイン
+
+                <br>
+
+                <strong>
+                    +${reward} COIN
+                </strong>
+            `
+        );
+    }
+);
+
+
+/* =====================
+   エラー
+===================== */
+
+socket.on(
+    "speed_error",
+
+    data => {
+
+        loader.style.display =
+            "none";
+
+        statusEl.textContent =
+            "エラーが発生しました";
+
+        subStatusEl.textContent =
+            "";
+
+        showModal(
+            "⚠️",
+
+            "ゲームを開始できません",
+
+            data.message
+            || "エラーが発生しました"
+        );
+    }
+);
+
+</script>
+
+</body>
+
+</html>
+
 
 
