@@ -1176,7 +1176,10 @@ h1 {
         <div id="modalMessage"></div>
 
 
-        /gomoku_home
+        <a
+            href="/gomoku_home"
+            class="btn btn-primary"
+        >
             五目並べロビーへ戻る
         </a>
 
@@ -1703,6 +1706,33 @@ socket.on(
     "gomoku_finish",
 
     data => {
+
+        if (
+            data.reason === "timeout"
+        ) {
+
+            gameFinished =
+                true;
+
+            if (timerInterval) {
+
+                clearInterval(
+                    timerInterval
+                );
+            }
+
+            const result =
+                data.winner === userId
+                ? "win"
+                : "lose";
+
+            window.location.href =
+                "/gomoku_result?result="
+                + result;
+
+            return;
+        }
+
 
         finishGame(
             data.winner,
