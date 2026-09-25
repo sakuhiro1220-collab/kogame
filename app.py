@@ -3857,7 +3857,11 @@ def speed_online():
 @socketio.on("join_speed")
 def on_join_speed(data):
 
+    print("================ SPEED JOIN ================")
+
     user_id = session.get("user_id")
+
+    print("SPEED user_id:", user_id)
 
     if not user_id:
         socketio.emit(
@@ -3904,7 +3908,19 @@ def on_join_speed(data):
         )
     ).scalars().first()
 
+    print(
+        "SPEED existing_room:",
+        existing_room.room_code
+        if existing_room
+        else None,
+        "status:",
+        existing_room.status
+        if existing_room
+        else None
+    )
     if existing_room:
+
+        
 
         room_code = (
             existing_room.room_code
@@ -4086,7 +4102,7 @@ def on_join_speed(data):
                     "マッチング処理に失敗しました"
             }
         )
-    return render_template("speed_online_result.html")
+  
 
 @socketio.on("speed_reaction")
 def on_speed_reaction(data):
