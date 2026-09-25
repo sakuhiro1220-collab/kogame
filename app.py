@@ -433,6 +433,83 @@ class GeoAnswer(db.Model):
             name="uq_geo_answer_room_user"
         ),
     )
+
+class GomokuRoom(db.Model):
+    __tablename__ = "gomoku_rooms"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    room_code = db.Column(
+        db.String(100),
+        unique=True,
+        nullable=False
+    )
+
+    status = db.Column(
+        db.String(20),
+        nullable=False,
+        default="waiting"
+    )
+
+    player1_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    player2_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    black_player_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    white_player_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    turn = db.Column(
+        db.String(10),
+        nullable=False,
+        default="black"
+    )
+
+    board = db.Column(
+        db.JSON,
+        nullable=False
+    )
+
+    winner_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    last_move_time = db.Column(
+        db.Float,
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+
+    finished_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
 # =========================
 # Socket.IO
 # =========================
@@ -2327,166 +2404,624 @@ def answer_question():
 
 
 
-GOMOKU_ENTRY_COST = 50
+# ==========================================
+# 五目並べ
+# PostgreSQL + Socket.IO版
+# ==========================================
 
+GOMOKU_ENTRY_COST = 50
 GOMOKU_WIN_REWARD = 100
 
-gomoku_rooms = {}
+GOMOKU_BOARD_SIZE = 15
+GOMOKU_TURN_SECONDS = 20
 
-waiting_gomoku_players = []
 
-@app.route("/gomoku_home")
+# ==========================================
+# 空盤面
+# ==========================================
+
+def create_gomoku_board():
+
+    return [
+        [
+            0
+            for _ in range(GOMOKU_BOARD_SIZE)
+        ]
+        for _ in range(GOMOKU_BOARD_SIZE)
+    ]
+
+
+# ==========================================
+# 五目並べホーム
+# ==========================================
 
 @app.route("/gomoku_home")
 def gomoku_home():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
 
     if not user_id:
-        return redirect(url_for("top"))
+
+        return redirect(
+            url_for("top")
+        )
+
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+
+    if not user:
+
+        return redirect(
+            url_for("top")
+        )
+
 
     return render_template(
-        "gomoku_home.html"
+        "gomoku_home.html",
+        user_id=user_id,
+        coins=user.coins or 0
     )
+
+
+# ==========================================
+# マッチング要求
+# ==========================================
 
 @socketio.on("gomoku_match_request")
 def gomoku_match_request():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
+
 
     if not user_id:
-        return
-
-    if users[user_id]["coins"] < GOMOKU_ENTRY_COST:
 
         socketio.emit(
             "match_error",
             {
                 "message":
-                f"{GOMOKU_ENTRY_COST}コイン必要です"
-            },
-            room=user_id
+                    "ログインしてください"
+            }
         )
 
         return
 
-    if user_id not in waiting_gomoku_players:
 
-        waiting_gomoku_players.append(
-            user_id
-        )
-
-    socketio.emit(
-        "gomoku_match_update",
-        {
-            "count":
-            len(waiting_gomoku_players)
-        }
+    user = db.session.get(
+        User,
+        user_id
     )
 
-    check_gomoku_matching()
 
-def check_gomoku_matching():
+    if not user:
 
-    global waiting_gomoku_players
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "ユーザーが存在しません"
+            }
+        )
 
-    if len(waiting_gomoku_players) < 2:
         return
 
-    players = waiting_gomoku_players[:2]
 
-    waiting_gomoku_players = (
-        waiting_gomoku_players[2:]
-    )
+    # ======================================
+    # すでに対局中 / 待機中か
+    # ======================================
 
-    room_id = str(uuid.uuid4())
+    existing_room = db.session.execute(
 
-    random.shuffle(players)
-
-    black_player = players[0]
-
-    white_player = players[1]
-
-    board = [
-        [0 for _ in range(15)]
-        for _ in range(15)
-    ]
-
-    gomoku_rooms[room_id] = {
-
-        "players": players,
-
-        "black": black_player,
-
-        "white": white_player,
-
-        "turn": "black",
-
-        "board": board,
-
-        "winner": None,
-
-        "room_id": room_id,
-
-        "last_move_time": time.time()
-    }
-
-    # 開始時徴収
-    for uid in players:
-
-        users[uid]["coins"] -= (
-            GOMOKU_ENTRY_COST
+        db.select(
+            GomokuRoom
         )
 
-    save_json(
-        USERS_FILE,
-        users
-    )
+        .where(
+            GomokuRoom.status.in_(
+                [
+                    "waiting",
+                    "playing"
+                ]
+            )
+        )
 
-    for uid in players:
+        .where(
+            db.or_(
+                GomokuRoom.player1_id
+                    == user_id,
+
+                GomokuRoom.player2_id
+                    == user_id
+            )
+        )
+
+        .order_by(
+            GomokuRoom.created_at.desc()
+        )
+
+    ).scalars().first()
+
+
+    if existing_room:
+
+        room_code = (
+            existing_room.room_code
+        )
+
+
+        join_room(
+            room_code
+        )
+
+
+        if (
+            existing_room.status
+            == "waiting"
+        ):
+
+            socketio.emit(
+                "gomoku_match_update",
+                {
+                    "count": 1,
+
+                    "room_id":
+                        room_code,
+
+                    "message":
+                        "対戦相手を待っています"
+                }
+            )
+
+        else:
+
+            socketio.emit(
+                "gomoku_match_start",
+                {
+                    "room_id":
+                        room_code,
+
+                    "black":
+                        existing_room.black_player_id,
+
+                    "white":
+                        existing_room.white_player_id
+                }
+            )
+
+        return
+
+
+    # ======================================
+    # コイン確認
+    # ======================================
+
+    if (
+        user.coins or 0
+    ) < GOMOKU_ENTRY_COST:
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    f"{GOMOKU_ENTRY_COST}コイン必要です",
+
+                "coins":
+                    user.coins or 0
+            }
+        )
+
+        return
+
+
+    # ======================================
+    # 待機中の卓を取得
+    # ======================================
+
+    waiting_room = db.session.execute(
+
+        db.select(
+            GomokuRoom
+        )
+
+        .where(
+            GomokuRoom.status
+                == "waiting"
+        )
+
+        .where(
+            GomokuRoom.player2_id
+                .is_(None)
+        )
+
+        .where(
+            GomokuRoom.player1_id
+                != user_id
+        )
+
+        .order_by(
+            GomokuRoom.created_at.asc()
+        )
+
+    ).scalars().first()
+
+
+    try:
+
+        # ==================================
+        # 待機卓なし
+        # 1人目として作成
+        # ==================================
+
+        if not waiting_room:
+
+            room_code = (
+                "gomoku_"
+                + uuid.uuid4().hex[:12]
+            )
+
+
+            room = GomokuRoom(
+
+                room_code=
+                    room_code,
+
+                status=
+                    "waiting",
+
+                player1_id=
+                    user_id,
+
+                player2_id=
+                    None,
+
+                black_player_id=
+                    None,
+
+                white_player_id=
+                    None,
+
+                turn=
+                    "black",
+
+                board=
+                    create_gomoku_board(),
+
+                winner_id=
+                    None,
+
+                last_move_time=
+                    time.time()
+            )
+
+
+            db.session.add(
+                room
+            )
+
+
+            db.session.commit()
+
+
+            join_room(
+                room_code
+            )
+
+
+            print(
+                "GOMOKU WAITING:",
+                user_id,
+                room_code
+            )
+
+
+            socketio.emit(
+                "gomoku_match_update",
+                {
+                    "count":
+                        1,
+
+                    "room_id":
+                        room_code,
+
+                    "message":
+                        "対戦相手を待っています"
+                }
+            )
+
+
+            return
+
+
+        # ==================================
+        # 2人目
+        # ==================================
+
+        player1 = db.session.get(
+            User,
+            waiting_room.player1_id
+        )
+
+
+        if not player1:
+
+            waiting_room.status = (
+                "finished"
+            )
+
+            waiting_room.finished_at = (
+                db.func.now()
+            )
+
+            db.session.commit()
+
+
+            socketio.emit(
+                "match_error",
+                {
+                    "message":
+                        "待機卓を使用できません。もう一度お試しください"
+                }
+            )
+
+            return
+
+
+        # ==================================
+        # 1人目の残高再確認
+        # ==================================
+
+        if (
+            player1.coins or 0
+        ) < GOMOKU_ENTRY_COST:
+
+            waiting_room.status = (
+                "finished"
+            )
+
+            waiting_room.finished_at = (
+                db.func.now()
+            )
+
+            db.session.commit()
+
+
+            socketio.emit(
+                "match_error",
+                {
+                    "message":
+                        "待機卓を終了しました。もう一度マッチングしてください"
+                }
+            )
+
+            return
+
+
+        # ==================================
+        # 黒・白決定
+        # ==================================
+
+        players = [
+            player1.id,
+            user.id
+        ]
+
+
+        random.shuffle(
+            players
+        )
+
+
+        black_player = (
+            players[0]
+        )
+
+
+        white_player = (
+            players[1]
+        )
+
+
+        # ==================================
+        # 参加費
+        # ==================================
+
+        player1.coins = (
+            (player1.coins or 0)
+            - GOMOKU_ENTRY_COST
+        )
+
+
+        user.coins = (
+            (user.coins or 0)
+            - GOMOKU_ENTRY_COST
+        )
+
+
+        # ==================================
+        # 対局開始
+        # ==================================
+
+        waiting_room.player2_id = (
+            user.id
+        )
+
+
+        waiting_room.black_player_id = (
+            black_player
+        )
+
+
+        waiting_room.white_player_id = (
+            white_player
+        )
+
+
+        waiting_room.turn = (
+            "black"
+        )
+
+
+        waiting_room.status = (
+            "playing"
+        )
+
+
+        waiting_room.board = (
+            create_gomoku_board()
+        )
+
+
+        waiting_room.last_move_time = (
+            time.time()
+        )
+
+
+        db.session.commit()
+
+
+        room_code = (
+            waiting_room.room_code
+        )
+
+
+        join_room(
+            room_code
+        )
+
+
+        print(
+            "GOMOKU MATCH:",
+            player1.id,
+            "VS",
+            user.id
+        )
+
 
         socketio.emit(
             "gomoku_match_start",
             {
-                "room_id": room_id
+                "room_id":
+                    room_code,
+
+                "black":
+                    black_player,
+
+                "white":
+                    white_player
             },
-            room=uid
+            room=room_code
         )
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+
+        print(
+            "GOMOKU MATCH ERROR:",
+            str(e)
+        )
+
+
+        socketio.emit(
+            "match_error",
+            {
+                "message":
+                    "マッチング処理に失敗しました"
+            }
+        )
+
+
+# ==========================================
+# 五目並べプレイ画面
+# ==========================================
 
 @app.route("/gomoku_play")
 def gomoku_play():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
+
 
     if not user_id:
-        return redirect(url_for("top"))
 
-    room_id = request.args.get("room_id")
+        return redirect(
+            url_for("top")
+        )
 
-    if room_id not in gomoku_rooms:
+
+    room_code = request.args.get(
+        "room_id"
+    )
+
+
+    if not room_code:
+
+        return "部屋が指定されていません"
+
+
+    room = db.session.execute(
+
+        db.select(
+            GomokuRoom
+        )
+
+        .where(
+            GomokuRoom.room_code
+                == room_code
+        )
+
+    ).scalars().first()
+
+
+    if not room:
+
         return "部屋が存在しません"
 
-    room = gomoku_rooms[room_id]
 
-    my_color = None
+    if user_id == room.black_player_id:
 
-    if user_id == room["black"]:
+        my_color = (
+            "black"
+        )
 
-        my_color = "black"
+    elif user_id == room.white_player_id:
 
-    elif user_id == room["white"]:
-
-        my_color = "white"
+        my_color = (
+            "white"
+        )
 
     else:
 
         return "参加権限がありません"
 
+
     return render_template(
         "gomoku_play.html",
-        room_id=room_id,
-        my_color=my_color
+
+        room_id=
+            room.room_code,
+
+        my_color=
+            my_color,
+
+        user_id=
+            user_id
     )
+
+
+# ==========================================
+# 勝利判定
+# ==========================================
 
 def check_gomoku_winner(
     board,
@@ -2502,17 +3037,20 @@ def check_gomoku_winner(
         (1, -1)
     ]
 
+
     for dx, dy in directions:
 
         count = 1
 
+
         tx = x + dx
         ty = y + dy
 
+
         while (
-            0 <= tx < 15
+            0 <= tx < GOMOKU_BOARD_SIZE
             and
-            0 <= ty < 15
+            0 <= ty < GOMOKU_BOARD_SIZE
             and
             board[ty][tx] == stone
         ):
@@ -2522,13 +3060,15 @@ def check_gomoku_winner(
             tx += dx
             ty += dy
 
+
         tx = x - dx
         ty = y - dy
 
+
         while (
-            0 <= tx < 15
+            0 <= tx < GOMOKU_BOARD_SIZE
             and
-            0 <= ty < 15
+            0 <= ty < GOMOKU_BOARD_SIZE
             and
             board[ty][tx] == stone
         ):
@@ -2538,78 +3078,360 @@ def check_gomoku_winner(
             tx -= dx
             ty -= dy
 
+
         if count >= 5:
+
             return True
+
 
     return False
 
 
+# ==========================================
+# Socket.IO room参加
+# ==========================================
+
+# ==========================================
+# 五目並べ
+# 対局ルーム参加
+# ==========================================
+
 @socketio.on("join_gomoku_room")
-def join_gomoku_room(data):
+def join_gomoku_room_handler(data):
 
-    room_id = data["room_id"]
+    user_id = session.get(
+        "user_id"
+    )
 
-    if room_id not in gomoku_rooms:
+    if not user_id:
+
+        socketio.emit(
+            "gomoku_error",
+            {
+                "message":
+                    "ログインしてください"
+            }
+        )
+
         return
 
-    room = gomoku_rooms[room_id]
 
-    join_room(room_id)
+    room_code = data.get(
+        "room_id"
+    )
+
+
+    if not room_code:
+
+        socketio.emit(
+            "gomoku_error",
+            {
+                "message":
+                    "ルームIDがありません"
+            }
+        )
+
+        return
+
+
+    # ======================================
+    # DBから対局ルーム取得
+    # ======================================
+
+    room = db.session.execute(
+
+        db.select(
+            GomokuRoom
+        )
+
+        .where(
+            GomokuRoom.room_code
+            == room_code
+        )
+
+    ).scalars().first()
+
+
+    if not room:
+
+        socketio.emit(
+            "gomoku_error",
+            {
+                "message":
+                    "対局ルームが見つかりません"
+            }
+        )
+
+        return
+
+
+    # ======================================
+    # この対局の参加者か確認
+    # ======================================
+
+    if user_id not in (
+        room.player1_id,
+        room.player2_id
+    ):
+
+        socketio.emit(
+            "gomoku_error",
+            {
+                "message":
+                    "この対局には参加できません"
+            }
+        )
+
+        return
+
+
+    # ======================================
+    # Socket.IO roomへ参加
+    # ======================================
+
+    join_room(
+        room_code
+    )
+
+
+    # ======================================
+    # 自分の色を判定
+    # ======================================
+
+    if (
+        user_id
+        == room.black_player_id
+    ):
+
+        my_color = (
+            "black"
+        )
+
+    elif (
+        user_id
+        == room.white_player_id
+    ):
+
+        my_color = (
+            "white"
+        )
+
+    else:
+
+        my_color = (
+            None
+        )
+
+
+    print(
+        "GOMOKU ROOM JOIN:",
+        user_id,
+        room_code,
+        my_color
+    )
+
+
+    # ======================================
+    # 参加した本人へ現在状態を返す
+    # ======================================
 
     socketio.emit(
         "gomoku_update",
+
         {
-            "board": room["board"],
-            "turn": room["turn"]
+            "board":
+                room.board,
+
+            "turn":
+                room.turn,
+
+            "my_color":
+                my_color,
+
+            "black":
+                room.black_player_id,
+
+            "white":
+                room.white_player_id,
+
+            "winner":
+                room.winner_id,
+
+            "status":
+                room.status
         },
-        room=room_id
+
+        room=request.sid
     )
-    
+
+
+# ==========================================
+# 石を置く
+# ==========================================
 
 @socketio.on("gomoku_place")
 def gomoku_place(data):
 
-    room_id = data["room_id"]
+    user_id = session.get(
+        "user_id"
+    )
 
-    x = data["x"]
 
-    y = data["y"]
+    if not user_id:
 
-    user_id = session.get("user_id")
-
-    if room_id not in gomoku_rooms:
         return
 
-    room = gomoku_rooms[room_id]
 
-    if room["winner"] is not None:
+    room_code = data.get(
+        "room_id"
+    )
+
+
+    if not room_code:
+
         return
 
-    stone = None
+
+    try:
+
+        x = int(
+            data.get("x")
+        )
+
+        y = int(
+            data.get("y")
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return
+
+
+    # ======================================
+    # 座標確認
+    # ======================================
+
+    if not (
+        0 <= x < GOMOKU_BOARD_SIZE
+        and
+        0 <= y < GOMOKU_BOARD_SIZE
+    ):
+
+        return
+
+
+    room = db.session.execute(
+
+        db.select(
+            GomokuRoom
+        )
+
+        .where(
+            GomokuRoom.room_code
+                == room_code
+        )
+
+    ).scalars().first()
+
+
+    if not room:
+
+        return
+
+
+    if room.status != "playing":
+
+        return
+
+
+    if room.winner_id is not None:
+
+        return
+
+
+    # ======================================
+    # 参加者確認
+    # ======================================
+
+    if user_id not in (
+        room.black_player_id,
+        room.white_player_id
+    ):
+
+        return
+
+
+    # ======================================
+    # 手番確認
+    # ======================================
 
     if (
-        user_id == room["black"]
+        user_id
+        == room.black_player_id
         and
-        room["turn"] == "black"
+        room.turn == "black"
     ):
+
         stone = 1
 
+
     elif (
-        user_id == room["white"]
+        user_id
+        == room.white_player_id
         and
-        room["turn"] == "white"
+        room.turn == "white"
     ):
+
         stone = 2
 
+
     else:
+
         return
 
-    board = room["board"]
+
+    # ======================================
+    # 盤面コピー
+    # ======================================
+
+    board = [
+        list(row)
+        for row in room.board
+    ]
+
+
+    # ======================================
+    # すでに石がある
+    # ======================================
 
     if board[y][x] != 0:
+
         return
 
+
+    # ======================================
+    # 石を置く
+    # ======================================
+
     board[y][x] = stone
+
+
+    room.board = (
+        board
+    )
+
+
+    room.last_move_time = (
+        time.time()
+    )
+
+
+    # ======================================
+    # 勝利判定
+    # ======================================
 
     if check_gomoku_winner(
         board,
@@ -2618,63 +3440,191 @@ def gomoku_place(data):
         stone
     ):
 
-        winner = user_id
-
-        room["winner"] = winner
-
-        users[winner]["coins"] += (
-            GOMOKU_WIN_REWARD
+        winner = db.session.get(
+            User,
+            user_id
         )
 
-        save_json(
-            USERS_FILE,
-            users
+
+        if not winner:
+
+            db.session.rollback()
+            return
+
+
+        room.winner_id = (
+            user_id
         )
 
-        print("勝利判定")
-        print("winner =", winner)
+
+        room.status = (
+            "finished"
+        )
+
+
+        room.finished_at = (
+            db.func.now()
+        )
+
+
+        winner.coins = (
+            (winner.coins or 0)
+            + GOMOKU_WIN_REWARD
+        )
+
+
+        try:
+
+            db.session.commit()
+
+
+        except Exception as e:
+
+            db.session.rollback()
+
+
+            print(
+                "GOMOKU WIN ERROR:",
+                str(e)
+            )
+
+
+            return
+
+
+        print(
+            "GOMOKU WINNER:",
+            user_id
+        )
+
+
+        socketio.emit(
+            "gomoku_update",
+            {
+                "board":
+                    board,
+
+                "turn":
+                    room.turn
+            },
+            room=room_code
+        )
+
 
         socketio.emit(
             "gomoku_finish",
             {
-                "winner": winner
+                "winner":
+                    user_id,
+
+                "reward":
+                    GOMOKU_WIN_REWARD
             },
-            room=room_id
+            room=room_code
         )
 
-        print("gomoku_finish送信")
 
         return
 
-    room["turn"] = (
+
+    # ======================================
+    # 次のターン
+    # ======================================
+
+    room.turn = (
         "white"
-        if room["turn"] == "black"
+        if room.turn == "black"
         else "black"
     )
+
+
+    try:
+
+        db.session.commit()
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+
+        print(
+            "GOMOKU MOVE ERROR:",
+            str(e)
+        )
+
+
+        return
+
+
+    # ======================================
+    # 両プレイヤーへ盤面送信
+    # ======================================
 
     socketio.emit(
         "gomoku_update",
         {
-            "board": board,
-            "turn": room["turn"]
+            "board":
+                board,
+
+            "turn":
+                room.turn
         },
-        room=room_id
+        room=room_code
     )
+
+
+# ==========================================
+# 結果画面
+# ==========================================
 
 @app.route("/gomoku_result")
 def gomoku_result():
 
-    user_id = session["user_id"]
+    user_id = session.get(
+        "user_id"
+    )
+
+
+    if not user_id:
+
+        return redirect(
+            url_for("top")
+        )
+
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+
+    if not user:
+
+        return redirect(
+            url_for("top")
+        )
+
 
     result = request.args.get(
         "result"
     )
 
+
     return render_template(
         "gomoku_result.html",
-        result=result,
-        coins=users[user_id]["coins"]
+
+        result=
+            result,
+
+        coins=
+            user.coins or 0
     )
+
+
+# ==========================================
+# 20秒ターン制限
+# ==========================================
 
 def check_gomoku_timeout():
 
@@ -2682,38 +3632,115 @@ def check_gomoku_timeout():
 
         time.sleep(1)
 
-        for room in gomoku_rooms.values():
 
-            if room["winner"]:
-                continue
+        try:
 
-            if (
-                time.time()
-                - room["last_move_time"]
-                > 20
-            ):
+            with app.app_context():
 
-                room["turn"] = (
-                    "white"
-                    if room["turn"]=="black"
-                    else "black"
+                now = time.time()
+
+
+                playing_rooms = (
+                    db.session.execute(
+
+                        db.select(
+                            GomokuRoom
+                        )
+
+                        .where(
+                            GomokuRoom.status
+                                == "playing"
+                        )
+
+                    )
+
+                    .scalars()
+                    .all()
                 )
 
-                room["last_move_time"] = (
-                    time.time()
-                )
 
-                socketio.emit(
-                    "gomoku_update",
-                    {
-                      "board":
-                      room["board"],
+                for room in playing_rooms:
 
-                      "turn":
-                      room["turn"]
-                    },
-                    room=room["room_id"]
-                )
+                    if room.winner_id:
+
+                        continue
+
+
+                    if not room.last_move_time:
+
+                        room.last_move_time = (
+                            now
+                        )
+
+                        continue
+
+
+                    if (
+                        now
+                        - room.last_move_time
+                        <= GOMOKU_TURN_SECONDS
+                    ):
+
+                        continue
+
+
+                    # ======================
+                    # 時間切れ
+                    # 手番交代
+                    # ======================
+
+                    room.turn = (
+                        "white"
+                        if room.turn == "black"
+                        else "black"
+                    )
+
+
+                    room.last_move_time = (
+                        now
+                    )
+
+
+                    db.session.commit()
+
+
+                    socketio.emit(
+                        "gomoku_update",
+                        {
+                            "board":
+                                room.board,
+
+                            "turn":
+                                room.turn,
+
+                            "timeout":
+                                True
+                        },
+                        room=room.room_code
+                    )
+
+
+        except Exception as e:
+
+            db.session.rollback()
+
+
+            print(
+                "GOMOKU TIMEOUT ERROR:",
+                str(e)
+            )
+
+
+# ==========================================
+# タイムアウト監視開始
+# ==========================================
+
+gomoku_timeout_thread = threading.Thread(
+    target=check_gomoku_timeout,
+    daemon=True
+)
+
+gomoku_timeout_thread.start()
 
 # -------------------------
 # ゲーム2：大富豪（自動マッチング＋5分でCPU補充）

@@ -1,119 +1,1413 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>五目並べロビー</title>
 
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>五目並べオンライン</title>
+
+
+<!-- Socket.IO -->
+<script
+    src="https://cdn.socket.io/4.7.2/socket.io.min.js">
+</script>
+
 
 <style>
 
-body{
-    text-align:center;
-    font-family:sans-serif;
-    background:#f5f5f5;
+/* ==================================
+   基本設定
+================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.box{
-    width:500px;
-    margin:auto;
-    background:white;
-    padding:20px;
-    border-radius:10px;
+
+html,
+body {
+    min-height: 100%;
 }
 
-button{
 
-    padding:15px 30px;
+body {
 
-    font-size:20px;
+    min-height: 100vh;
 
-    cursor:pointer;
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    color: white;
+
+    overflow-x: hidden;
+
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(0, 210, 255, 0.25),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 85% 80%,
+            rgba(139, 92, 246, 0.30),
+            transparent 38%
+        ),
+        linear-gradient(
+            135deg,
+            #020617,
+            #07182f,
+            #100927,
+            #031423
+        );
+
+    background-size:
+        170% 170%;
+
+    animation:
+        backgroundMove
+        13s ease-in-out
+        infinite alternate;
 }
 
-#status{
 
-    margin-top:20px;
+@keyframes backgroundMove {
 
-    font-size:20px;
+    from {
+        background-position:
+            0% 0%;
+    }
 
-    font-weight:bold;
+    to {
+        background-position:
+            100% 100%;
+    }
 }
+
+
+/* ==================================
+   背景グリッド
+================================== */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        50px 50px;
+
+    animation:
+        gridMove
+        20s linear infinite;
+}
+
+
+@keyframes gridMove {
+
+    from {
+        transform:
+            translate(0, 0);
+    }
+
+    to {
+        transform:
+            translate(50px, 50px);
+    }
+}
+
+
+/* ==================================
+   背景ライト
+================================== */
+
+.light {
+
+    position: fixed;
+
+    width: 330px;
+    height: 330px;
+
+    border-radius: 50%;
+
+    filter:
+        blur(110px);
+
+    opacity: 0.20;
+
+    pointer-events: none;
+}
+
+
+.light-left {
+
+    top: 5%;
+    left: -130px;
+
+    background:
+        #00c8ff;
+}
+
+
+.light-right {
+
+    right: -130px;
+    bottom: 5%;
+
+    background:
+        #8b5cf6;
+}
+
+
+/* ==================================
+   全体
+================================== */
+
+.wrapper {
+
+    position: relative;
+
+    z-index: 5;
+
+    width: 100%;
+
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 30px 20px;
+}
+
+
+/* ==================================
+   カード
+================================== */
+
+.game-card {
+
+    width: 100%;
+
+    max-width: 720px;
+
+    padding: 42px;
+
+    border-radius: 30px;
+
+    text-align: center;
+
+    background:
+        rgba(6, 14, 34, 0.80);
+
+    border:
+        1px solid
+        rgba(110, 210, 255, 0.17);
+
+    backdrop-filter:
+        blur(22px);
+
+    box-shadow:
+        0 30px 90px
+        rgba(0,0,0,0.50);
+
+    animation:
+        cardAppear
+        0.7s ease both;
+}
+
+
+@keyframes cardAppear {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(35px)
+            scale(0.96);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* ==================================
+   タイトル
+================================== */
+
+.game-icon {
+
+    display: inline-block;
+
+    font-size: 58px;
+
+    animation:
+        iconFloat
+        3s ease-in-out
+        infinite;
+}
+
+
+@keyframes iconFloat {
+
+    0%,
+    100% {
+
+        transform:
+            translateY(0);
+    }
+
+    50% {
+
+        transform:
+            translateY(-9px);
+    }
+}
+
+
+.small-title {
+
+    margin-top: 8px;
+
+    color:
+        #62ddff;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: 6px;
+}
+
+
+h1 {
+
+    margin-top: 8px;
+
+    font-size:
+        clamp(
+            37px,
+            8vw,
+            64px
+        );
+
+    line-height: 1.1;
+
+    font-weight: 950;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #72e7ff,
+            #b08bff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+.subtitle {
+
+    margin-top: 13px;
+
+    color:
+        #8999b7;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+}
+
+
+/* ==================================
+   ルール
+================================== */
+
+.rules {
+
+    display: grid;
+
+    gap: 10px;
+
+    margin-top: 28px;
+
+    text-align: left;
+}
+
+
+.rule {
+
+    padding:
+        13px 15px;
+
+    border-radius: 12px;
+
+    color:
+        #a7b7d2;
+
+    background:
+        rgba(255,255,255,0.045);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.06);
+}
+
+
+/* ==================================
+   コイン
+================================== */
+
+.cost-area {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 11px;
+
+    margin-top: 17px;
+}
+
+
+.cost-box {
+
+    padding: 14px 8px;
+
+    border-radius: 13px;
+
+    background:
+        rgba(255,255,255,0.05);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    color:
+        #8fa0bc;
+
+    font-size: 12px;
+}
+
+
+.cost-box strong {
+
+    display: block;
+
+    margin-top: 5px;
+
+    color:
+        #ffd963;
+
+    font-size: 18px;
+}
+
+
+.cost-box.lose strong {
+
+    color:
+        #91a3c1;
+}
+
+
+/* ==================================
+   ステータス
+================================== */
+
+.status-area {
+
+    margin-top: 25px;
+
+    padding: 20px;
+
+    border-radius: 17px;
+
+    background:
+        rgba(0,0,0,0.20);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.06);
+}
+
+
+#status {
+
+    color:
+        #dceeff;
+
+    font-size: 18px;
+
+    font-weight: 900;
+}
+
+
+#subStatus {
+
+    min-height: 20px;
+
+    margin-top: 7px;
+
+    color:
+        #7184a3;
+
+    font-size: 13px;
+}
+
+
+/* ==================================
+   マッチングレーダー
+================================== */
+
+.radar {
+
+    display: none;
+
+    position: relative;
+
+    width: 65px;
+    height: 65px;
+
+    margin:
+        25px auto 5px;
+}
+
+
+.radar.show {
+
+    display: block;
+}
+
+
+.radar-center {
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 11px;
+    height: 11px;
+
+    border-radius: 50%;
+
+    background:
+        #67e4ff;
+
+    box-shadow:
+        0 0 22px
+        #67e4ff;
+
+    transform:
+        translate(-50%, -50%);
+}
+
+
+.radar::before,
+.radar::after {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    border-radius: 50%;
+
+    border:
+        2px solid
+        #57defc;
+
+    animation:
+        radarPulse
+        2s linear infinite;
+}
+
+
+.radar::after {
+
+    animation-delay:
+        1s;
+}
+
+
+@keyframes radarPulse {
+
+    from {
+
+        opacity: 1;
+
+        transform:
+            scale(0.2);
+    }
+
+    to {
+
+        opacity: 0;
+
+        transform:
+            scale(1.9);
+    }
+}
+
+
+/* ==================================
+   マッチングボタン
+================================== */
+
+#matchButton {
+
+    width: 100%;
+
+    margin-top: 24px;
+
+    padding: 17px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    cursor: pointer;
+
+    color: white;
+
+    font-size: 17px;
+
+    font-weight: 900;
+
+    background:
+        linear-gradient(
+            135deg,
+            #0daaff,
+            #7658ff
+        );
+
+    box-shadow:
+        0 13px 35px
+        rgba(44,141,255,0.30);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        opacity 0.2s;
+}
+
+
+#matchButton:hover:not(:disabled) {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 18px 45px
+        rgba(44,141,255,0.45);
+}
+
+
+#matchButton:active:not(:disabled) {
+
+    transform:
+        scale(0.98);
+}
+
+
+#matchButton:disabled {
+
+    opacity: 0.45;
+
+    cursor: not-allowed;
+}
+
+
+/* ==================================
+   戻る
+================================== */
+
+.back-link {
+
+    display: inline-block;
+
+    margin-top: 20px;
+
+    color:
+        #7e91b1;
+
+    text-decoration: none;
+
+    font-size: 13px;
+}
+
+
+.back-link:hover {
+
+    color:
+        #75ddff;
+}
+
+
+/* ==================================
+   モーダル
+================================== */
+
+.modal {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 999;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+    background:
+        rgba(0,0,0,0.72);
+
+    backdrop-filter:
+        blur(10px);
+}
+
+
+.modal.show {
+
+    display: flex;
+}
+
+
+.modal-card {
+
+    width: 100%;
+
+    max-width: 430px;
+
+    padding: 35px 28px;
+
+    border-radius: 25px;
+
+    text-align: center;
+
+    background:
+        linear-gradient(
+            145deg,
+            #111d39,
+            #070d1d
+        );
+
+    border:
+        1px solid
+        rgba(255,255,255,0.14);
+
+    box-shadow:
+        0 35px 100px
+        rgba(0,0,0,0.70);
+
+    animation:
+        modalAppear
+        0.35s ease both;
+}
+
+
+@keyframes modalAppear {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            scale(0.85)
+            translateY(25px);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            scale(1)
+            translateY(0);
+    }
+}
+
+
+#modalIcon {
+
+    font-size: 55px;
+}
+
+
+#modalTitle {
+
+    margin-top: 12px;
+
+    font-size: 25px;
+}
+
+
+#modalMessage {
+
+    margin-top: 12px;
+
+    color:
+        #9aabc8;
+
+    line-height: 1.7;
+}
+
+
+.modal-button {
+
+    width: 100%;
+
+    margin-top: 22px;
+
+    padding: 13px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    color: white;
+
+    font-weight: 900;
+
+    background:
+        linear-gradient(
+            135deg,
+            #238fff,
+            #7959ff
+        );
+}
+
+
+/* ==================================
+   スマホ対応
+================================== */
+
+@media (max-width: 600px) {
+
+    .wrapper {
+
+        padding:
+            18px 12px;
+    }
+
+
+    .game-card {
+
+        padding:
+            30px 17px;
+
+        border-radius:
+            23px;
+    }
+
+
+    .game-icon {
+
+        font-size:
+            48px;
+    }
+
+
+    .small-title {
+
+        letter-spacing:
+            4px;
+    }
+
+
+    .cost-area {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .cost-box {
+
+        padding:
+            11px;
+    }
+
+
+    .rules {
+
+        margin-top:
+            22px;
+    }
+
+
+    .rule {
+
+        font-size:
+            13px;
+    }
+
+
+    #matchButton {
+
+        font-size:
+            16px;
+    }
+}
+
 </style>
 
 </head>
+
+
 <body>
 
-<div class="box">
 
-<h1>五目並べオンライン</h1>
+<div class="light light-left"></div>
 
-<p>参加費 : 50 Coin</p>
+<div class="light light-right"></div>
 
-<p>勝利報酬 : 100 Coin</p>
 
-<p>敗北 : 0 Coin</p>
+<div class="wrapper">
 
-<button onclick="startMatch()">
-マッチング開始
-</button>
 
-<div id="status">
-待機中
+    <main class="game-card">
+
+
+        <div class="game-icon">
+            ⚫
+        </div>
+
+
+        <div class="small-title">
+            ONLINE BOARD BATTLE
+        </div>
+
+
+        <h1>
+            五目並べ
+        </h1>
+
+
+        <p class="subtitle">
+
+            先に5つの石を並べたプレイヤーの勝利。<br>
+
+            オンラインで真剣勝負！
+
+        </p>
+
+
+        <!-- =========================
+             ルール
+        ========================== -->
+
+        <div class="rules">
+
+
+            <div class="rule">
+                ⚫ 黒石と白石に分かれて対戦します
+            </div>
+
+
+            <div class="rule">
+                🎯 縦・横・斜めのどれかに5つ並べると勝利
+            </div>
+
+
+            <div class="rule">
+                ⏱️ 1ターンの制限時間は20秒です
+            </div>
+
+
+        </div>
+
+
+        <!-- =========================
+             コイン情報
+        ========================== -->
+
+        <div class="cost-area">
+
+
+            <div class="cost-box">
+
+                参加費
+
+                <strong>
+                    50 COIN
+                </strong>
+
+            </div>
+
+
+            <div class="cost-box">
+
+                勝利報酬
+
+                <strong>
+                    100 COIN
+                </strong>
+
+            </div>
+
+
+            <div class="cost-box lose">
+
+                敗北報酬
+
+                <strong>
+                    0 COIN
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =========================
+             STATUS
+        ========================== -->
+
+        <div class="status-area">
+
+
+            <div id="status">
+                マッチング待機中
+            </div>
+
+
+            <div id="subStatus">
+                ボタンを押すと対戦相手を探します
+            </div>
+
+
+            <div
+                class="radar"
+                id="radar"
+            >
+
+                <div class="radar-center"></div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =========================
+             MATCH BUTTON
+        ========================== -->
+
+        <button
+            id="matchButton"
+            type="button"
+        >
+            🎮 マッチング開始
+        </button>
+
+
+        /
+            ← ホームへ戻る
+        </a>
+
+
+    </main>
+
+
 </div>
 
+
+<!-- =========================
+     エラーモーダル
+========================== -->
+
+<div
+    class="modal"
+    id="modal"
+>
+
+
+    <div class="modal-card">
+
+
+        <div id="modalIcon">
+            ⚠️
+        </div>
+
+
+        <h2 id="modalTitle">
+            お知らせ
+        </h2>
+
+
+        <div id="modalMessage"></div>
+
+
+        <button
+            class="modal-button"
+            id="modalClose"
+            type="button"
+        >
+            閉じる
+        </button>
+
+
+    </div>
+
+
 </div>
+
 
 <script>
 
+/* ==================================
+   Socket.IO
+================================== */
+
 const socket = io();
 
-function startMatch(){
 
+const matchButton =
+    document.getElementById(
+        "matchButton"
+    );
+
+
+const statusEl =
     document.getElementById(
         "status"
-    ).innerText =
-    "対戦相手を探しています...";
+    );
 
-    socket.emit(
-        "gomoku_match_request"
+
+const subStatusEl =
+    document.getElementById(
+        "subStatus"
+    );
+
+
+const radar =
+    document.getElementById(
+        "radar"
+    );
+
+
+const modal =
+    document.getElementById(
+        "modal"
+    );
+
+
+const modalIcon =
+    document.getElementById(
+        "modalIcon"
+    );
+
+
+const modalTitle =
+    document.getElementById(
+        "modalTitle"
+    );
+
+
+const modalMessage =
+    document.getElementById(
+        "modalMessage"
+    );
+
+
+const modalClose =
+    document.getElementById(
+        "modalClose"
+    );
+
+
+let matching =
+    false;
+
+
+/* ==================================
+   モーダル
+================================== */
+
+function showModal(
+    icon,
+    title,
+    message
+) {
+
+    modalIcon.textContent =
+        icon;
+
+    modalTitle.textContent =
+        title;
+
+    modalMessage.textContent =
+        message;
+
+    modal.classList.add(
+        "show"
     );
 }
 
-socket.on(
-    "gomoku_match_update",
-    data => {
 
-        document.getElementById(
-            "status"
-        ).innerText =
-        "待機人数 : " +
-        data.count +
-        " 人";
-    }
-);
+modalClose.addEventListener(
+    "click",
 
-socket.on(
-    "match_error",
-    data => {
+    () => {
 
-        alert(
-            data.message
+        modal.classList.remove(
+            "show"
         );
     }
 );
 
+
+/* ==================================
+   マッチング開始
+================================== */
+
+matchButton.addEventListener(
+    "click",
+
+    () => {
+
+        if (matching) {
+            return;
+        }
+
+        matching =
+            true;
+
+
+        matchButton.disabled =
+            true;
+
+
+        matchButton.textContent =
+            "マッチング中...";
+
+
+        statusEl.textContent =
+            "対戦相手を探しています";
+
+
+        subStatusEl.textContent =
+            "参加可能な卓を検索しています...";
+
+
+        radar.classList.add(
+            "show"
+        );
+
+
+        socket.emit(
+            "gomoku_match_request"
+        );
+    }
+);
+
+
+/* ==================================
+   待機中
+================================== */
+
 socket.on(
-    "gomoku_match_start",
+    "gomoku_match_update",
+
     data => {
 
-        window.location.href =
-            "/gomoku_play?room_id="
-            + data.room_id;
+        statusEl.textContent =
+            "対戦相手を待っています";
+
+
+        subStatusEl.textContent =
+            data.message
+            || "相手が参加すると自動的に開始します";
+
+
+        radar.classList.add(
+            "show"
+        );
+    }
+);
+
+
+/* ==================================
+   マッチング成立
+================================== */
+
+socket.on(
+    "gomoku_match_start",
+
+    data => {
+
+        radar.classList.remove(
+            "show"
+        );
+
+
+        statusEl.textContent =
+            "マッチング成立！";
+
+
+        subStatusEl.textContent =
+            "対局画面へ移動します...";
+
+
+        if (!data.room_id) {
+
+            matching =
+                false;
+
+            matchButton.disabled =
+                false;
+
+            matchButton.textContent =
+                "🎮 マッチング開始";
+
+
+            showModal(
+                "⚠️",
+                "エラー",
+                "対局ルームを取得できませんでした"
+            );
+
+            return;
+        }
+
+
+        setTimeout(
+            () => {
+
+                window.location.href =
+                    "/gomoku_play?room_id="
+                    + encodeURIComponent(
+                        data.room_id
+                    );
+
+            },
+            700
+        );
+    }
+);
+
+
+/* ==================================
+   エラー
+================================== */
+
+socket.on(
+    "match_error",
+
+    data => {
+
+        matching =
+            false;
+
+
+        radar.classList.remove(
+            "show"
+        );
+
+
+        matchButton.disabled =
+            false;
+
+
+        matchButton.textContent =
+            "🎮 マッチング開始";
+
+
+        statusEl.textContent =
+            "マッチング待機中";
+
+
+        subStatusEl.textContent =
+            "もう一度マッチングできます";
+
+
+        showModal(
+            "⚠️",
+            "参加できません",
+            data.message
+            || "エラーが発生しました"
+        );
+    }
+);
+
+
+/* ==================================
+   Socket.IO切断
+================================== */
+
+socket.on(
+    "disconnect",
+
+    () => {
+
+        if (!matching) {
+            return;
+        }
+
+
+        statusEl.textContent =
+            "接続を確認しています";
+
+
+        subStatusEl.textContent =
+            "サーバーへ再接続しています...";
     }
 );
 
 </script>
 
 </body>
+
 </html>

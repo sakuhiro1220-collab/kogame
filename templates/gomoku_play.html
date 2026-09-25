@@ -1,235 +1,1828 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>五目並べ</title>
 
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>五目並べ対局</title>
+
+
+<script
+    src="https://cdn.socket.io/4.7.2/socket.io.min.js">
+</script>
+
 
 <style>
 
-body{
-    text-align:center;
-    font-family:sans-serif;
+/* ==================================
+   基本設定
+================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-#board{
-    display:grid;
-    grid-template-columns:repeat(15,40px);
-    width:600px;
-    margin:auto;
+
+html,
+body {
+    min-height: 100%;
 }
 
-.cell{
-    width:40px;
-    height:40px;
-    border:1px solid #999;
-    background:#d7a85d;
-    cursor:pointer;
-    box-sizing:border-box;
+
+body {
+
+    min-height: 100vh;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    color: white;
+
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(0, 210, 255, 0.23),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 85% 80%,
+            rgba(139, 92, 246, 0.30),
+            transparent 38%
+        ),
+        linear-gradient(
+            135deg,
+            #020617,
+            #07182f,
+            #100927,
+            #031423
+        );
+
+    background-size:
+        170% 170%;
+
+    overflow-x: hidden;
+
+    animation:
+        backgroundMove
+        13s ease-in-out
+        infinite alternate;
 }
 
-.black{
-    width:30px;
-    height:30px;
-    background:black;
-    border-radius:50%;
-    margin:4px;
+
+@keyframes backgroundMove {
+
+    from {
+        background-position:
+            0% 0%;
+    }
+
+    to {
+        background-position:
+            100% 100%;
+    }
 }
 
-.white{
-    width:30px;
-    height:30px;
-    background:white;
-    border:1px solid black;
-    border-radius:50%;
-    margin:4px;
+
+/* ==================================
+   背景グリッド
+================================== */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: 0;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        50px 50px;
+
+    animation:
+        gridMove
+        20s linear infinite;
 }
 
-#timer{
-    color:red;
-    font-size:24px;
-    font-weight:bold;
+
+@keyframes gridMove {
+
+    from {
+        transform:
+            translate(0, 0);
+    }
+
+    to {
+        transform:
+            translate(50px, 50px);
+    }
+}
+
+
+/* ==================================
+   ライト
+================================== */
+
+.light {
+
+    position: fixed;
+
+    width: 330px;
+    height: 330px;
+
+    border-radius: 50%;
+
+    filter:
+        blur(110px);
+
+    opacity: 0.20;
+
+    pointer-events: none;
+
+    z-index: 1;
+}
+
+
+.light-left {
+
+    left: -130px;
+    top: 5%;
+
+    background:
+        #00c8ff;
+}
+
+
+.light-right {
+
+    right: -130px;
+    bottom: 5%;
+
+    background:
+        #8b5cf6;
+}
+
+
+/* ==================================
+   全体
+================================== */
+
+.wrapper {
+
+    position: relative;
+
+    z-index: 5;
+
+    width: 100%;
+
+    max-width: 900px;
+
+    margin: 0 auto;
+
+    padding:
+        30px 15px
+        55px;
+}
+
+
+/* ==================================
+   タイトル
+================================== */
+
+.title-area {
+
+    text-align: center;
+}
+
+
+.small-title {
+
+    color:
+        #63dfff;
+
+    font-size: 10px;
+
+    font-weight: 900;
+
+    letter-spacing: 6px;
+}
+
+
+h1 {
+
+    margin-top: 7px;
+
+    font-size:
+        clamp(
+            35px,
+            7vw,
+            58px
+        );
+
+    font-weight: 950;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #6ee7ff,
+            #ad8cff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+/* ==================================
+   プレイヤー情報
+================================== */
+
+.player-area {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 12px;
+
+    max-width: 650px;
+
+    margin:
+        22px auto 0;
+}
+
+
+.player-box {
+
+    padding: 15px;
+
+    border-radius: 15px;
+
+    text-align: center;
+
+    background:
+        rgba(255,255,255,0.055);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    backdrop-filter:
+        blur(15px);
+}
+
+
+.player-label {
+
+    color:
+        #7183a1;
+
+    font-size: 10px;
+
+    letter-spacing: 2px;
+}
+
+
+.player-value {
+
+    margin-top: 6px;
+
+    font-size: 18px;
+
+    font-weight: 900;
+}
+
+
+/* ==================================
+   石アイコン
+================================== */
+
+.stone-icon {
+
+    display: inline-block;
+
+    width: 18px;
+    height: 18px;
+
+    margin-right: 5px;
+
+    border-radius: 50%;
+
+    vertical-align: -3px;
+}
+
+
+.stone-icon.black {
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #555,
+            #050505 60%
+        );
+
+    border:
+        1px solid
+        #777;
+}
+
+
+.stone-icon.white {
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            white,
+            #dddddd 65%
+        );
+
+    border:
+        1px solid
+        #999;
+}
+
+
+/* ==================================
+   対局カード
+================================== */
+
+.game-card {
+
+    margin-top: 18px;
+
+    padding:
+        22px;
+
+    border-radius:
+        25px;
+
+    background:
+        rgba(5,14,35,0.78);
+
+    border:
+        1px solid
+        rgba(100,220,255,0.14);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 25px 75px
+        rgba(0,0,0,0.40);
+}
+
+
+/* ==================================
+   手番
+================================== */
+
+#turnInfo {
+
+    text-align: center;
+
+    color:
+        #dceeff;
+
+    font-size:
+        21px;
+
+    font-weight:
+        900;
+}
+
+
+.my-turn {
+
+    color:
+        #65ffc8 !important;
+
+    text-shadow:
+        0 0 20px
+        rgba(101,255,200,0.40);
+}
+
+
+.enemy-turn {
+
+    color:
+        #a2b4d0 !important;
+}
+
+
+/* ==================================
+   タイマー
+================================== */
+
+.timer-wrap {
+
+    position: relative;
+
+    max-width: 430px;
+
+    margin:
+        15px auto 0;
+}
+
+
+.timer-top {
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+}
+
+
+.timer-label {
+
+    color:
+        #8193b2;
+
+    font-size:
+        12px;
+}
+
+
+#timer {
+
+    color:
+        #69e5ff;
+
+    font-size:
+        20px;
+
+    font-weight:
+        900;
+}
+
+
+.timer-bar {
+
+    overflow: hidden;
+
+    height: 8px;
+
+    margin-top:
+        8px;
+
+    border-radius:
+        100px;
+
+    background:
+        rgba(255,255,255,0.08);
+}
+
+
+#timerProgress {
+
+    width: 100%;
+    height: 100%;
+
+    border-radius:
+        100px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #53eaff,
+            #7e66ff
+        );
+
+    transition:
+        width 1s linear,
+        background 0.3s;
+}
+
+
+/* ==================================
+   盤面ラッパー
+================================== */
+
+.board-area {
+
+    width: 100%;
+
+    margin-top:
+        20px;
+
+    overflow-x: auto;
+
+    -webkit-overflow-scrolling:
+        touch;
+}
+
+
+.board-shell {
+
+    width:
+        min(
+            100%,
+            645px
+        );
+
+    margin:
+        0 auto;
+
+    padding:
+        10px;
+
+    border-radius:
+        17px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #bc7b31,
+            #8b511d
+        );
+
+    box-shadow:
+        0 20px 55px
+        rgba(0,0,0,0.50);
+}
+
+
+/* ==================================
+   15 × 15 盤面
+================================== */
+
+#board {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            15,
+            minmax(0, 1fr)
+        );
+
+    width: 100%;
+
+    aspect-ratio:
+        1 / 1;
+
+    background:
+        #d9a65b;
+
+    border:
+        2px solid
+        rgba(70,36,12,0.8);
+
+    touch-action:
+        manipulation;
+}
+
+
+.cell {
+
+    position: relative;
+
+    display: flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    min-width: 0;
+    min-height: 0;
+
+    border-right:
+        1px solid
+        rgba(74,45,18,0.55);
+
+    border-bottom:
+        1px solid
+        rgba(74,45,18,0.55);
+
+    cursor:
+        pointer;
+
+    background:
+        rgba(238,181,96,0.35);
+
+    transition:
+        background 0.12s;
+}
+
+
+.cell:hover {
+
+    background:
+        rgba(255,225,155,0.32);
+}
+
+
+/* ==================================
+   黒石・白石
+================================== */
+
+.stone {
+
+    width:
+        78%;
+
+    height:
+        78%;
+
+    border-radius:
+        50%;
+
+    pointer-events:
+        none;
+
+    animation:
+        stonePlace
+        0.18s ease both;
+}
+
+
+@keyframes stonePlace {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            scale(1.5);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+    }
+}
+
+
+.stone.black {
+
+    background:
+        radial-gradient(
+            circle at 35% 28%,
+            #626262,
+            #161616 38%,
+            #000000 75%
+        );
+
+    box-shadow:
+        0 3px 7px
+        rgba(0,0,0,0.65);
+}
+
+
+.stone.white {
+
+    background:
+        radial-gradient(
+            circle at 35% 28%,
+            #ffffff,
+            #eeeeee 45%,
+            #c8c8c8
+        );
+
+    border:
+        1px solid
+        rgba(80,80,80,0.50);
+
+    box-shadow:
+        0 3px 7px
+        rgba(0,0,0,0.30);
+}
+
+
+/* ==================================
+   下部メッセージ
+================================== */
+
+#gameMessage {
+
+    margin-top:
+        16px;
+
+    min-height:
+        22px;
+
+    text-align:
+        center;
+
+    color:
+        #8294b2;
+
+    font-size:
+        13px;
+}
+
+
+/* ==================================
+   モーダル
+================================== */
+
+.modal {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    padding:
+        20px;
+
+    background:
+        rgba(0,0,0,0.74);
+
+    backdrop-filter:
+        blur(12px);
+}
+
+
+.modal.show {
+
+    display:
+        flex;
+}
+
+
+.modal-card {
+
+    width:
+        100%;
+
+    max-width:
+        440px;
+
+    padding:
+        38px 28px;
+
+    border-radius:
+        27px;
+
+    text-align:
+        center;
+
+    background:
+        linear-gradient(
+            145deg,
+            #111d39,
+            #070d1d
+        );
+
+    border:
+        1px solid
+        rgba(255,255,255,0.14);
+
+    box-shadow:
+        0 40px 120px
+        rgba(0,0,0,0.70);
+
+    animation:
+        modalPop
+        0.4s ease both;
+}
+
+
+@keyframes modalPop {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            scale(0.80)
+            translateY(30px);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            scale(1)
+            translateY(0);
+    }
+}
+
+
+#modalIcon {
+
+    font-size:
+        63px;
+}
+
+
+#modalTitle {
+
+    margin-top:
+        12px;
+
+    font-size:
+        28px;
+}
+
+
+#modalMessage {
+
+    margin-top:
+        12px;
+
+    color:
+        #9aabc8;
+
+    line-height:
+        1.8;
+}
+
+
+.reward {
+
+    margin-top:
+        15px;
+
+    color:
+        #ffd75e;
+
+    font-size:
+        27px;
+
+    font-weight:
+        950;
+}
+
+
+.home-button {
+
+    display:
+        block;
+
+    width:
+        100%;
+
+    margin-top:
+        23px;
+
+    padding:
+        14px;
+
+    border-radius:
+        13px;
+
+    color:
+        white;
+
+    text-decoration:
+        none;
+
+    font-weight:
+        900;
+
+    background:
+        linear-gradient(
+            135deg,
+            #238fff,
+            #7959ff
+        );
+}
+
+
+/* ==================================
+   スマホ対応
+================================== */
+
+@media (max-width: 600px) {
+
+    .wrapper {
+
+        padding:
+            20px 7px
+            35px;
+    }
+
+
+    .game-card {
+
+        padding:
+            15px 6px;
+
+        border-radius:
+            19px;
+    }
+
+
+    .player-area {
+
+        gap:
+            7px;
+
+        padding:
+            0 5px;
+    }
+
+
+    .player-box {
+
+        padding:
+            10px 5px;
+    }
+
+
+    .player-value {
+
+        font-size:
+            14px;
+    }
+
+
+    .board-shell {
+
+        padding:
+            5px;
+
+        border-radius:
+            11px;
+    }
+
+
+    #turnInfo {
+
+        font-size:
+            18px;
+    }
+
+
+    .timer-wrap {
+
+        padding:
+            0 6px;
+    }
+
+
+    .board-area {
+
+        margin-top:
+            15px;
+    }
 }
 
 </style>
+
 </head>
+
 
 <body>
 
-<h1>五目並べ</h1>
 
-<h2 id="turnInfo">
-接続中...
-</h2>
+<div class="light light-left"></div>
 
-<h3 id="timer">
-残り時間 : 20
-</h3>
+<div class="light light-right"></div>
 
-<div id="board"></div>
+
+<div class="wrapper">
+
+
+    <header class="title-area">
+
+        <div class="small-title">
+            ONLINE BOARD BATTLE
+        </div>
+
+        <h1>
+            ⚫ 五目並べ
+        </h1>
+
+    </header>
+
+
+    <!-- =========================
+         プレイヤー情報
+    ========================== -->
+
+    <div class="player-area">
+
+
+        <div class="player-box">
+
+            <div class="player-label">
+                YOU
+            </div>
+
+            <div
+                class="player-value"
+                id="myColorText"
+            >
+                接続中...
+            </div>
+
+        </div>
+
+
+        <div class="player-box">
+
+            <div class="player-label">
+                ROOM
+            </div>
+
+            <div
+                class="player-value"
+                id="roomText"
+            >
+                {{ room_id }}
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =========================
+         ゲームカード
+    ========================== -->
+
+    <main class="game-card">
+
+
+        <div id="turnInfo">
+            対局情報を取得しています...
+        </div>
+
+
+        <!-- タイマー -->
+
+        <div class="timer-wrap">
+
+
+            <div class="timer-top">
+
+                <div class="timer-label">
+                    TURN TIMER
+                </div>
+
+
+                <div id="timer">
+                    20
+                </div>
+
+            </div>
+
+
+            <div class="timer-bar">
+
+                <div id="timerProgress"></div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- 盤面 -->
+
+        <div class="board-area">
+
+
+            <div class="board-shell">
+
+
+                <div id="board"></div>
+
+
+            </div>
+
+
+        </div>
+
+
+        <div id="gameMessage">
+
+            対局サーバーへ接続しています...
+
+        </div>
+
+
+    </main>
+
+
+</div>
+
+
+<!-- =========================
+     勝敗モーダル
+========================== -->
+
+<div
+    class="modal"
+    id="resultModal"
+>
+
+
+    <div class="modal-card">
+
+
+        <div id="modalIcon">
+            🏆
+        </div>
+
+
+        <h2 id="modalTitle">
+            対局終了
+        </h2>
+
+
+        <div id="modalMessage"></div>
+
+
+        /gomoku_home
+            五目並べロビーへ戻る
+        </a>
+
+
+    </div>
+
+
+</div>
+
 
 <script>
 
+/* ==================================
+   基本情報
+================================== */
+
 const socket = io();
 
-const roomId = "{{ room_id }}";
+const roomId =
+    "{{ room_id }}";
 
-let remainingTime = 20;
+const userId =
+    "{{ user_id }}";
 
-let timerInterval = null;
+const initialColor =
+    "{{ my_color }}";
 
-function drawBoard(board){
 
-    const boardDiv =
-        document.getElementById("board");
+let myColor =
+    initialColor;
 
-    boardDiv.innerHTML = "";
+let currentTurn =
+    null;
 
-    for(let y = 0; y < 15; y++){
+let remainingTime =
+    20;
 
-        for(let x = 0; x < 15; x++){
+let timerInterval =
+    null;
+
+let gameFinished =
+    false;
+
+
+/* ==================================
+   DOM
+================================== */
+
+const boardElement =
+    document.getElementById(
+        "board"
+    );
+
+
+const turnInfo =
+    document.getElementById(
+        "turnInfo"
+    );
+
+
+const timerElement =
+    document.getElementById(
+        "timer"
+    );
+
+
+const timerProgress =
+    document.getElementById(
+        "timerProgress"
+    );
+
+
+const myColorText =
+    document.getElementById(
+        "myColorText"
+    );
+
+
+const gameMessage =
+    document.getElementById(
+        "gameMessage"
+    );
+
+
+/* ==================================
+   自分の色
+================================== */
+
+function updateMyColor() {
+
+    if (
+        myColor === "black"
+    ) {
+
+        myColorText.innerHTML =
+            '<span class="stone-icon black"></span>黒';
+
+    } else if (
+        myColor === "white"
+    ) {
+
+        myColorText.innerHTML =
+            '<span class="stone-icon white"></span>白';
+
+    } else {
+
+        myColorText.textContent =
+            "確認中...";
+    }
+}
+
+
+updateMyColor();
+
+
+/* ==================================
+   盤面描画
+================================== */
+
+function drawBoard(board) {
+
+    boardElement.innerHTML =
+        "";
+
+
+    for (
+        let y = 0;
+        y < 15;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < 15;
+            x++
+        ) {
 
             const cell =
-                document.createElement("div");
-
-            cell.className = "cell";
-
-            cell.onclick = () => {
-
-                socket.emit(
-                    "gomoku_place",
-                    {
-                        room_id: roomId,
-                        x: x,
-                        y: y
-                    }
+                document.createElement(
+                    "div"
                 );
-            };
 
-            if(board[y][x] === 1){
+
+            cell.className =
+                "cell";
+
+
+            cell.addEventListener(
+                "click",
+
+                () => {
+
+                    placeStone(
+                        x,
+                        y
+                    );
+                }
+            );
+
+
+            if (
+                board[y][x] === 1
+            ) {
 
                 const stone =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 stone.className =
-                    "black";
+                    "stone black";
 
-                cell.appendChild(stone);
+
+                cell.appendChild(
+                    stone
+                );
             }
 
-            if(board[y][x] === 2){
+
+            if (
+                board[y][x] === 2
+            ) {
 
                 const stone =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 stone.className =
-                    "white";
+                    "stone white";
 
-                cell.appendChild(stone);
+
+                cell.appendChild(
+                    stone
+                );
             }
 
-            boardDiv.appendChild(cell);
+
+            boardElement.appendChild(
+                cell
+            );
         }
     }
 }
 
-/* 最初に空盤面を表示 */
+
+/* ==================================
+   空盤面
+================================== */
 
 drawBoard(
 
     Array.from(
-        {length:15},
-        () => Array(15).fill(0)
+        {
+            length: 15
+        },
+
+        () =>
+            Array(15).fill(0)
     )
 
 );
 
-socket.emit(
-    "join_gomoku_room",
-    {
-        room_id: roomId
+
+/* ==================================
+   石を置く
+================================== */
+
+function placeStone(
+    x,
+    y
+) {
+
+    if (gameFinished) {
+
+        return;
     }
-);
 
-socket.on(
-    "gomoku_update",
-    data => {
 
-        drawBoard(
-            data.board
+    if (
+        currentTurn !==
+        myColor
+    ) {
+
+        gameMessage.textContent =
+            "今は相手の番です";
+
+        return;
+    }
+
+
+    socket.emit(
+        "gomoku_place",
+
+        {
+            room_id:
+                roomId,
+
+            x:
+                x,
+
+            y:
+                y
+        }
+    );
+}
+
+
+/* ==================================
+   ターン表示
+================================== */
+
+function updateTurnDisplay() {
+
+    turnInfo.classList.remove(
+        "my-turn",
+        "enemy-turn"
+    );
+
+
+    if (
+        currentTurn === myColor
+    ) {
+
+        turnInfo.textContent =
+            "🔥 あなたの番です";
+
+        turnInfo.classList.add(
+            "my-turn"
         );
 
-        document.getElementById(
-            "turnInfo"
-        ).innerText =
-            "現在のターン : "
-            + data.turn;
 
-        remainingTime = 20;
+        gameMessage.textContent =
+            "置きたい場所をタップしてください";
 
-        if(timerInterval){
+    } else {
 
-            clearInterval(
-                timerInterval
-            );
-        }
+        turnInfo.textContent =
+            "相手の番です";
 
-        timerInterval = setInterval(
+        turnInfo.classList.add(
+            "enemy-turn"
+        );
+
+
+        gameMessage.textContent =
+            "相手の着手を待っています...";
+    }
+}
+
+
+/* ==================================
+   タイマー
+================================== */
+
+function restartTimer() {
+
+    remainingTime =
+        20;
+
+
+    if (timerInterval) {
+
+        clearInterval(
+            timerInterval
+        );
+    }
+
+
+    updateTimer();
+
+
+    timerInterval =
+        setInterval(
             () => {
 
-                remainingTime--;
-
-                document.getElementById(
-                    "timer"
-                ).innerText =
-                    "残り時間 : "
-                    + remainingTime;
-
-                if(
-                    remainingTime <= 0
-                ){
+                if (gameFinished) {
 
                     clearInterval(
                         timerInterval
                     );
 
-                    socket.emit(
-                        "gomoku_timeout",
-                        {
-                            room_id: roomId
-                        }
+                    return;
+                }
+
+
+                remainingTime--;
+
+
+                if (
+                    remainingTime < 0
+                ) {
+
+                    remainingTime =
+                        0;
+                }
+
+
+                updateTimer();
+
+
+                if (
+                    remainingTime <= 0
+                ) {
+
+                    clearInterval(
+                        timerInterval
                     );
                 }
 
             },
             1000
         );
+}
+
+
+/* ==================================
+   タイマー描画
+================================== */
+
+function updateTimer() {
+
+    timerElement.textContent =
+        remainingTime;
+
+
+    const percent =
+        Math.max(
+            0,
+            (
+                remainingTime
+                / 20
+            ) * 100
+        );
+
+
+    timerProgress.style.width =
+        percent + "%";
+
+
+    if (
+        remainingTime <= 5
+    ) {
+
+        timerElement.style.color =
+            "#ff647c";
+
+
+        timerProgress.style.background =
+            "linear-gradient(90deg,#ff7a62,#ff3366)";
+
+    } else {
+
+        timerElement.style.color =
+            "#69e5ff";
+
+
+        timerProgress.style.background =
+            "linear-gradient(90deg,#53eaff,#7e66ff)";
+    }
+}
+
+
+/* ==================================
+   Socket.IO接続
+================================== */
+
+socket.on(
+    "connect",
+
+    () => {
+
+        gameMessage.textContent =
+            "対局へ参加しています...";
+
+
+        socket.emit(
+            "join_gomoku_room",
+
+            {
+                room_id:
+                    roomId
+            }
+        );
     }
 );
 
+
+/* ==================================
+   盤面更新
+================================== */
+
 socket.on(
-    "gomoku_finish",
+    "gomoku_update",
+
     data => {
 
-        console.log(
-            "gomoku_finish受信"
-        );
 
-        if(data.winner){
+        if (
+            data.my_color
+        ) {
 
-            window.location.href =
-                "/gomoku_result?result="
-                + (
-                    data.winner === "{{ session['user_id'] }}"
-                    ? "win"
-                    : "lose"
-                );
+            myColor =
+                data.my_color;
+
+            updateMyColor();
         }
+
+
+        if (
+            data.board
+        ) {
+
+            drawBoard(
+                data.board
+            );
+        }
+
+
+        currentTurn =
+            data.turn;
+
+
+        updateTurnDisplay();
+
+
+        if (
+            data.timeout
+        ) {
+
+            gameMessage.textContent =
+                "時間切れのため手番が交代しました";
+        }
+
+
+        if (
+            !gameFinished
+        ) {
+
+            restartTimer();
+        }
+
+
+        if (
+            data.winner
+        ) {
+
+            finishGame(
+                data.winner,
+                100
+            );
+        }
+    }
+);
+
+
+/* ==================================
+   ゲーム終了
+================================== */
+
+socket.on(
+    "gomoku_finish",
+
+    data => {
+
+        finishGame(
+            data.winner,
+            data.reward
+        );
+    }
+);
+
+
+/* ==================================
+   勝敗表示
+================================== */
+
+function finishGame(
+    winner,
+    reward
+) {
+
+    if (gameFinished) {
+
+        return;
+    }
+
+
+    gameFinished =
+        true;
+
+
+    if (timerInterval) {
+
+        clearInterval(
+            timerInterval
+        );
+    }
+
+
+    const won =
+        winner === userId;
+
+
+    document.getElementById(
+        "modalIcon"
+    ).textContent =
+        won
+        ? "🏆"
+        : "⚫";
+
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        won
+        ? "あなたの勝ち！"
+        : "あなたの負け";
+
+
+    document.getElementById(
+        "modalMessage"
+    ).innerHTML =
+        won
+        ? `
+            五目を完成させました！
+
+            <div class="reward">
+                +${reward || 100} COIN
+            </div>
+        `
+        : `
+            相手が五目を完成させました。
+            <br><br>
+            また挑戦しよう！
+        `;
+
+
+    document.getElementById(
+        "resultModal"
+    ).classList.add(
+        "show"
+    );
+}
+
+
+/* ==================================
+   切断
+================================== */
+
+socket.on(
+    "disconnect",
+
+    () => {
+
+        if (gameFinished) {
+
+            return;
+        }
+
+
+        gameMessage.textContent =
+            "接続が切れました。再接続しています...";
+    }
+);
+
+/* ==================================
+   五目並べエラー
+================================== */
+
+socket.on(
+    "gomoku_error",
+
+    data => {
+
+        gameMessage.textContent =
+            data.message
+            || "対局エラーが発生しました";
     }
 );
 
 </script>
 
 </body>
+
+
 </html>
