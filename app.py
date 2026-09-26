@@ -510,6 +510,49 @@ class GomokuRoom(db.Model):
         db.DateTime,
         nullable=True
     )
+
+class Mailbox(db.Model):
+    __tablename__ = "mailboxes"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    receiver_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    sender_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    mail_type = db.Column(
+        db.String(30),
+        nullable=False,
+        default="notification"
+    )
+
+    message = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    is_read = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
 # =========================
 # Socket.IO
 # =========================
@@ -869,6 +912,7 @@ def home():
         .where(User.id != user_id)
     ).scalars().all()
 
+
     return render_template(
         "home.html",
         user=current_user,
@@ -1182,54 +1226,374 @@ def swipe_unlock():
 # =========================
 # メールボックス
 # =========================
+# ==========================================
+# メールボックス
+# PostgreSQL版
+# ==========================================
 
 @app.route("/mailbox")
 def mailbox():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
 
     if not user_id:
-        return redirect(url_for("top"))
 
-    user_mails = mailboxes.get(
-        user_id,
-        []
+        return redirect(
+            url_for("top")
+        )
+
+
+    # ======================================
+    # ユーザー確認
+    # ======================================
+
+    current_user = db.session.get(
+        User,
+        user_id
     )
 
-    unread_count = sum(
-        1
-        for mail in user_mails
-        if not mail.get("read", False)
+
+    if not current_user:
+
+        session.pop(
+            "user_id",
+            None
+        )
+
+        return redirect(
+            url_for("top")
+        )
+
+
+    # ======================================
+    # 自分宛てのメールを取得
+    # 新しい順
+    # ======================================
+
+    user_mails = (
+        db.session.execute(
+
+            db.select(
+                Mailbox
+            )
+
+            .where(
+                Mailbox.receiver_id
+                == user_id
+            )
+
+            .order_by(
+                Mailbox.created_at.desc()
+            )
+
+        )
+
+        .scalars()
+        .all()
     )
+
+
+    # ======================================
+    # 未読件数
+    # ======================================
+
+    unread_count = (
+        db.session.execute(
+
+            db.select(
+                db.func.count(
+                    Mailbox.id
+                )
+            )
+
+            .where(
+                Mailbox.receiver_id
+                == user_id
+            )
+
+            .where(
+                Mailbox.is_read
+                .is_(False)
+            )
+
+        )
+
+        .scalar()
+        or 0
+    )
+
 
     return render_template(
         "mailbox.html",
-        mails=user_mails,
-        unread_count=unread_count
+
+        mails=
+            user_mails,
+
+        unread_count=
+            unread_count,
+
+        user=
+            current_user
     )
 
 # -------------------------
 # LIKE
 # -------------------------
+# ==========================================
+# LIKE
+# PostgreSQL版
+# ==========================================
 @app.route("/like/<partner>")
 def like(partner):
+
     user_id = session.get("user_id")
+
     if not user_id:
-        return redirect(url_for("top"))
+        return jsonify({
+            "success": False,
+            "message": "ログインしてください"
+        }), 401
 
-    if partner not in users[user_id]["likes"]:
-        users[user_id]["likes"].append(partner)
 
-    save_json(USERS_FILE, users)
+    # 自分自身にはいいねできない
+    if user_id == partner:
+        return jsonify({
+            "success": False,
+            "message": "自分自身にはいいねできません"
+        }), 400
 
-    matched = False
-    if user_id in users.get(partner, {}).get("likes", []):
-        users[user_id]["can_send_photo"] = True
-        users[partner]["can_send_photo"] = True
-        save_json(USERS_FILE, users)
-        matched = True
 
-    return jsonify({"matched": matched})
+    # ユーザー取得
+    current_user = db.session.get(
+        User,
+        user_id
+    )
+
+    partner_user = db.session.get(
+        User,
+        partner
+    )
+
+
+    if not current_user:
+        return jsonify({
+            "success": False,
+            "message": "ユーザーが見つかりません"
+        }), 404
+
+
+    if not partner_user:
+        return jsonify({
+            "success": False,
+            "message": "相手ユーザーが見つかりません"
+        }), 404
+
+
+    try:
+
+        # ==================================
+        # 自分 → 相手 のLIKE確認
+        # ==================================
+
+        existing_like = (
+            db.session.execute(
+                db.select(Like)
+                .where(
+                    Like.sender_id == user_id,
+                    Like.receiver_id == partner
+                )
+            )
+            .scalars()
+            .first()
+        )
+
+
+        # ==================================
+        # 新規LIKE
+        # ==================================
+
+        if not existing_like:
+
+            new_like = Like(
+                sender_id=user_id,
+                receiver_id=partner
+            )
+
+            db.session.add(
+                new_like
+            )
+
+
+            # ==============================
+            # 相手へLIKE通知
+            # ==============================
+
+            like_mail = Mailbox(
+                receiver_id=partner,
+                sender_id=user_id,
+                mail_type="like",
+                message=(
+                    f"{current_user.name}さんから"
+                    "いいねが届きました"
+                ),
+                is_read=False
+            )
+
+            db.session.add(
+                like_mail
+            )
+
+
+        # ==================================
+        # 相手 → 自分 のLIKE確認
+        # ==================================
+
+        reverse_like = (
+            db.session.execute(
+                db.select(Like)
+                .where(
+                    Like.sender_id == partner,
+                    Like.receiver_id == user_id
+                )
+            )
+            .scalars()
+            .first()
+        )
+
+
+        matched = (
+            reverse_like is not None
+        )
+
+
+        # ==================================
+        # 相互いいね成立
+        # ==================================
+
+        if matched:
+
+            # 自分側に同じマッチ通知があるか確認
+            my_match_exists = (
+                db.session.execute(
+                    db.select(Mailbox)
+                    .where(
+                        Mailbox.receiver_id == user_id,
+                        Mailbox.sender_id == partner,
+                        Mailbox.mail_type == "match"
+                    )
+                )
+                .scalars()
+                .first()
+            )
+
+
+            # 相手側に同じマッチ通知があるか確認
+            partner_match_exists = (
+                db.session.execute(
+                    db.select(Mailbox)
+                    .where(
+                        Mailbox.receiver_id == partner,
+                        Mailbox.sender_id == user_id,
+                        Mailbox.mail_type == "match"
+                    )
+                )
+                .scalars()
+                .first()
+            )
+
+
+            # 自分へのマッチ通知
+            if not my_match_exists:
+
+                my_match_mail = Mailbox(
+                    receiver_id=user_id,
+                    sender_id=partner,
+                    mail_type="match",
+                    message=(
+                        f"{partner_user.name}さんと"
+                        "マッチしました！"
+                        "チャットが解禁されました"
+                    ),
+                    is_read=False
+                )
+
+                db.session.add(
+                    my_match_mail
+                )
+
+
+            # 相手へのマッチ通知
+            if not partner_match_exists:
+
+                partner_match_mail = Mailbox(
+                    receiver_id=partner,
+                    sender_id=user_id,
+                    mail_type="match",
+                    message=(
+                        f"{current_user.name}さんと"
+                        "マッチしました！"
+                        "チャットが解禁されました"
+                    ),
+                    is_read=False
+                )
+
+                db.session.add(
+                    partner_match_mail
+                )
+
+
+        # ==================================
+        # PostgreSQLへ保存
+        # ==================================
+
+        db.session.commit()
+
+
+        # ==================================
+        # 相互いいね成立ならチャットURL返却
+        # ==================================
+
+        if matched:
+
+            chat_url = url_for(
+                "chat_room",
+                partner=partner
+            )
+
+            return jsonify({
+                "success": True,
+                "matched": True,
+                "message": "マッチング成立！",
+                "chat_url": chat_url
+            })
+
+
+        # ==================================
+        # まだ相互いいねではない
+        # ==================================
+
+        return jsonify({
+            "success": True,
+            "matched": False,
+            "message": "いいねを送りました"
+        })
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "LIKE DB ERROR:",
+            str(e)
+        )
+
+        return jsonify({
+            "success": False,
+            "message": "いいね処理に失敗しました"
+        }), 500
 
 
 # -------------------------

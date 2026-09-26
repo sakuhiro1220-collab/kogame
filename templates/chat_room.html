@@ -1,385 +1,4253 @@
 <!DOCTYPE html>
-<html>
-<head><link rel="stylesheet" href="/static/css/chat_room.css">
+<html lang="ja">
+
+<head>
 
 <meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
 <title>{{ partner_user.name }}とのチャット</title>
 
-<script>
-
-const partnerId = "{{ partner }}";
-
-function openPartnerProfile() {
-
-    window.location.href =
-        "/profile/" +
-        encodeURIComponent(partnerId);
-}
-
-</script>
+https://cdn.socket.io/4.7.5/socket.io.min.js</script>
 
 <style>
-.chat-top-buttons {
-    width: 100%;
 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* =========================================
+   基本
+========================================= */
 
-    padding: 12px 20px;
-
+* {
     box-sizing: border-box;
-
-    background: white;
-    border-bottom: 1px solid #ddd;
 }
 
-.chat-back-button,
-.profile-button {
-    border: none;
-    border-radius: 12px;
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
 
-    padding: 10px 16px;
+body {
 
-    font-size: 14px;
-    font-weight: bold;
+    min-height: 100dvh;
+
+    overflow: hidden;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(0, 197, 255, 0.18),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 90%,
+            rgba(142, 72, 255, 0.25),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+}
+
+
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.02) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.02) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        45px 45px;
+}
+
+
+/* =========================================
+   全体
+========================================= */
+
+.chat-page {
+
+    position: relative;
+
+    z-index: 2;
+
+    width: 100%;
+    height: 100dvh;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+.chat-header {
+
+    flex-shrink: 0;
+
+    min-height: 70px;
+
+    padding:
+        max(10px, env(safe-area-inset-top))
+        15px
+        10px;
+
+    display: grid;
+
+    grid-template-columns:
+        auto 1fr auto;
+
+    align-items: center;
+
+    gap: 10px;
+
+    background:
+        rgba(4, 13, 31, 0.91);
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 8px 30px
+        rgba(0,0,0,0.18);
+}
+
+
+.header-button {
+
+    height: 42px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 13px;
+
+    color: white;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    font-size: 13px;
+
+    font-weight: 800;
 
     cursor: pointer;
 
-    transition: 0.2s;
+    transition:
+        transform 0.2s,
+        background 0.2s;
 }
 
-.chat-back-button {
-    background: #eeeeee;
-    color: #333;
+
+.header-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.12);
 }
+
 
 .profile-button {
-    background: #ff4d6d;
-    color: white;
+
+    color:
+        #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff4678,
+            #8c59ff
+        );
+
+    border: none;
 }
 
-.chat-back-button:hover,
-.profile-button:hover {
-    transform: translateY(-2px);
+
+/* =========================================
+   相手情報
+========================================= */
+
+.partner-box {
+
+    min-width: 0;
+
+    text-align: center;
 }
 
-.chat-back-button:hover {
-    background: #dddddd;
+
+.partner-name {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-size:
+        clamp(
+            15px,
+            4vw,
+            19px
+        );
+
+    font-weight: 950;
 }
 
-.profile-button:hover {
-    background: #e93d5e;
+
+.partner-status {
+
+    margin-top: 2px;
+
+    color:
+        #6dddff;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
 }
 
-body { font-family: sans-serif; background:#f5f5f5; margin:0; }
+
+/* =========================================
+   チャット本体
+========================================= */
 
 .chat-area {
-    padding:15px;
-    height: calc(100vh - 160px);
-    overflow-y: scroll;
+
+    flex: 1;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+    padding:
+        18px
+        max(
+            14px,
+            calc((100vw - 900px) / 2)
+        )
+        20px;
+
+    scroll-behavior: smooth;
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+        rgba(124,143,183,0.6)
+        transparent;
 }
+
+
+/* =========================================
+   吹き出し
+========================================= */
+
+.message-row {
+
+    width: 100%;
+
+    display: flex;
+
+    margin-bottom: 11px;
+}
+
+
+.message-row.me {
+
+    justify-content: flex-end;
+}
+
+
+.message-row.partner {
+
+    justify-content: flex-start;
+}
+
 
 .bubble {
-    max-width:70%;
-    padding:10px 15px;
-    border-radius:12px;
-    margin-bottom:10px;
+
+    position: relative;
+
+    max-width:
+        min(
+            72%,
+            560px
+        );
+
+    padding:
+        11px 14px;
+
+    border-radius:
+        18px;
+
+    line-height: 1.55;
+
+    font-size: 14px;
+
+    word-break: break-word;
+
+    box-shadow:
+        0 7px 22px
+        rgba(0,0,0,0.13);
 }
 
-.me { background:#DCF8C6; margin-left:auto; }
-.partner { background:white; margin-right:auto; }
 
-.gift {
-    background:#ffe0f5;
-    border:2px solid #ff66cc;
-    color:#cc0077;
-    font-weight:bold;
+.message-row.me .bubble {
+
+    color: white;
+
+    border-bottom-right-radius:
+        5px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #168eff,
+            #7558ff
+        );
 }
 
-.photo-img { max-width:200px; border-radius:10px; margin-top:5px; }
-.read { font-size:12px; color:#888; margin-left:10px; }
+
+.message-row.partner .bubble {
+
+    color:
+        #e6efff;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-bottom-left-radius:
+        5px;
+
+    background:
+        rgba(255,255,255,0.085);
+}
+
+
+/* =========================================
+   ギフト吹き出し
+========================================= */
+
+.bubble.gift {
+
+    border:
+        1px solid
+        rgba(255,123,206,0.42);
+
+    color:
+        #ffe5f7;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,63,133,0.25),
+            rgba(133,76,255,0.26)
+        );
+
+    box-shadow:
+        0 8px 30px
+        rgba(255,77,163,0.14);
+}
+
+
+/* =========================================
+   写真
+========================================= */
+
+.photo-img {
+
+    display: block;
+
+    width: auto;
+
+    max-width: 100%;
+
+    max-height: 330px;
+
+    margin-top: 7px;
+
+    border-radius: 13px;
+
+    object-fit: cover;
+}
+
+
+/* =========================================
+   既読
+========================================= */
+
+.read {
+
+    display: block;
+
+    margin-top: 5px;
+
+    color:
+        rgba(255,255,255,0.65);
+
+    text-align: right;
+
+    font-size: 9px;
+}
+
+
+/* =========================================
+   入力エリア
+========================================= */
 
 .input-area {
-    position:fixed; bottom:0; width:100%;
-    background:white; padding:10px; border-top:1px solid #ddd;
-    display:flex; gap:10px;
+
+    flex-shrink: 0;
+
+    position: relative;
+
+    z-index: 100;
+
+    width: 100%;
+
+    padding:
+        9px
+        12px
+        max(
+            9px,
+            env(safe-area-inset-bottom)
+        );
+
+    background:
+        rgba(4,13,31,0.95);
+
+    border-top:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    backdrop-filter:
+        blur(22px);
+
+    box-shadow:
+        0 -10px 35px
+        rgba(0,0,0,0.22);
 }
 
-.gift-btn {
-    background:#ff66cc;
-    color:white;
-    padding:10px 15px;
-    border-radius:8px;
-    border:none;
-    cursor:pointer;
-    font-size:16px;
-}
-.gift-btn:hover { background:#ff88dd; }
 
-/* ギフトモーダル */
-.modal {
+.message-form {
+
+    width:
+        min(
+            900px,
+            100%
+        );
+
+    margin: 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+/* =========================================
+   テキスト入力
+========================================= */
+
+.message-input {
+
+    flex: 1;
+
+    min-width: 0;
+
+    height: 46px;
+
+    padding:
+        0 15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 15px;
+
+    color: white;
+
+    font-size: 14px;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s;
+}
+
+
+.message-input:focus {
+
+    border-color:
+        rgba(82,218,255,0.50);
+
+    background:
+        rgba(255,255,255,0.10);
+}
+
+
+.message-input::placeholder {
+
+    color:
+        #7184a3;
+}
+
+
+/* =========================================
+   写真選択
+========================================= */
+
+.file-label {
+
+    flex-shrink: 0;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.file-label:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.13);
+}
+
+
+.file-input {
+
+    display: none;
+}
+
+
+/* =========================================
+   送信ボタン
+========================================= */
+
+.send-button {
+
+    flex-shrink: 0;
+
+    height: 46px;
+
+    padding:
+        0 17px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #7659ff
+        );
+
+    box-shadow:
+        0 8px 24px
+        rgba(85,99,255,0.25);
+}
+
+
+/* =========================================
+   ギフトボタン
+========================================= */
+
+.gift-open-button {
+
+    flex-shrink: 0;
+
+    width: 48px;
+    height: 46px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-size: 21px;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff477b,
+            #b54cff
+        );
+
+    box-shadow:
+        0 8px 25px
+        rgba(255,70,151,0.28);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.gift-open-button:hover {
+
+    transform:
+        translateY(-3px)
+        rotate(-4deg);
+
+    box-shadow:
+        0 12px 30px
+        rgba(255,70,151,0.40);
+}
+
+
+/* =========================================
+   ギフトモーダル
+========================================= */
+
+.gift-modal {
+
+    display: none;
+
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    display:none;
-}
-.modal-content {
-    background:white;
-    padding:20px;
-    margin:100px auto;
-    width:80%;
-    border-radius:10px;
-    text-align:center;
-}
-.modal-content button {
-    display:block;
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    font-size:18px;
+
+    inset: 0;
+
+    z-index: 15000;
+
+    align-items: flex-end;
+
+    justify-content: center;
+
+    padding:
+        20px
+        12px
+        max(
+            20px,
+            env(safe-area-inset-bottom)
+        );
+
+    background:
+        rgba(0,0,0,0.70);
+
+    backdrop-filter:
+        blur(13px);
 }
 
-/* アニメーションレイヤー */
-#giftEffectLayer {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+
+.gift-modal.show {
+
+    display: flex;
+}
+
+
+.gift-panel {
+
+    width:
+        min(
+            680px,
+            100%
+        );
+
+    max-height:
+        min(
+            82dvh,
+            760px
+        );
+
+    overflow-y: auto;
+
+    padding:
+        22px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    border-radius:
+        26px;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(16,29,61,0.98),
+            rgba(10,7,29,0.98)
+        );
+
+    box-shadow:
+        0 30px 100px
+        rgba(0,0,0,0.70);
+
+    animation:
+        giftPanelIn
+        0.26s ease both;
+}
+
+
+@keyframes giftPanelIn {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(35px)
+            scale(0.96);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* =========================================
+   ギフトショップ上部
+========================================= */
+
+.gift-panel-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+        space-between;
+
+    gap: 15px;
+
+    margin-bottom: 17px;
+}
+
+
+.gift-panel-title {
+
+    font-size: 22px;
+
+    font-weight: 950;
+}
+
+
+.gift-panel-subtitle {
+
+    margin-top: 4px;
+
+    color:
+        #8295b5;
+
+    font-size: 11px;
+
+    letter-spacing: 1px;
+}
+
+
+.gift-close {
+
+    width: 40px;
+    height: 40px;
+
+    flex-shrink: 0;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 50%;
+
+    color: white;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    background:
+        rgba(255,255,255,0.07);
+}
+
+
+/* =========================================
+   ギフトグリッド
+========================================= */
+
+.gift-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
+    gap: 11px;
+}
+
+
+/* =========================================
+   ギフトカード共通
+========================================= */
+
+.gift-card {
+
+    position: relative;
+
+    overflow: hidden;
+
+    min-height: 138px;
+
+    padding:
+        15px 10px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 18px;
+
+    color: white;
+
+    cursor: pointer;
+
+    text-align: center;
+
+    background:
+        rgba(255,255,255,0.055);
+
+    transition:
+        transform 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.gift-card::before {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    opacity: 0;
+
     pointer-events: none;
-    z-index: 9999;
+
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(255,255,255,0.25),
+            transparent 65%
+        );
+
+    transition:
+        opacity 0.2s;
 }
+
+
+.gift-card:hover {
+
+    transform:
+        translateY(-4px)
+        scale(1.02);
+}
+
+
+.gift-card:hover::before {
+
+    opacity: 1;
+}
+
+
+.gift-emoji {
+
+    position: relative;
+
+    z-index: 1;
+
+    display: block;
+
+    font-size: 37px;
+
+    margin-bottom: 7px;
+}
+
+
+.gift-name {
+
+    position: relative;
+
+    z-index: 1;
+
+    display: block;
+
+    font-size: 14px;
+
+    font-weight: 950;
+}
+
+
+.gift-price {
+
+    position: relative;
+
+    z-index: 1;
+
+    display: block;
+
+    margin-top: 5px;
+
+    color:
+        #ffd66f;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+
+.gift-star {
+
+    position: relative;
+
+    z-index: 1;
+
+    display: block;
+
+    margin-top: 3px;
+
+    color:
+        #88e7ff;
+
+    font-size: 10px;
+}
+
+
+/* =========================================
+   各ギフトカラー
+========================================= */
+
+.gift-bronze {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(137,72,35,0.43),
+            rgba(56,31,24,0.48)
+        );
+
+    border-color:
+        rgba(220,129,76,0.30);
+}
+
+
+.gift-silver {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(170,184,207,0.20),
+            rgba(63,75,98,0.40)
+        );
+
+    border-color:
+        rgba(210,225,255,0.28);
+}
+
+
+.gift-gold {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,184,31,0.26),
+            rgba(119,72,13,0.42)
+        );
+
+    border-color:
+        rgba(255,211,74,0.38);
+}
+
+
+.gift-sapphire {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(22,125,255,0.31),
+            rgba(13,37,95,0.46)
+        );
+
+    border-color:
+        rgba(61,167,255,0.40);
+}
+
+
+.gift-emerald {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(15,198,119,0.27),
+            rgba(8,70,54,0.47)
+        );
+
+    border-color:
+        rgba(54,242,164,0.33);
+}
+
+
+.gift-diamond {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(73,214,255,0.24),
+            rgba(134,94,255,0.34)
+        );
+
+    border-color:
+        rgba(133,235,255,0.43);
+}
+
+
+.gift-platinum {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(230,235,255,0.22),
+                        rgba(92,81,150,0.35)
+        );
+
+    border-color:
+        rgba(235,236,255,0.38);
+}
+
+
+.gift-ice {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(39,192,255,0.29),
+            rgba(25,73,151,0.45)
+        );
+
+    border-color:
+        rgba(100,224,255,0.45);
+}
+
+
+.gift-heart {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,42,112,0.30),
+            rgba(132,34,123,0.44)
+        );
+
+    border-color:
+        rgba(255,89,163,0.45);
+}
+
+
+.gift-gem {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(130,58,255,0.33),
+            rgba(15,152,221,0.34)
+        );
+
+    border-color:
+        rgba(177,101,255,0.46);
+}
+
+
+.gift-dragon {
+
+    grid-column:
+        1 / -1;
+
+    min-height:
+        165px;
+
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(255,222,90,0.25),
+            transparent 45%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(255,32,108,0.40),
+            rgba(111,36,211,0.48),
+            rgba(27,17,74,0.70)
+        );
+
+    border:
+        1px solid
+        rgba(255,203,89,0.55);
+
+    box-shadow:
+        inset 0 0 30px
+        rgba(255,87,181,0.10);
+}
+
+
+.gift-dragon .gift-emoji {
+
+    font-size:
+        55px;
+}
+
+
+.gift-dragon .gift-name {
+
+    font-size:
+        18px;
+
+    color:
+        #ffe596;
+}
+
+
+/* =========================================
+   ギフト演出レイヤー
+========================================= */
+
+#giftEffectLayer {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 50000;
+
+    display: none;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+
+#giftEffectLayer.active {
+
+    display: block;
+}
+
+
+.effect-darkness {
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(59,18,100,0.20),
+            rgba(0,0,0,0.82)
+        );
+}
+
+
+.effect-title {
+
+    position: absolute;
+
+    z-index: 20;
+
+    left: 50%;
+    top: 48%;
+
+    width: 90%;
+
+    text-align: center;
+
+    transform:
+        translate(-50%, -50%);
+
+    color: white;
+
+    font-size:
+        clamp(
+            26px,
+            8vw,
+            54px
+        );
+
+    font-weight: 950;
+
+    opacity: 0;
+
+    text-shadow:
+        0 0 15px currentColor,
+        0 0 35px currentColor;
+}
+
+
+/* =========================================
+   スマホ対応
+========================================= */
+
+@media (max-width: 600px) {
+
+    .chat-header {
+
+        min-height: 59px;
+
+        padding-left: 8px;
+        padding-right: 8px;
+
+        gap: 6px;
+    }
+
+
+    .header-button {
+
+        height: 38px;
+
+        padding:
+            0 9px;
+
+        font-size: 11px;
+    }
+
+
+    .partner-name {
+
+        font-size: 14px;
+    }
+
+
+    .partner-status {
+
+        font-size: 8px;
+    }
+
+
+    .chat-area {
+
+        padding:
+            12px 8px
+            15px;
+    }
+
+
+    .bubble {
+
+        max-width: 82%;
+
+        padding:
+            9px 12px;
+
+        font-size: 13px;
+    }
+
+
+    .input-area {
+
+        padding-left: 7px;
+        padding-right: 7px;
+    }
+
+
+    .message-form {
+
+        gap: 5px;
+    }
+
+
+    .message-input {
+
+        height: 43px;
+
+        padding:
+            0 11px;
+
+        font-size: 13px;
+    }
+
+
+    .file-label {
+
+        width: 42px;
+        height: 43px;
+    }
+
+
+    .send-button {
+
+        height: 43px;
+
+        padding:
+            0 12px;
+
+        font-size: 12px;
+    }
+
+
+    .gift-open-button {
+
+        width: 43px;
+        height: 43px;
+    }
+
+
+    .gift-panel {
+
+        padding:
+            17px 12px;
+
+        border-radius:
+            23px 23px
+            17px 17px;
+    }
+
+
+    .gift-grid {
+
+        gap: 8px;
+    }
+
+
+    .gift-card {
+
+        min-height: 121px;
+
+        padding:
+            12px 7px;
+    }
+
+
+    .gift-emoji {
+
+        font-size: 31px;
+    }
+
+
+    .gift-name {
+
+        font-size: 12px;
+    }
+
+
+    .gift-price {
+
+        font-size: 10px;
+    }
+}
+
+
+/* =========================================
+   動きを減らす端末設定
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+
+        scroll-behavior: auto !important;
+
+        animation-duration:
+            0.01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            0.01ms !important;
+    }
+}
+
 </style>
+
 </head>
+
+
 <body>
 
-<div class="chat-top-buttons">
 
-    <button
-        class="chat-back-button"
-        onclick="location.href='/chat_page'"
-    >
-        ← チャット一覧
-    </button>
+<div class="chat-page">
 
-    <button
-        class="profile-button"
-        onclick="openPartnerProfile()"
-    >
-        👤 相手のプロフィール
-    </button>
 
-</div>
+    <!-- =====================================
+         ヘッダー
+    ====================================== -->
 
-<div class="chat-area" id="chatArea">
-    {% for msg in history %}
-        {% if msg.sender == user_id %}
-            <div class="bubble me {% if msg.gift %}gift{% endif %}">
-                {{ msg.message }}
-                {% if msg.photo %}
-                    <img src="{{ msg.photo }}" class="photo-img">
-                {% endif %}
-                {% if msg.read %}<span class="read">既読</span>{% endif %}
+    <header class="chat-header">
+
+
+        <button
+            type="button"
+            class="header-button"
+            onclick="location.href='/chat_page'"
+        >
+            ← 戻る
+        </button>
+
+
+        <div class="partner-box">
+
+
+            <div class="partner-name">
+
+                {{ partner_user.name }}
+
             </div>
-        {% else %}
-            <div class="bubble partner {% if msg.gift %}gift{% endif %}">
-                {{ msg.message }}
-                {% if msg.photo %}
-                    <img src="{{ msg.photo }}" class="photo-img">
-                {% endif %}
+
+
+            <div class="partner-status">
+
+                CHAT ROOM
+
             </div>
-        {% endif %}
-    {% endfor %}
+
+
+        </div>
+
+
+        <button
+            type="button"
+            class="header-button profile-button"
+            onclick="openPartnerProfile()"
+        >
+            👤 詳細
+        </button>
+
+
+    </header>
+
+
+    <!-- =====================================
+         メッセージ
+    ====================================== -->
+
+    <main
+        class="chat-area"
+        id="chatArea"
+    >
+
+
+        {% for msg in history %}
+
+
+            {% if msg.sender == user_id %}
+
+
+                <div class="message-row me">
+
+
+                    <div
+                        class="
+                            bubble
+                            {% if msg.gift %}
+                                gift
+                            {% endif %}
+                        "
+                    >
+
+                        {{ msg.message }}
+
+
+                        {% if msg.photo %}
+
+                            {{ msg.photo }}
+
+                        {% endif %}
+
+
+                        {% if msg.read %}
+
+                            <span class="read">
+                                既読
+                            </span>
+
+                        {% endif %}
+
+
+                    </div>
+
+
+                </div>
+
+
+            {% else %}
+
+
+                <div class="message-row partner">
+
+
+                    <div
+                        class="
+                            bubble
+                            {% if msg.gift %}
+                                gift
+                            {% endif %}
+                        "
+                    >
+
+                        {{ msg.message }}
+
+
+                        {% if msg.photo %}
+
+                            {{ msg.photo }}
+
+                        {% endif %}
+
+
+                    </div>
+
+
+                </div>
+
+
+            {% endif %}
+
+
+        {% endfor %}
+
+
+    </main>
+
+
+    <!-- =====================================
+         入力エリア
+    ====================================== -->
+
+    <footer class="input-area">
+
+
+        /chat_room/{{ partner }}
+
+
+            <label
+                class="file-label"
+                title="写真を選択"
+            >
+
+                📷
+
+                <input
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    class="file-input"
+                >
+
+            </label>
+
+
+            <input
+                type="text"
+                name="message"
+                class="message-input"
+                placeholder="メッセージ..."
+                autocomplete="off"
+            >
+
+
+            <button
+                type="submit"
+                class="send-button"
+            >
+                送信
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-open-button"
+                onclick="openGiftMenu()"
+                aria-label="ギフト"
+                title="ギフト"
+            >
+                🎁
+            </button>
+
+
+        </form>
+
+
+    </footer>
+
+
 </div>
 
-<div class="input-area">
-    <form action="/chat_room/{{ partner }}" method="POST" enctype="multipart/form-data" style="flex:1;">
-        <input type="text" name="message" style="width:60%; padding:10px;">
-        <input type="file" name="photo">
-        <button type="submit">送信</button>
-    </form>
 
-    <button onclick="openGiftMenu()" class="gift-btn">🎁 ギフト</button>
-</div>
+<!-- =========================================
+     ギフトショップ
+========================================= -->
 
-<!-- ギフトメニュー -->
-<div id="giftModal" class="modal">
-    <div class="modal-content">
-        <h3>ギフトを送る</h3>
+<div
+    id="giftModal"
+    class="gift-modal"
+>
 
-        <!-- 既存ギフト -->
-        <button onclick="sendRankGift('銅')">🥉 銅（10コイン / +5）</button>
-        <button onclick="sendRankGift('銀')">🥈 銀（30コイン / +15）</button>
-        <button onclick="sendRankGift('金')">🥇 金（60コイン / +30）</button>
-        <button onclick="sendRankGift('サファイア')">🔷 サファイア（120コイン / +70）</button>
-        <button onclick="sendRankGift('エメラルド')">💚 エメラルド（200コイン / +120）</button>
-        <button onclick="sendRankGift('ダイヤモンド')">💎 ダイヤモンド（500コイン / +300）</button>
-        <button onclick="sendRankGift('プラチナ')">👑 プラチナ（1000コイン / +700）</button>
 
-        <hr>
+    <div class="gift-panel">
 
-        <!-- 新ギフト -->
-        <button onclick="sendRankGift('氷の柱')">❄ 氷の柱（10000コイン / +2000）</button>
-        <button onclick="sendRankGift('ハートの雨')">💗 ハートの雨（30000コイン / +5000）</button>
-        <button onclick="sendRankGift('宝石の爆発')">💎 宝石の爆発（50000コイン / +10000）</button>
-        <button onclick="sendRankGift('恋の龍')">🐉 恋の龍（100000コイン / +50000）</button>
 
-        <button onclick="closeGiftMenu()">閉じる</button>
+        <div class="gift-panel-header">
+
+
+            <div>
+
+
+                <div class="gift-panel-title">
+                    🎁 ギフトショップ
+                </div>
+
+
+                <div class="gift-panel-subtitle">
+                    SPECIAL GIFTS
+                </div>
+
+
+            </div>
+
+
+            <button
+                type="button"
+                class="gift-close"
+                onclick="closeGiftMenu()"
+            >
+                ×
+            </button>
+
+
+        </div>
+
+
+        <div class="gift-grid">
+
+
+            <button
+                type="button"
+                class="gift-card gift-bronze"
+                onclick="sendRankGift('銅')"
+            >
+
+                <span class="gift-emoji">
+                    🥉
+                </span>
+
+                <span class="gift-name">
+                    銅
+                </span>
+
+                <span class="gift-price">
+                    💰 10 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +5
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-silver"
+                onclick="sendRankGift('銀')"
+            >
+
+                <span class="gift-emoji">
+                    🥈
+                </span>
+
+                <span class="gift-name">
+                    銀
+                </span>
+
+                <span class="gift-price">
+                    💰 30 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +15
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-gold"
+                onclick="sendRankGift('金')"
+            >
+
+                <span class="gift-emoji">
+                    🥇
+                </span>
+
+                <span class="gift-name">
+                    金
+                </span>
+
+                <span class="gift-price">
+                    💰 60 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +30
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-sapphire"
+                onclick="sendRankGift('サファイア')"
+            >
+
+                <span class="gift-emoji">
+                    🔷
+                </span>
+
+                <span class="gift-name">
+                    サファイア
+                </span>
+
+                <span class="gift-price">
+                    💰 120 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +70
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-emerald"
+                onclick="sendRankGift('エメラルド')"
+            >
+
+                <span class="gift-emoji">
+                    💚
+                </span>
+
+                <span class="gift-name">
+                    エメラルド
+                </span>
+
+                <span class="gift-price">
+                    💰 200 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +120
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-diamond"
+                onclick="sendRankGift('ダイヤモンド')"
+            >
+
+                <span class="gift-emoji">
+                    💎
+                </span>
+
+                <span class="gift-name">
+                    ダイヤモンド
+                </span>
+
+                <span class="gift-price">
+                    💰 500 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +300
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-platinum"
+                onclick="sendRankGift('プラチナ')"
+            >
+
+                <span class="gift-emoji">
+                    👑
+                </span>
+
+                <span class="gift-name">
+                    プラチナ
+                </span>
+
+                <span class="gift-price">
+                    💰 1,000 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +700
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-ice"
+                onclick="sendRankGift('氷の柱')"
+            >
+
+                <span class="gift-emoji">
+                    ❄️
+                </span>
+
+                <span class="gift-name">
+                    氷の柱
+                </span>
+
+                <span class="gift-price">
+                    💰 10,000 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +2,000
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-heart"
+                onclick="sendRankGift('ハートの雨')"
+            >
+
+                <span class="gift-emoji">
+                    💗
+                </span>
+
+                <span class="gift-name">
+                    ハートの雨
+                </span>
+
+                <span class="gift-price">
+                    💰 30,000 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +5,000
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-gem"
+                onclick="sendRankGift('宝石の爆発')"
+            >
+
+                <span class="gift-emoji">
+                    💎
+                </span>
+
+                <span class="gift-name">
+                    宝石の爆発
+                </span>
+
+                <span class="gift-price">
+                    💰 50,000 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +10,000
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="gift-card gift-dragon"
+                onclick="sendRankGift('恋の龍')"
+            >
+
+                <span class="gift-emoji">
+                    🐉
+                </span>
+
+                <span class="gift-name">
+                    恋の龍
+                </span>
+
+                <span class="gift-price">
+                    💰 100,000 Coin
+                </span>
+
+                <span class="gift-star">
+                    ⭐ +50,000
+                </span>
+
+            </button>
+
+
+        </div>
+
+
     </div>
+
 </div>
+
 
 <div id="giftEffectLayer"></div>
 
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
 <script>
-const socket = io();
 
-// ★ 自分の user_id の部屋に入る（重要）
-socket.emit("join_room", {
-    room: "{{ user_id }}",
-    user_id: "{{ user_id }}"
-});
+/* =========================================
+   基本
+========================================= */
 
-// ★ ギフトメニューを空白タップで閉じる
-document.getElementById("giftModal").addEventListener("click", function(e) {
-    if (e.target === this) {
-        closeGiftMenu();
+const partnerId =
+    "{{ partner }}";
+
+const currentUserId =
+    "{{ user_id }}";
+
+const socket =
+    io();
+
+
+function openPartnerProfile() {
+
+    location.href =
+        "/profile/"
+        + encodeURIComponent(
+            partnerId
+        );
+}
+
+
+/* =========================================
+   Socket.IOルーム
+========================================= */
+
+socket.emit(
+    "join_room",
+    {
+        room:
+            currentUserId,
+
+        user_id:
+            currentUserId
     }
-});
+);
+
+
+/* =========================================
+   チャットを下までスクロール
+========================================= */
+
+function scrollChatBottom() {
+
+    const area =
+        document.getElementById(
+            "chatArea"
+        );
+
+
+    if (area) {
+
+        area.scrollTop =
+            area.scrollHeight;
+    }
+}
+
+
+window.addEventListener(
+    "load",
+    scrollChatBottom
+);
+
+
+/* =========================================
+   ギフトメニュー
+========================================= */
 
 function openGiftMenu() {
-    document.getElementById("giftModal").style.display = "block";
+
+    document.getElementById(
+        "giftModal"
+    ).classList.add(
+        "show"
+    );
 }
+
+
 function closeGiftMenu() {
-    document.getElementById("giftModal").style.display = "none";
+
+    document.getElementById(
+        "giftModal"
+    ).classList.remove(
+        "show"
+    );
 }
+
+
+document.getElementById(
+    "giftModal"
+).addEventListener(
+    "click",
+    function(event) {
+
+        if (
+            event.target === this
+        ) {
+
+            closeGiftMenu();
+        }
+    }
+);
+
+
+/* =========================================
+   ギフト送信
+========================================= */
+
+let giftSending =
+    false;
+
 
 function sendRankGift(rank) {
 
-    console.log("ギフト押下");
-    console.log(rank);
+    if (giftSending) {
 
-    socket.emit("send_rank_gift", {
-        partner: "{{ partner }}",
-        rank: rank
-    });
-
-    console.log("emit完了");
-
-    playGiftAnimation(rank);
-    closeGiftMenu();
-}
-
-socket.on("gift_received", function(data) {
-    addMessage(`🎁 ${data.rank}ギフトを受け取りました！（+${data.stars}）`, false);
-    playGiftAnimation(data.rank);
-});
-
-function addMessage(text, me=true) {
-    const div = document.createElement("div");
-    div.className = "bubble " + (me ? "me" : "partner");
-    div.innerText = text;
-    document.getElementById("chatArea").appendChild(div);
-    document.getElementById("chatArea").scrollTop = document.getElementById("chatArea").scrollHeight;
-}
-
-/* 特殊効果アニメーション */
-function playGiftAnimation(rank) {
-    const layer = document.getElementById("giftEffectLayer");
-    layer.innerHTML = "";
-
-    switch(rank) {
-
-        case "氷の柱":
-            let ice = document.createElement("div");
-            ice.innerHTML = "❄";
-            ice.style.position = "absolute";
-            ice.style.left = "50%";
-            ice.style.top = "-20%";
-            ice.style.fontSize = "150px";
-            layer.appendChild(ice);
-
-            ice.animate([
-                { transform: "translate(-50%, 0)" },
-                { transform: "translate(-50%, 60vh)" }
-            ], { duration: 700, easing: "ease-out" });
-
-            for (let i = 0; i < 40; i++) {
-                let shard = document.createElement("div");
-                shard.innerHTML = "❄";
-                shard.style.position = "absolute";
-                shard.style.left = "50%";
-                shard.style.top = "50%";
-                shard.style.fontSize = "20px";
-                layer.appendChild(shard);
-
-                shard.animate([
-                    { transform: "translate(0,0)", opacity: 1 },
-                    { transform: `translate(${(Math.random()-0.5)*400}px, ${(Math.random()-0.5)*400}px)`, opacity: 0 }
-                ], { duration: 1500 });
-            }
-            break;
-
-        case "ハートの雨":
-            for (let i = 0; i < 60; i++) {
-                let heart = document.createElement("div");
-                heart.innerHTML = "💗";
-                heart.style.position = "absolute";
-                heart.style.left = `${Math.random()*100}%`;
-                heart.style.top = "-10%";
-                heart.style.fontSize = "30px";
-                layer.appendChild(heart);
-
-                heart.animate([
-                    { transform: "translateY(0)", opacity: 1 },
-                    { transform: "translateY(120vh)", opacity: 0 }
-                ], { duration: 2000 + Math.random()*1000 });
-            }
-            break;
-
-        case "宝石の爆発":
-            for (let i = 0; i < 30; i++) {
-                let gem = document.createElement("div");
-                gem.innerHTML = ["💎","🔷","🔶","🔺","🔹"][Math.floor(Math.random()*5)];
-                gem.style.position = "absolute";
-                gem.style.left = "50%";
-                gem.style.top = "50%";
-                gem.style.fontSize = "30px";
-                layer.appendChild(gem);
-
-                gem.animate([
-                    { transform: "translate(0,0)", opacity: 1 },
-                    { transform: `translate(${(Math.random()-0.5)*500}px, ${(Math.random()-0.5)*500}px)`, opacity: 0 }
-                ], { duration: 1500 });
-            }
-            break;
-
-        case "恋の龍":
-            let dragon = document.createElement("div");
-            dragon.innerHTML = "🐉";
-            dragon.style.position = "absolute";
-            dragon.style.left = "-20%";
-            dragon.style.top = "40%";
-            dragon.style.fontSize = "150px";
-            layer.appendChild(dragon);
-
-            dragon.animate([
-                { transform: "translateX(0)" },
-                { transform: "translateX(140vw)" }
-            ], { duration: 2000, easing: "ease-in-out" });
-
-            break;
-            
+        return;
     }
 
-    setTimeout(() => { layer.innerHTML = ""; }, 2000);
+
+    giftSending =
+        true;
+
+
+    socket.emit(
+        "send_rank_gift",
+        {
+            partner:
+                partnerId,
+
+            rank:
+                rank
+        }
+    );
+
+
+    closeGiftMenu();
+
+    
+    /*
+       現在は送信直後に
+       送信者側の演出を再生
+    */
+
+    playGiftAnimation(
+        rank
+    );
+
+
+    setTimeout(
+        () => {
+
+            giftSending =
+                false;
+
+        },
+        1300
+    );
 }
+
+
+/* =========================================
+   ギフト受信
+========================================= */
+
+socket.on(
+    "gift_received",
+    function(data) {
+
+        addGiftMessage(
+            "🎁 "
+            + data.rank
+            + "ギフトを受け取りました！（+"
+            + data.stars
+            + "）",
+            false
+        );
+
+
+        playGiftAnimation(
+            data.rank
+        );
+    }
+);
+
+
+/* =========================================
+   ギフトエラー
+========================================= */
+
+socket.on(
+    "gift_error",
+    function(data) {
+
+        giftSending =
+            false;
+
+
+        alert(
+            data.message
+            || "ギフトを送信できませんでした"
+        );
+    }
+);
+
+
+/* =========================================
+   ギフトメッセージ追加
+========================================= */
+
+function addGiftMessage(
+    text,
+    me = true
+) {
+
+    const chatArea =
+        document.getElementById(
+            "chatArea"
+        );
+
+
+    if (!chatArea) {
+        return;
+    }
+
+
+    const row =
+        document.createElement(
+            "div"
+        );
+
+
+    row.className =
+        "message-row "
+        + (
+            me
+            ? "me"
+            : "partner"
+        );
+
+
+    const bubble =
+        document.createElement(
+            "div"
+        );
+
+
+    bubble.className =
+        "bubble gift";
+
+
+    bubble.textContent =
+        text;
+
+
+    row.appendChild(
+        bubble
+    );
+
+
+    chatArea.appendChild(
+        row
+    );
+
+
+    scrollChatBottom();
+}
+
+
+/* =========================================
+   演出レイヤー開始
+========================================= */
+
+function startEffectLayer() {
+
+    const layer =
+        document.getElementById(
+            "giftEffectLayer"
+        );
+
+
+    layer.innerHTML =
+        "";
+
+
+    layer.classList.add(
+        "active"
+    );
+
+
+    return layer;
+}
+
+
+/* =========================================
+   演出レイヤー終了
+========================================= */
+
+function endEffectLayer(
+    delay = 2500
+) {
+
+    setTimeout(
+        () => {
+
+            const layer =
+                document.getElementById(
+                    "giftEffectLayer"
+                );
+
+
+            layer.classList.remove(
+                "active"
+            );
+
+
+            layer.innerHTML =
+                "";
+
+        },
+        delay
+    );
+}
+
+
+/* =========================================
+   ギフト名表示
+========================================= */
+
+function makeEffectTitle(
+    layer,
+    text,
+    color
+) {
+
+    const title =
+        document.createElement(
+            "div"
+        );
+
+
+    title.className =
+        "effect-title";
+
+
+    title.textContent =
+        text;
+
+
+    title.style.color =
+        color;
+
+
+    layer.appendChild(
+        title
+    );
+
+
+    title.animate(
+        [
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%, -50%) scale(0.4)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate(-50%, -50%) scale(1.12)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate(-50%, -50%) scale(1)"
+            },
+
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%, -65%) scale(0.9)"
+            }
+        ],
+        {
+            duration:
+                2100,
+
+            easing:
+                "ease-out",
+
+            fill:
+                "forwards"
+        }
+    );
+}
+
+
+/* =========================================
+   粒子生成
+========================================= */
+
+function createParticles(
+    layer,
+    symbols,
+    count
+) {
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const particle =
+            document.createElement(
+                "div"
+            );
+
+
+        particle.textContent =
+            symbols[
+                Math.floor(
+                    Math.random()
+                    * symbols.length
+                )
+            ];
+
+
+        particle.style.position =
+            "absolute";
+
+
+        particle.style.left =
+            "50%";
+
+
+        particle.style.top =
+            "50%";
+
+
+        particle.style.zIndex =
+            "10";
+
+
+        particle.style.fontSize =
+            (
+                15
+                + Math.random()
+                * 24
+            )
+            + "px";
+
+
+        layer.appendChild(
+            particle
+        );
+
+
+        const x =
+            (
+                Math.random()
+                - 0.5
+            )
+            * window.innerWidth
+            * 0.9;
+
+
+        const y =
+            (
+                Math.random()
+                - 0.5
+            )
+            * window.innerHeight
+            * 0.8;
+
+
+        const rotation =
+            Math.random()
+            * 720;
+
+
+        particle.animate(
+            [
+                {
+                    opacity: 0,
+
+                    transform:
+                        "translate(-50%, -50%) scale(0.2)"
+                },
+
+                {
+                    opacity: 1,
+
+                    transform:
+                        "translate(-50%, -50%) scale(1.2)"
+                },
+
+                {
+                    opacity: 0,
+
+                    transform:
+                        `translate(
+                            calc(-50% + ${x}px),
+                            calc(-50% + ${y}px)
+                        )
+                        rotate(${rotation}deg)
+                        scale(0.5)`
+                }
+            ],
+            {
+                duration:
+                    1300
+                    + Math.random()
+                    * 1000,
+
+                easing:
+                    "ease-out",
+
+                fill:
+                    "forwards"
+            }
+        );
+    }
+}
+
+
+/* =========================================
+   フラッシュ
+========================================= */
+
+function createFlash(
+    layer,
+    color
+) {
+
+    const flash =
+        document.createElement(
+            "div"
+        );
+
+
+    flash.style.position =
+        "absolute";
+
+
+    flash.style.inset =
+        "0";
+
+
+    flash.style.zIndex =
+        "5";
+
+
+    flash.style.background =
+        color;
+
+
+    flash.style.opacity =
+        "0";
+
+
+    layer.appendChild(
+        flash
+    );
+
+
+    flash.animate(
+        [
+            {
+                opacity: 0
+            },
+
+            {
+                opacity: 0.7
+            },
+
+            {
+                opacity: 0
+            }
+        ],
+        {
+            duration: 650,
+
+            easing:
+                "ease-out",
+
+            fill:
+                "forwards"
+        }
+    );
+}
+
+
+/* =========================================
+   銅～プラチナ共通演出
+========================================= */
+
+function playStandardGift(
+    name,
+    emoji,
+    color,
+    particles
+) {
+
+    const layer =
+        startEffectLayer();
+
+
+    const main =
+        document.createElement(
+            "div"
+        );
+
+
+    main.textContent =
+        emoji;
+
+
+    main.style.position =
+        "absolute";
+
+
+    main.style.left =
+        "50%";
+
+
+    main.style.top =
+        "40%";
+
+
+    main.style.zIndex =
+        "15";
+
+
+    main.style.fontSize =
+        "110px";
+
+
+    main.style.filter =
+        "drop-shadow(0 0 35px "
+        + color
+        + ")";
+
+
+    layer.appendChild(
+        main
+    );
+
+
+    main.animate(
+        [
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%, -50%) "
+                    + "scale(0.15) "
+                    + "rotate(-25deg)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate(-50%, -50%) "
+                    + "scale(1.3) "
+                    + "rotate(8deg)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate(-50%, -50%) "
+                    + "scale(1)"
+            },
+
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%, -70%) "
+                    + "scale(0.8)"
+            }
+        ],
+        {
+            duration:
+                2000,
+
+            easing:
+                "ease-out",
+
+            fill:
+                "forwards"
+        }
+    );
+
+
+    createFlash(
+        layer,
+        color
+    );
+
+
+    createParticles(
+        layer,
+        particles,
+        36
+    );
+
+
+    makeEffectTitle(
+        layer,
+        name,
+        color
+    );
+
+
+    endEffectLayer(
+        2400
+    );
+}
+
+
+/* =========================================
+   氷の柱
+========================================= */
+
+function playIceEffect() {
+
+    const layer =
+        startEffectLayer();
+
+
+    const darkness =
+        document.createElement(
+            "div"
+        );
+
+
+    darkness.className =
+        "effect-darkness";
+
+
+    layer.appendChild(
+        darkness
+    );
+
+
+    const ice =
+        document.createElement(
+            "div"
+        );
+
+
+    ice.textContent =
+        "❄️";
+
+
+    ice.style.position =
+        "absolute";
+
+
+    ice.style.left =
+        "50%";
+
+
+    ice.style.bottom =
+        "-180px";
+
+
+    ice.style.zIndex =
+        "12";
+
+
+    ice.style.fontSize =
+        "190px";
+
+
+    ice.style.filter =
+        "drop-shadow(0 0 45px #69eaff)";
+
+
+    layer.appendChild(
+        ice
+    );
+
+
+    ice.animate(
+        [
+            {
+                transform:
+                    "translateX(-50%) "
+                    + "translateY(0) "
+                    + "scale(0.4)"
+            },
+
+            {
+                transform:
+                    "translateX(-50%) "
+                    + "translateY(-58vh) "
+                    + "scale(1.4)"
+            },
+
+            {
+                transform:
+                    "translateX(-50%) "
+                    + "translateY(-53vh) "
+                    + "scale(1.15)"
+            }
+        ],
+        {
+            duration:
+                1100,
+
+            easing:
+                "cubic-bezier(.15,.8,.25,1)",
+
+            fill:
+                "forwards"
+        }
+    );
+
+
+    setTimeout(
+        () => {
+
+            createFlash(
+                layer,
+                "rgba(83,224,255,0.8)"
+            );
+
+
+            createParticles(
+                layer,
+                [
+                    "❄️",
+                    "✨",
+                    "🔹"
+                ],
+                60
+            );
+
+        },
+        550
+    );
+
+
+    makeEffectTitle(
+        layer,
+        "❄️ 氷の柱",
+        "#82efff"
+    );
+
+
+    endEffectLayer(
+        2700
+    );
+}
+
+
+/* =========================================
+   ハートの雨
+========================================= */
+
+function playHeartRain() {
+
+    const layer =
+        startEffectLayer();
+
+
+    const darkness =
+        document.createElement(
+            "div"
+        );
+
+
+    darkness.className =
+        "effect-darkness";
+
+
+    layer.appendChild(
+        darkness
+    );
+
+
+    const hearts = [
+        "💗",
+        "💕",
+        "💖",
+        "💞",
+        "💓"
+    ];
+
+
+    for (
+        let i = 0;
+        i < 80;
+        i++
+    ) {
+
+        const heart =
+            document.createElement(
+                "div"
+            );
+
+
+        heart.textContent =
+            hearts[
+                Math.floor(
+                    Math.random()
+                    * hearts.length
+                )
+            ];
+
+
+        heart.style.position =
+            "absolute";
+
+
+        heart.style.left =
+            Math.random()
+            * 100
+            + "%";
+
+
+        heart.style.top =
+            "-70px";
+
+
+        heart.style.zIndex =
+            "10";
+
+
+        heart.style.fontSize =
+            (
+                17
+                + Math.random()
+                * 28
+            )
+            + "px";
+
+
+        layer.appendChild(
+            heart
+        );
+
+
+        heart.animate(
+            [
+                {
+                    opacity: 0,
+
+                    transform:
+                        "translateY(-20px)"
+                },
+
+                {
+                    opacity: 1
+                },
+
+                {
+                    opacity: 0,
+
+                    transform:
+                        `translateY(115vh)
+                        translateX(${
+                            (
+                                Math.random()
+                                - 0.5
+                            )
+                            * 180
+                        }px)
+                        rotate(${
+                            Math.random()
+                            * 650
+                        }deg)`
+                }
+            ],
+            {
+                duration:
+                    1800
+                    + Math.random()
+                    * 1400,
+
+                delay:
+                    Math.random()
+                    * 500,
+
+                easing:
+                    "linear",
+
+                fill:
+                    "forwards"
+            }
+        );
+    }
+
+
+    makeEffectTitle(
+        layer,
+        "💗 ハートの雨",
+        "#ff72bd"
+    );
+
+
+    endEffectLayer(
+        3400
+    );
+}
+
+
+/* =========================================
+   宝石の爆発
+========================================= */
+
+function playGemExplosion() {
+
+    const layer =
+        startEffectLayer();
+
+
+    const darkness =
+        document.createElement(
+            "div"
+        );
+
+
+    darkness.className =
+        "effect-darkness";
+
+
+    layer.appendChild(
+        darkness
+    );
+
+
+    const gem =
+        document.createElement(
+            "div"
+        );
+
+
+    gem.textContent =
+        "💎";
+
+
+    gem.style.position =
+        "absolute";
+
+
+    gem.style.left =
+        "50%";
+
+
+    gem.style.top =
+        "45%";
+
+
+    gem.style.zIndex =
+        "15";
+
+
+    gem.style.fontSize =
+        "155px";
+
+
+    gem.style.filter =
+        "drop-shadow(0 0 50px #7deaff)";
+
+
+    layer.appendChild(
+        gem
+    );
+
+
+    gem.animate(
+        [
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%, -50%) "
+                    + "scale(0.1)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate(-50%, -50%) "
+                    + "scale(1)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate(-50%, -50%) "
+                    + "scale(1.6)"
+            },
+
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%, -50%) "
+                    + "scale(2.5)"
+            }
+        ],
+        {
+            duration:
+                1450,
+
+            easing:
+                "ease-out",
+
+            fill:
+                "forwards"
+        }
+    );
+
+
+    setTimeout(
+        () => {
+
+            createFlash(
+                layer,
+                "rgba(154,105,255,0.9)"
+            );
+
+
+            createParticles(
+                layer,
+                [
+                    "💎",
+                    "🔷",
+                    "💠",
+                    "✨",
+                    "🔹"
+                ],
+                80
+            );
+
+        },
+        720
+    );
+
+
+    makeEffectTitle(
+        layer,
+        "💎 宝石の爆発",
+        "#a4efff"
+    );
+
+
+    endEffectLayer(
+        3000
+    );
+}
+
+/* =========================================
+   恋の龍
+   最上位ギフト演出
+========================================= */
+
+function playDragonEffect() {
+
+    const layer =
+        startEffectLayer();
+
+
+    /* =====================================
+       1. 画面暗転
+    ===================================== */
+
+    const darkness =
+        document.createElement(
+            "div"
+        );
+
+
+    darkness.style.position =
+        "absolute";
+
+    darkness.style.inset =
+        "0";
+
+    darkness.style.zIndex =
+        "1";
+
+    darkness.style.background =
+        "radial-gradient("
+        + "circle at 50% 65%,"
+        + "rgba(255,45,155,0.30),"
+        + "rgba(88,18,140,0.62),"
+        + "rgba(1,0,10,0.96)"
+        + ")";
+
+
+    layer.appendChild(
+        darkness
+    );
+
+
+    darkness.animate(
+        [
+            {
+                opacity: 0
+            },
+
+            {
+                opacity: 1
+            }
+        ],
+        {
+            duration:
+                500,
+
+            fill:
+                "forwards"
+        }
+    );
+
+
+    /* =====================================
+       2. 中央の巨大オーラ
+    ===================================== */
+
+    const aura =
+        document.createElement(
+            "div"
+        );
+
+
+    aura.style.position =
+        "absolute";
+
+    aura.style.left =
+        "50%";
+
+    aura.style.top =
+        "60%";
+
+    aura.style.zIndex =
+        "2";
+
+    aura.style.width =
+        "65vmin";
+
+    aura.style.height =
+        "65vmin";
+
+    aura.style.borderRadius =
+        "50%";
+
+    aura.style.background =
+        "radial-gradient("
+        + "circle,"
+        + "rgba(255,230,110,0.65),"
+        + "rgba(255,50,170,0.38),"
+        + "rgba(142,60,255,0.20),"
+        + "transparent 72%"
+        + ")";
+
+    aura.style.filter =
+        "blur(28px)";
+
+
+    layer.appendChild(
+        aura
+    );
+
+
+    aura.animate(
+        [
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%,-50%) "
+                    + "scale(0.05)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate(-50%,-50%) "
+                    + "scale(1.5)"
+            },
+
+            {
+                opacity: 0.6,
+
+                transform:
+                    "translate(-50%,-50%) "
+                    + "scale(1)"
+            },
+
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%,-50%) "
+                    + "scale(2)"
+            }
+        ],
+        {
+            duration:
+                3300,
+
+            easing:
+                "ease-out",
+
+            fill:
+                "forwards"
+        }
+    );
+
+
+    /* =====================================
+       3. 光の輪
+    ===================================== */
+
+    for (
+        let i = 0;
+        i < 4;
+        i++
+    ) {
+
+        const ring =
+            document.createElement(
+                "div"
+            );
+
+
+        ring.style.position =
+            "absolute";
+
+        ring.style.left =
+            "50%";
+
+        ring.style.top =
+            "62%";
+
+        ring.style.zIndex =
+            "3";
+
+        ring.style.width =
+            "80px";
+
+        ring.style.height =
+            "80px";
+
+        ring.style.borderRadius =
+            "50%";
+
+        ring.style.border =
+            i % 2 === 0
+                ? "3px solid rgba(255,220,100,0.8)"
+                : "3px solid rgba(255,70,190,0.8)";
+
+        ring.style.boxShadow =
+            "0 0 25px rgba(255,100,210,0.8)";
+
+
+        layer.appendChild(
+            ring
+        );
+
+
+        ring.animate(
+            [
+                {
+                    opacity: 0,
+
+                    transform:
+                        "translate(-50%,-50%) "
+                        + "scale(0.1)"
+                },
+
+                {
+                    opacity: 1
+                },
+
+                {
+                    opacity: 0,
+
+                    transform:
+                        "translate(-50%,-50%) "
+                        + `scale(${6 + i})`
+                }
+            ],
+            {
+                duration:
+                    1300
+                    + i * 220,
+
+                delay:
+                    i * 180,
+
+                easing:
+                    "ease-out",
+
+                fill:
+                    "forwards"
+            }
+        );
+    }
+
+
+    /* =====================================
+       4. 上昇するハート・星
+    ===================================== */
+
+    const loveParticles = [
+        "💗",
+        "💖",
+        "💕",
+        "✨",
+        "⭐",
+        "🌟"
+    ];
+
+
+    for (
+        let i = 0;
+        i < 85;
+        i++
+    ) {
+
+        const particle =
+            document.createElement(
+                "div"
+            );
+
+
+        particle.textContent =
+            loveParticles[
+                Math.floor(
+                    Math.random()
+                    * loveParticles.length
+                )
+            ];
+
+
+        particle.style.position =
+            "absolute";
+
+        particle.style.zIndex =
+            "6";
+
+        particle.style.left =
+            (
+                5
+                + Math.random()
+                * 90
+            )
+            + "%";
+
+        particle.style.bottom =
+            "-70px";
+
+        particle.style.fontSize =
+            (
+                12
+                + Math.random()
+                * 30
+            )
+            + "px";
+
+        particle.style.filter =
+            "drop-shadow("
+            + "0 0 8px rgba(255,130,220,0.9)"
+            + ")";
+
+
+        layer.appendChild(
+            particle
+        );
+
+
+        const sideMove =
+            (
+                Math.random()
+                - 0.5
+            )
+            * 230;
+
+
+        particle.animate(
+            [
+                {
+                    opacity: 0,
+
+                    transform:
+                        "translateY(0) "
+                        + "scale(0.2)"
+                },
+
+                {
+                    opacity: 1,
+
+                    offset: 0.2
+                },
+
+                {
+                    opacity: 1,
+
+                    offset: 0.7
+                },
+
+                {
+                    opacity: 0,
+
+                    transform:
+                        `translateY(-115vh)
+                         translateX(${sideMove}px)
+                         rotate(${
+                             Math.random()
+                             * 720
+                         }deg)
+                         scale(1.3)`
+                }
+            ],
+            {
+                duration:
+                    1900
+                    + Math.random()
+                    * 1700,
+
+                delay:
+                    Math.random()
+                    * 800,
+
+                easing:
+                    "ease-out",
+
+                fill:
+                    "forwards"
+            }
+        );
+    }
+
+
+    /* =====================================
+       5. 龍本体
+       下 → 左 → 右 → 中央 → 上空
+    ===================================== */
+
+    const dragon =
+        document.createElement(
+            "div"
+        );
+
+
+    dragon.textContent =
+        "🐉";
+
+
+    dragon.style.position =
+        "absolute";
+
+    dragon.style.left =
+        "50%";
+
+    dragon.style.bottom =
+        "-250px";
+
+    dragon.style.zIndex =
+        "15";
+
+    dragon.style.fontSize =
+        "clamp(120px, 28vw, 240px)";
+
+    dragon.style.filter =
+        "drop-shadow("
+        + "0 0 18px #ff45b7"
+        + ") "
+        + "drop-shadow("
+        + "0 0 42px #a94dff"
+        + ") "
+        + "drop-shadow("
+        + "0 0 75px #ffd35d"
+        + ")";
+
+
+    layer.appendChild(
+        dragon
+    );
+
+
+    dragon.animate(
+        [
+            {
+                opacity: 0,
+
+                transform:
+                    "translate(-50%,0) "
+                    + "rotate(-30deg) "
+                    + "scale(0.35)"
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate("
+                    + "calc(-50% - 110px),"
+                    + "-20vh"
+                    + ") "
+                    + "rotate(18deg) "
+                    + "scale(0.65)",
+
+                offset:
+                    0.22
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate("
+                    + "calc(-50% + 110px),"
+                    + "-43vh"
+                    + ") "
+                    + "rotate(-17deg) "
+                    + "scale(0.85)",
+
+                offset:
+                    0.45
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate("
+                    + "calc(-50% - 70px),"
+                    + "-67vh"
+                    + ") "
+                    + "rotate(14deg) "
+                    + "scale(1.05)",
+
+                offset:
+                    0.67
+            },
+
+            {
+                opacity: 1,
+
+                transform:
+                    "translate("
+                    + "calc(-50% + 45px),"
+                    + "-88vh"
+                    + ") "
+                    + "rotate(-9deg) "
+                    + "scale(1.22)",
+
+                offset:
+                    0.84
+            },
+
+            {
+                opacity: 0,
+
+                transform:
+                    "translate("
+                    + "calc(-50%),"
+                    + "-135vh"
+                    + ") "
+                    + "rotate(5deg) "
+                    + "scale(1.55)"
+            }
+        ],
+        {
+            duration:
+                3300,
+
+            easing:
+                "cubic-bezier(.20,.62,.28,1)",
+
+            fill:
+                "forwards"
+        }
+    );
+
+
+    /* =====================================
+       6. 龍の残像
+    ===================================== */
+
+    for (
+        let i = 0;
+        i < 3;
+        i++
+    ) {
+
+        const ghost =
+            document.createElement(
+                "div"
+            );
+
+
+        ghost.textContent =
+            "🐉";
+
+
+        ghost.style.position =
+            "absolute";
+
+        ghost.style.left =
+            "50%";
+
+        ghost.style.bottom =
+            "-250px";
+
+        ghost.style.zIndex =
+            "10";
+
+        ghost.style.fontSize =
+            "clamp(110px, 27vw, 225px)";
+
+        ghost.style.opacity =
+            "0.16";
+
+        ghost.style.filter =
+            i === 0
+                ? "blur(5px) drop-shadow(0 0 30px #ff4fba)"
+                : i === 1
+                    ? "blur(8px) drop-shadow(0 0 35px #9d54ff)"
+                    : "blur(12px) drop-shadow(0 0 40px #ffd469)";
+
+
+        layer.appendChild(
+            ghost
+        );
+
+
+        ghost.animate(
+            [
+                {
+                    opacity: 0,
+
+                    transform:
+                        "translate(-50%,0) "
+                        + "scale(0.3)"
+                },
+
+                {
+                    opacity: 0.20,
+
+                    transform:
+                        "translate("
+                        + "calc(-50% - 100px),"
+                        + "-20vh"
+                        + ") "
+                        + "rotate(16deg) "
+                        + "scale(0.65)"
+                },
+
+                {
+                    opacity: 0.17,
+
+                    transform:
+                        "translate("
+                        + "calc(-50% + 105px),"
+                        + "-45vh"
+                        + ") "
+                        + "rotate(-15deg) "
+                        + "scale(0.86)"
+                },
+
+                {
+                    opacity: 0.12,
+
+                    transform:
+                        "translate("
+                        + "calc(-50% - 65px),"
+                        + "-70vh"
+                        + ") "
+                        + "rotate(12deg) "
+                        + "scale(1.05)"
+                },
+
+                {
+                    opacity: 0,
+
+                    transform:
+                        "translate(-50%,-130vh) "
+                        + "scale(1.5)"
+                }
+            ],
+            {
+                duration:
+                    3300,
+
+                delay:
+                    90
+                    + i * 120,
+
+                easing:
+                    "cubic-bezier(.20,.62,.28,1)",
+
+                fill:
+                    "forwards"
+            }
+        );
+    }
+
+
+    /* =====================================
+       7. 龍が上空に達したら大爆発
+    ===================================== */
+
+    setTimeout(
+        () => {
+
+            createFlash(
+                layer,
+                "rgba(255,220,95,0.96)"
+            );
+
+
+            createParticles(
+                layer,
+                [
+                    "💖",
+                    "💗",
+                    "✨",
+                    "⭐",
+                    "🌟",
+                    "💎"
+                ],
+                100
+            );
+
+
+            /* 金色の爆発 */
+
+            const explosion =
+                document.createElement(
+                    "div"
+                );
+
+
+            explosion.style.position =
+                "absolute";
+
+            explosion.style.left =
+                "50%";
+
+            explosion.style.top =
+                "40%";
+
+            explosion.style.zIndex =
+                "18";
+
+            explosion.style.width =
+                "100px";
+
+            explosion.style.height =
+                "100px";
+
+            explosion.style.borderRadius =
+                "50%";
+
+            explosion.style.background =
+                "radial-gradient("
+                + "circle,"
+                + "#ffffff 0%,"
+                + "#ffe96d 18%,"
+                + "#ff69c7 45%,"
+                + "rgba(139,70,255,0.4) 65%,"
+                + "transparent 74%"
+                + ")";
+
+            explosion.style.filter =
+                "blur(4px)";
+
+
+            layer.appendChild(
+                explosion
+            );
+
+
+            explosion.animate(
+                [
+                    {
+                        opacity: 0,
+
+                        transform:
+                            "translate(-50%,-50%) "
+                            + "scale(0)"
+                    },
+
+                    {
+                        opacity: 1,
+
+                        transform:
+                            "translate(-50%,-50%) "
+                            + "scale(1)"
+                    },
+
+                    {
+                        opacity: 0,
+
+                        transform:
+                            "translate(-50%,-50%) "
+                            + "scale(9)"
+                    }
+                ],
+                {
+                    duration:
+                        1200,
+
+                    easing:
+                        "ease-out",
+
+                    fill:
+                        "forwards"
+                }
+            );
+
+        },
+        2200
+    );
+
+
+    /* =====================================
+       8. ギフトタイトル
+    ===================================== */
+
+    setTimeout(
+        () => {
+
+            makeEffectTitle(
+                layer,
+                "🐉 恋の龍",
+                "#ffe58c"
+            );
+
+        },
+        1050
+    );
+
+
+    /* =====================================
+       9. STAR表示
+    ===================================== */
+
+    setTimeout(
+        () => {
+
+            const starText =
+                document.createElement(
+                    "div"
+                );
+
+
+            starText.textContent =
+                "⭐ +50,000 STAR";
+
+
+            starText.style.position =
+                "absolute";
+
+            starText.style.left =
+                "50%";
+
+            starText.style.top =
+                "59%";
+
+            starText.style.zIndex =
+                "25";
+
+            starText.style.width =
+                "90%";
+
+            starText.style.textAlign =
+                "center";
+
+            starText.style.color =
+                "#fff1a8";
+
+            starText.style.fontSize =
+                "clamp(18px, 5vw, 30px)";
+
+            starText.style.fontWeight =
+                "950";
+
+            starText.style.textShadow =
+                "0 0 12px #ffb84d,"
+                + "0 0 28px #ff4daf";
+
+            starText.style.opacity =
+                "0";
+
+
+            layer.appendChild(
+                starText
+            );
+
+
+            starText.animate(
+                [
+                    {
+                        opacity: 0,
+
+                        transform:
+                            "translate(-50%,20px) "
+                            + "scale(0.7)"
+                    },
+
+                    {
+                        opacity: 1,
+
+                        transform:
+                            "translate(-50%,0) "
+                            + "scale(1.08)"
+                    },
+
+                    {
+                        opacity: 1,
+
+                        transform:
+                            "translate(-50%,0) "
+                            + "scale(1)"
+                    },
+
+                    {
+                        opacity: 0,
+
+                        transform:
+                            "translate(-50%,-25px) "
+                            + "scale(0.95)"
+                    }
+                ],
+                {
+                    duration:
+                        2000,
+
+                    easing:
+                        "ease-out",
+
+                    fill:
+                        "forwards"
+                }
+            );
+
+        },
+        1450
+    );
+
+
+    /* =====================================
+       10. 全演出終了
+    ===================================== */
+
+    endEffectLayer(
+        4300
+    );
+}
+
+/* =========================================
+   ギフト別アニメーション振り分け
+========================================= */
+
+function playGiftAnimation(rank) {
+
+    switch (rank) {
+
+
+        case "銅":
+
+            playStandardGift(
+                "🥉 銅",
+                "🥉",
+                "#d78a51",
+                [
+                    "✨",
+                    "🟠",
+                    "⭐"
+                ]
+            );
+
+            break;
+
+
+        case "銀":
+
+            playStandardGift(
+                "🥈 銀",
+                "🥈",
+                "#e0eaff",
+                [
+                    "✨",
+                    "⭐",
+                    "💫"
+                ]
+            );
+
+            break;
+
+
+        case "金":
+
+            playStandardGift(
+                "🥇 金",
+                "🥇",
+                "#ffd64a",
+                [
+                    "✨",
+                    "🌟",
+                    "⭐"
+                ]
+            );
+
+            break;
+
+
+        case "サファイア":
+
+            playStandardGift(
+                "🔷 サファイア",
+                "🔷",
+                "#48bdff",
+                [
+                    "🔷",
+                    "🔹",
+                    "✨"
+                ]
+            );
+
+            break;
+
+
+        case "エメラルド":
+
+            playStandardGift(
+                "💚 エメラルド",
+                "💚",
+                "#44efad",
+                [
+                    "💚",
+                    "✨",
+                    "💠"
+                ]
+            );
+
+            break;
+
+
+        case "ダイヤモンド":
+
+            playStandardGift(
+                "💎 ダイヤモンド",
+                "💎",
+                "#aff5ff",
+                [
+                    "💎",
+                    "🔷",
+                    "✨"
+                ]
+            );
+
+            break;
+
+
+        case "プラチナ":
+
+            playStandardGift(
+                "👑 プラチナ",
+                "👑",
+                "#f2efff",
+                [
+                    "👑",
+                    "✨",
+                    "⭐",
+                    "💫"
+                ]
+            );
+
+            break;
+
+
+        case "氷の柱":
+
+            playIceEffect();
+
+            break;
+
+
+        case "ハートの雨":
+
+            playHeartRain();
+
+            break;
+
+
+        case "宝石の爆発":
+
+            playGemExplosion();
+
+            break;
+
+
+        case "恋の龍":
+
+            playDragonEffect();
+
+            break;
+    }
+}
+
 </script>
 
 </body>
+
 </html>
-
-
-
-
