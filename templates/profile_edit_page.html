@@ -1,26 +1,1370 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <title>プロフィール編集</title>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<title>プロフィール編集</title>
+
+<style>
+
+/* =========================================
+   基本
+========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+
+    min-height: 100vh;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(0, 197, 255, 0.20),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 85%,
+            rgba(142, 72, 255, 0.28),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+
+    background-attachment: fixed;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        45px 45px;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+.header {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+
+    width: 100%;
+
+    padding:
+        max(13px, env(safe-area-inset-top))
+        16px
+        13px;
+
+    background:
+        rgba(4, 13, 31, 0.90);
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 8px 30px
+        rgba(0,0,0,0.18);
+}
+
+
+.header-inner {
+
+    width:
+        min(
+            760px,
+            100%
+        );
+
+    margin: 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+}
+
+
+/* =========================================
+   タイトル
+========================================= */
+
+.title-area {
+
+    min-width: 0;
+}
+
+
+.small-title {
+
+    margin-bottom: 3px;
+
+    color: #67ddff;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 4px;
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size:
+        clamp(
+            20px,
+            5vw,
+            29px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #6de8ff,
+            #b792ff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+/* =========================================
+   戻るボタン
+========================================= */
+
+.back-button {
+
+    flex-shrink: 0;
+
+    min-height: 42px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding:
+        0 14px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius: 14px;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.back-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.13);
+}
+
+
+/* =========================================
+   メイン
+========================================= */
+
+.container {
+
+    position: relative;
+
+    z-index: 2;
+
+    width:
+        min(
+            760px,
+            94%
+        );
+
+    margin:
+        28px auto
+        70px;
+}
+
+
+/* =========================================
+   編集カード
+========================================= */
+
+.edit-card {
+
+    overflow: hidden;
+
+    padding:
+        26px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius: 24px;
+
+    background:
+        rgba(7,17,39,0.82);
+
+    backdrop-filter:
+        blur(19px);
+
+    box-shadow:
+        0 18px 50px
+        rgba(0,0,0,0.28);
+}
+
+
+/* =========================================
+   プロフィール上部
+========================================= */
+
+.profile-top {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 17px;
+
+    margin-bottom: 27px;
+
+    padding-bottom: 22px;
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.07);
+}
+
+
+/* =========================================
+   写真プレビュー
+========================================= */
+
+.preview-wrapper {
+
+    position: relative;
+
+    flex-shrink: 0;
+
+    width: 92px;
+    height: 92px;
+}
+
+
+.profile-preview {
+
+    display: block;
+
+    width: 92px;
+    height: 92px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border:
+        3px solid
+        rgba(103,221,255,0.35);
+
+    background:
+        linear-gradient(
+            135deg,
+            #172641,
+            #251943
+        );
+
+    box-shadow:
+        0 8px 28px
+        rgba(0,0,0,0.30),
+        0 0 22px
+        rgba(80,213,255,0.09);
+}
+
+
+.preview-fallback {
+
+    width: 92px;
+    height: 92px;
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    border:
+        3px solid
+        rgba(103,221,255,0.35);
+
+    color: #8fa4c2;
+
+    font-size: 43px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #172641,
+            #251943
+        );
+}
+
+
+.preview-badge {
+
+    position: absolute;
+
+    right: -2px;
+    bottom: 2px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        3px solid
+        #09162e;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #8058ff
+        );
+
+    font-size: 13px;
+}
+
+
+/* =========================================
+   プロフィール説明
+========================================= */
+
+.profile-heading {
+
+    min-width: 0;
+}
+
+
+.profile-heading h2 {
+
+    margin:
+        0 0 5px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-size:
+        clamp(
+            19px,
+            5vw,
+            24px
+        );
+}
+
+
+.profile-heading p {
+
+    margin: 0;
+
+    color: #8598b6;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   フォーム
+========================================= */
+
+.form-group {
+
+    margin-bottom: 20px;
+}
+
+
+.form-label {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #dce8f8;
+
+    font-size: 13px;
+
+    font-weight: 900;
+}
+
+
+.form-icon {
+
+    margin-right: 5px;
+}
+
+
+/* =========================================
+   通常入力
+========================================= */
+
+.form-input {
+
+    width: 100%;
+
+    height: 50px;
+
+    padding:
+        0 15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.form-input:focus {
+
+    border-color:
+        rgba(80,218,255,0.55);
+
+    background:
+        rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(80,218,255,0.06);
+}
+
+
+/* =========================================
+   自己紹介
+========================================= */
+
+.form-textarea {
+
+    display: block;
+
+    width: 100%;
+
+    min-height: 160px;
+
+    resize: vertical;
+
+    padding: 15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.form-textarea:focus {
+
+    border-color:
+        rgba(80,218,255,0.55);
+
+    background:
+        rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(80,218,255,0.06);
+}
+
+
+/* =========================================
+   写真変更
+========================================= */
+
+.photo-box {
+
+    padding: 16px;
+
+    border:
+        1px dashed
+        rgba(126,221,255,0.28);
+
+    border-radius: 15px;
+
+    background:
+        rgba(80,210,255,0.035);
+}
+
+
+.photo-description {
+
+    margin-bottom: 11px;
+
+    color: #879ab7;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+}
+
+
+.photo-input {
+
+    display: block;
+
+    width: 100%;
+
+    color: #bccbe0;
+
+    font-size: 12px;
+}
+
+
+.photo-input::file-selector-button {
+
+    margin-right: 11px;
+
+    padding:
+        9px 13px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    color: white;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #198dff,
+            #7558ff
+        );
+}
+
+
+/* =========================================
+   選択画像の名前
+========================================= */
+
+.selected-file {
+
+    min-height: 18px;
+
+    margin-top: 9px;
+
+    color: #72deff;
+
+    font-size: 10px;
+}
+
+
+/* =========================================
+   ボタン
+========================================= */
+
+.actions {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 2fr;
+
+    gap: 10px;
+
+    margin-top: 28px;
+}
+
+
+.cancel-button {
+
+    min-height: 50px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    border-radius: 14px;
+
+    color: #c9d6e8;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.cancel-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.11);
+}
+
+
+.save-button {
+
+    min-height: 50px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: 950;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #7557ff,
+            #ad4fff
+        );
+
+    box-shadow:
+        0 10px 30px
+        rgba(91,83,255,0.27);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.save-button:hover {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 14px 38px
+        rgba(91,83,255,0.38);
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 600px) {
+
+    .header {
+
+        padding-left: 10px;
+
+        padding-right: 10px;
+    }
+
+
+    .header-inner {
+
+        gap: 8px;
+    }
+
+
+    .small-title {
+
+        font-size: 7px;
+
+        letter-spacing: 2px;
+    }
+
+
+    .header h1 {
+
+        font-size: 18px;
+    }
+
+
+    .back-button {
+
+        min-height: 38px;
+
+        padding:
+            0 10px;
+
+        font-size: 10px;
+    }
+
+
+    .container {
+
+        width: 95%;
+
+        margin-top: 14px;
+    }
+
+
+    .edit-card {
+
+        padding:
+            18px 13px;
+
+        border-radius: 19px;
+    }
+
+
+    .profile-top {
+
+        gap: 12px;
+
+        margin-bottom: 22px;
+
+        padding-bottom: 17px;
+    }
+
+
+    .preview-wrapper,
+    .profile-preview,
+    .preview-fallback {
+
+        width: 76px;
+        height: 76px;
+    }
+
+
+    .preview-fallback {
+
+        font-size: 35px;
+    }
+
+
+    .profile-heading h2 {
+
+        font-size: 17px;
+    }
+
+
+    .profile-heading p {
+
+        font-size: 10px;
+    }
+
+
+    .form-input {
+
+        height: 47px;
+
+        font-size: 13px;
+    }
+
+
+    .form-textarea {
+
+        min-height: 145px;
+
+        font-size: 13px;
+    }
+
+
+    .actions {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 8px;
+    }
+
+
+    .save-button {
+
+        order: 1;
+    }
+
+
+    .cancel-button {
+
+        order: 2;
+    }
+}
+
+
+/* =========================================
+   小さいスマホ
+========================================= */
+
+@media (max-width: 360px) {
+
+    .back-text {
+
+        display: none;
+    }
+
+
+    .back-button {
+
+        width: 40px;
+
+        padding: 0;
+    }
+}
+
+</style>
+
 </head>
+
+
 <body>
 
-<h1>プロフィール編集</h1>
 
-<form action="/profile_edit" method="POST" enctype="multipart/form-data">
-    名前：<input type="text" name="name" value="{{ user.name }}"><br><br>
+<!-- =========================================
+     ヘッダー
+========================================= -->
 
-    住んでいる県：<input type="text" name="address" value="{{ user.address }}"><br><br>
+<header class="header">
 
-    自己紹介：<br>
-    <textarea name="intro">{{ user.intro }}</textarea><br><br>
+    <div class="header-inner">
 
-    写真変更：<input type="file" name="photo"><br><br>
 
-    <button type="submit">更新する</button>
-</form>
+        <div class="title-area">
+
+            <div class="small-title">
+                EDIT PROFILE
+            </div>
+
+
+            <h1>
+                👤 プロフィール編集
+            </h1>
+
+        </div>
+
+
+        <a href="/profile" class="back-button">
+            ←
+
+            <span class="back-text">
+                プロフィール
+            </span>
+        </a>
+
+
+    </div>
+
+</header>
+
+
+<!-- =========================================
+     メイン
+========================================= -->
+
+<main class="container">
+
+
+    <section class="edit-card">
+
+
+        <!-- =================================
+             プロフィール上部
+        ================================== -->
+
+        <div class="profile-top">
+
+
+            <div class="preview-wrapper">
+
+
+                {% if user.photo_url %}
+
+                    {{ user.photo_url }}                    >
+
+
+                    <div
+                        id="profileFallback"
+                        class="preview-fallback"
+                    >
+                        👤
+                    </div>
+
+
+                {% else %}
+
+
+                    
+
+
+                    <div
+                        id="profileFallback"
+                        class="preview-fallback"
+                        style="display:flex;"
+                    >
+                        👤
+                    </div>
+
+
+                {% endif %}
+
+
+                <div class="preview-badge">
+                    📷
+                </div>
+
+
+            </div>
+
+
+            <div class="profile-heading">
+
+
+                <h2>
+                    {{ user.name }}
+                </h2>
+
+
+                <p>
+                    プロフィール情報を編集できます。
+                    <br>
+                    変更後は「更新する」を押してください。
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================
+             編集フォーム
+        ================================== -->
+
+        <form action="/profile_edit" method="POST" enctype="multipart/form-data">
+
+
+            <!-- 名前 -->
+
+            <div class="form-group">
+
+
+                <label
+                    for="name"
+                    class="form-label"
+                >
+                    <span class="form-icon">👤</span>
+                    名前
+                </label>
+
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="form-input"
+                    value="{{ user.name }}"
+                    placeholder="名前を入力"
+                    required
+                >
+
+
+            </div>
+
+
+            <!-- 住所 -->
+
+            <div class="form-group">
+
+
+                <label
+                    for="address"
+                    class="form-label"
+                >
+                    <span class="form-icon">📍</span>
+                    住んでいる県
+                </label>
+
+
+                <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    class="form-input"
+                    value="{{ user.address or '' }}"
+                    placeholder="例：兵庫県"
+                >
+
+
+            </div>
+
+
+            <!-- 自己紹介 -->
+
+            <div class="form-group">
+
+
+                <label
+                    for="intro"
+                    class="form-label"
+                >
+                    <span class="form-icon">💬</span>
+                    自己紹介
+                </label>
+
+
+                <textarea
+                    id="intro"
+                    name="intro"
+                    class="form-textarea"
+                    placeholder="趣味や好きなゲームなどを書いてみよう"
+                >{{ user.intro or '' }}</textarea>
+
+
+            </div>
+
+
+            <!-- 写真 -->
+
+            <div class="form-group">
+
+
+                <label
+                    for="photo"
+                    class="form-label"
+                >
+                    <span class="form-icon">📷</span>
+                    プロフィール写真
+                </label>
+
+
+                <div class="photo-box">
+
+
+                    <div class="photo-description">
+                        新しい写真を選ぶと、この画面でプレビューできます。
+                    </div>
+
+
+                    <input
+                        type="file"
+                        id="photo"
+                        name="photo"
+                        class="photo-input"
+                        accept="image/*"
+                        onchange="previewImage(event)"
+                    >
+
+
+                    <div
+                        id="selectedFile"
+                        class="selected-file"
+                    ></div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =================================
+                 操作
+            ================================== -->
+
+            <div class="actions">
+
+
+                <a
+                    href="/profile"
+                    class="cancel-button"
+                >
+                    キャンセル
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="save-button"
+                >
+                    💾 更新する
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+
+    </section>
+
+
+</main>
+
+
+<script>
+
+/* =========================================
+   画像読み込み失敗
+========================================= */
+
+function showFallback(img) {
+
+    img.style.display =
+        "none";
+
+
+    const fallback =
+        document.getElementById(
+            "profileFallback"
+        );
+
+
+    if (fallback) {
+
+        fallback.style.display =
+            "flex";
+    }
+}
+
+
+/* =========================================
+   選択画像プレビュー
+========================================= */
+
+function previewImage(event) {
+
+    const file =
+        event.target.files[0];
+
+
+    if (!file) {
+
+        return;
+    }
+
+
+    /* 画像以外なら表示しない */
+
+    if (
+        !file.type.startsWith(
+            "image/"
+        )
+    ) {
+
+        alert(
+            "画像ファイルを選択してください。"
+        );
+
+        event.target.value =
+            "";
+
+        return;
+    }
+
+
+    const preview =
+        document.getElementById(
+            "profilePreview"
+        );
+
+
+    const fallback =
+        document.getElementById(
+            "profileFallback"
+        );
+
+
+    const fileName =
+        document.getElementById(
+            "selectedFile"
+        );
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e) {
+
+
+            preview.src =
+                e.target.result;
+
+
+            preview.style.display =
+                "block";
+
+
+            fallback.style.display =
+                "none";
+
+
+            fileName.textContent =
+                "選択中："
+                + file.name;
+        };
+
+
+    reader.readAsDataURL(
+        file
+    );
+}
+
+</script>
+
 
 </body>
+
 </html>
 

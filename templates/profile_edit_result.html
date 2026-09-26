@@ -1,18 +1,1201 @@
-<form action="/profile_edit" method="POST" enctype="multipart/form-data">
+<!DOCTYPE html>
+<html lang="ja">
 
-    <label>名前</label>
-    <input type="text" name="name" value="{{ user.name }}">
+<head>
 
-    <label>住んでいる県</label>
-    <input type="text" name="address" value="{{ user.address }}">
+<meta charset="UTF-8">
 
-    <label>自己紹介</label>
-    <textarea name="intro">{{ user.intro }}</textarea>
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
 
-   
-    <button type="submit">保存</button>
+<title>プロフィール編集</title>
 
-    <a href="/home">ホームに戻る</a>
-</form>
+<style>
+
+/* =========================================
+   基本
+========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+
+    min-height: 100vh;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(0, 197, 255, 0.20),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 85%,
+            rgba(142, 72, 255, 0.28),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+
+    background-attachment: fixed;
+
+    overflow-x: hidden;
+}
 
 
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        45px 45px;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+.header {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+
+    width: 100%;
+
+    padding:
+        max(13px, env(safe-area-inset-top))
+        16px
+        13px;
+
+    background:
+        rgba(4,13,31,0.91);
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 8px 30px
+        rgba(0,0,0,0.18);
+}
+
+
+.header-inner {
+
+    width:
+        min(
+            760px,
+            100%
+        );
+
+    margin: 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+}
+
+
+.title-area {
+
+    min-width: 0;
+}
+
+
+.small-title {
+
+    margin-bottom: 3px;
+
+    color: #67ddff;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 3px;
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size:
+        clamp(
+            20px,
+            5vw,
+            29px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #6de8ff,
+            #b792ff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+/* =========================================
+   戻るボタン
+========================================= */
+
+.back-button {
+
+    flex-shrink: 0;
+
+    min-height: 42px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding:
+        0 14px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius: 14px;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.back-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.13);
+}
+
+
+/* =========================================
+   メイン
+========================================= */
+
+.container {
+
+    position: relative;
+
+    z-index: 2;
+
+    width:
+        min(
+            760px,
+            94%
+        );
+
+    margin:
+        28px auto
+        70px;
+}
+
+
+/* =========================================
+   編集カード
+========================================= */
+
+.edit-card {
+
+    padding:
+        26px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius:
+        24px;
+
+    background:
+        rgba(7,17,39,0.82);
+
+    backdrop-filter:
+        blur(19px);
+
+    box-shadow:
+        0 18px 50px
+        rgba(0,0,0,0.28);
+}
+
+
+/* =========================================
+   カード上部
+========================================= */
+
+.profile-top {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 26px;
+
+    padding-bottom: 21px;
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.07);
+}
+
+
+.profile-icon {
+
+    flex-shrink: 0;
+
+    width: 76px;
+    height: 76px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        2px solid
+        rgba(103,221,255,0.28);
+
+    border-radius: 50%;
+
+    font-size: 35px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(22,143,255,0.18),
+            rgba(137,77,255,0.22)
+        );
+
+    box-shadow:
+        0 8px 28px
+        rgba(0,0,0,0.25),
+        0 0 25px
+        rgba(98,213,255,0.08);
+}
+
+
+.profile-heading {
+
+    min-width: 0;
+}
+
+
+.profile-heading h2 {
+
+    margin:
+        0 0 5px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-size:
+        clamp(
+            18px,
+            5vw,
+            23px
+        );
+}
+
+
+.profile-heading p {
+
+    margin: 0;
+
+    color:
+        #8598b6;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   フォーム
+========================================= */
+
+.form-group {
+
+    margin-bottom:
+        21px;
+}
+
+
+.form-label {
+
+    display: block;
+
+    margin-bottom:
+        8px;
+
+    color:
+        #dce8f8;
+
+    font-size:
+        13px;
+
+    font-weight:
+        900;
+}
+
+
+.label-icon {
+
+    margin-right:
+        5px;
+}
+
+
+/* =========================================
+   テキスト入力
+========================================= */
+
+.form-input {
+
+    width: 100%;
+
+    height: 50px;
+
+    padding:
+        0 15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius:
+        14px;
+
+    color: white;
+
+    font-family:
+        inherit;
+
+    font-size:
+        14px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.form-input::placeholder {
+
+    color:
+        #71829f;
+}
+
+
+.form-input:focus {
+
+    border-color:
+        rgba(80,218,255,0.55);
+
+    background:
+        rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(80,218,255,0.06);
+}
+
+
+/* =========================================
+   自己紹介
+========================================= */
+
+.form-textarea {
+
+    display: block;
+
+    width: 100%;
+
+    min-height: 170px;
+
+    resize: vertical;
+
+    padding:
+        15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius:
+        14px;
+
+    color: white;
+
+    font-family:
+        inherit;
+
+    font-size:
+        14px;
+
+    line-height:
+        1.7;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.form-textarea::placeholder {
+
+    color:
+        #71829f;
+}
+
+
+.form-textarea:focus {
+
+    border-color:
+        rgba(80,218,255,0.55);
+
+    background:
+        rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(80,218,255,0.06);
+}
+
+
+/* =========================================
+   補足テキスト
+========================================= */
+
+.form-help {
+
+    margin-top:
+        7px;
+
+    color:
+        #7084a3;
+
+    font-size:
+        10px;
+
+    line-height:
+        1.6;
+}
+
+
+/* =========================================
+   ボタン
+========================================= */
+
+.actions {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 2fr;
+
+    gap: 10px;
+
+    margin-top:
+        29px;
+
+    padding-top:
+        21px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,0.07);
+}
+
+
+.cancel-button {
+
+    min-height:
+        50px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    border-radius:
+        14px;
+
+    color:
+        #c9d6e8;
+
+    text-decoration:
+        none;
+
+    font-size:
+        13px;
+
+    font-weight:
+        900;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.cancel-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.11);
+}
+
+
+.save-button {
+
+    min-height:
+        50px;
+
+    border:
+        none;
+
+    border-radius:
+        14px;
+
+    color:
+        white;
+
+    font-size:
+        14px;
+
+    font-weight:
+        950;
+
+    cursor:
+        pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #7557ff,
+            #ad4fff
+        );
+
+    box-shadow:
+        0 10px 30px
+        rgba(91,83,255,0.27);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.save-button:hover {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 14px 38px
+        rgba(91,83,255,0.38);
+}
+
+
+.save-button:active {
+
+    transform:
+        scale(0.98);
+}
+
+
+/* =========================================
+   ホームリンク
+========================================= */
+
+.home-area {
+
+    margin-top:
+        15px;
+
+    text-align:
+        center;
+}
+
+
+.home-link {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    min-height:
+        41px;
+
+    padding:
+        0 15px;
+
+    border-radius:
+        13px;
+
+    color:
+        #82dcff;
+
+    text-decoration:
+        none;
+
+    font-size:
+        12px;
+
+    font-weight:
+        850;
+
+    transition:
+        color 0.2s,
+        background 0.2s;
+}
+
+
+.home-link:hover {
+
+    color:
+        white;
+
+    background:
+        rgba(255,255,255,0.06);
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 600px) {
+
+    .header {
+
+        padding-left:
+            10px;
+
+        padding-right:
+            10px;
+    }
+
+
+    .header-inner {
+
+        gap:
+            8px;
+    }
+
+
+    .small-title {
+
+        font-size:
+            7px;
+
+        letter-spacing:
+            2px;
+    }
+
+
+    .header h1 {
+
+        font-size:
+            18px;
+    }
+
+
+    .back-button {
+
+        min-height:
+            38px;
+
+        padding:
+            0 10px;
+
+        font-size:
+            10px;
+    }
+
+
+    .container {
+
+        width:
+            95%;
+
+        margin-top:
+            14px;
+
+        margin-bottom:
+            max(
+                40px,
+                env(safe-area-inset-bottom)
+            );
+    }
+
+
+    .edit-card {
+
+        padding:
+            18px 13px;
+
+        border-radius:
+            19px;
+    }
+
+
+    .profile-top {
+
+        gap:
+            11px;
+
+        margin-bottom:
+            21px;
+
+        padding-bottom:
+            17px;
+    }
+
+
+    .profile-icon {
+
+        width:
+            64px;
+
+        height:
+            64px;
+
+        font-size:
+            29px;
+    }
+
+
+    .profile-heading h2 {
+
+        font-size:
+            16px;
+    }
+
+
+    .profile-heading p {
+
+        font-size:
+            10px;
+    }
+
+
+    .form-group {
+
+        margin-bottom:
+            17px;
+    }
+
+
+    .form-input {
+
+        height:
+            47px;
+
+        font-size:
+            13px;
+    }
+
+
+    .form-textarea {
+
+        min-height:
+            150px;
+
+        font-size:
+            13px;
+    }
+
+
+    .actions {
+
+        grid-template-columns:
+            1fr;
+
+        gap:
+            8px;
+
+        margin-top:
+            23px;
+    }
+
+
+    .save-button {
+
+        order:
+            1;
+    }
+
+
+    .cancel-button {
+
+        order:
+            2;
+    }
+}
+
+
+/* =========================================
+   小さいスマホ
+========================================= */
+
+@media (max-width: 360px) {
+
+    .back-text {
+
+        display:
+            none;
+    }
+
+
+    .back-button {
+
+        width:
+            40px;
+
+        padding:
+            0;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     ヘッダー
+========================================= -->
+
+<header class="header">
+
+    <div class="header-inner">
+
+
+        <div class="title-area">
+
+            <div class="small-title">
+                EDIT PROFILE
+            </div>
+
+
+            <h1>
+                👤 プロフィール編集
+            </h1>
+
+        </div>
+
+
+        <a href="/profile" class="back-button">
+            ←
+            <span class="back-text">
+                プロフィール
+            </span>
+        </a>
+
+
+    </div>
+
+</header>
+
+
+<!-- =========================================
+     メイン
+========================================= -->
+
+<main class="container">
+
+
+    <section class="edit-card">
+
+
+        <!-- =================================
+             上部
+        ================================== -->
+
+        <div class="profile-top">
+
+
+            <div class="profile-icon">
+                👤
+            </div>
+
+
+            <div class="profile-heading">
+
+                <h2>
+                    {{ user.name }}
+                </h2>
+
+                <p>
+                    プロフィール情報を編集できます。
+                    <br>
+                    変更後は「変更を保存」を押してください。
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================
+             編集フォーム
+        ================================== -->
+
+        <form action="/profile_edit" method="POST" enctype="multipart/form-data">
+
+
+            <!-- 名前 -->
+
+            <div class="form-group">
+
+                <label
+                    for="name"
+                    class="form-label"
+                >
+                    <span class="label-icon">👤</span>
+                    名前
+                </label>
+
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="form-input"
+                    value="{{ user.name or '' }}"
+                    placeholder="名前を入力してください"
+                    maxlength="50"
+                    required
+                >
+
+            </div>
+
+
+            <!-- 住所 -->
+
+            <div class="form-group">
+
+                <label
+                    for="address"
+                    class="form-label"
+                >
+                    <span class="label-icon">📍</span>
+                    住んでいる県
+                </label>
+
+
+                <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    class="form-input"
+                    value="{{ user.address or '' }}"
+                    placeholder="例：兵庫県"
+                    maxlength="50"
+                >
+
+
+                <div class="form-help">
+                    都道府県を入力してください。
+                </div>
+
+            </div>
+
+
+            <!-- 自己紹介 -->
+
+            <div class="form-group">
+
+                <label
+                    for="intro"
+                    class="form-label"
+                >
+                    <span class="label-icon">💬</span>
+                    自己紹介
+                </label>
+
+
+                <textarea
+                    id="intro"
+                    name="intro"
+                    class="form-textarea"
+                    placeholder="趣味や好きなゲームなどを書いてみよう"
+                >{{ user.intro or '' }}</textarea>
+
+
+                <div class="form-help">
+                    趣味や好きなゲームなどを書くと、プロフィールを見た人に伝わりやすくなります。
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 ボタン
+            ================================== -->
+
+            <div class="actions">
+
+
+                <a href="/profile" class="cancel-button">
+                    キャンセル
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="save-button"
+                >
+                    💾 変更を保存
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+
+        <!-- =================================
+             ホーム
+        ================================== -->
+
+        <div class="home-area">
+
+            <a href="/home" class="home-button">
+                🏠 ホームに戻る
+            </a>
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+</body>
+
+</html>

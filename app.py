@@ -2285,47 +2285,49 @@ def chat_room_api(partner):
     return jsonify({"history": history})
 
 
-# -------------------------
-# 掲示板
-# -------------------------
 @app.route("/board")
 def board():
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("top"))
-    return render_template("board.html", boards=boards)
+
+    return render_template(
+        "board.html",
+        boards=boards
+    )
 
 
 @app.route("/board_post", methods=["GET", "POST"])
 def board_post():
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("top"))
 
     if request.method == "POST":
+
         title = request.form.get("title")
         body = request.form.get("body")
+
         boards.append({
             "user_id": user_id,
             "title": title,
             "body": body
         })
-        save_json(BOARDS_FILE, boards)
-        return redirect(url_for("board"))
 
-    return render_template("board_post.html")
+        save_json(
+            BOARDS_FILE,
+            boards
+        )
 
-@app.route("/profile/<uid>")
-def profile_uid(uid):
-    user_id = session.get("user_id")
-    if not user_id:
-        return redirect(url_for("top"))
+        return redirect(
+            url_for("board")
+        )
 
-    target = users.get(uid)
-    if not target:
-        return "ユーザーが存在しません"
-
-    return render_template("profile.html", user=target)
+    return render_template(
+        "board_post.html"
+    )
 
 # -------------------------
 # コインページ

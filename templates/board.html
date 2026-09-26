@@ -1,29 +1,1065 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <title>掲示板</title>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<title>掲示板</title>
+
+
+<style>
+
+/* =========================================
+   基本
+========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+
+body {
+
+    min-height: 100vh;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(0, 197, 255, 0.20),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 85%,
+            rgba(142, 72, 255, 0.28),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+
+    background-attachment: fixed;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        45px 45px;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+.header {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+
+    width: 100%;
+
+    padding:
+        max(13px, env(safe-area-inset-top))
+        16px
+        13px;
+
+    background:
+        rgba(4,13,31,0.90);
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 8px 30px
+        rgba(0,0,0,0.18);
+}
+
+
+.header-inner {
+
+    width:
+        min(
+            850px,
+            100%
+        );
+
+    margin: 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+
+/* =========================================
+   タイトル
+========================================= */
+
+.title-area {
+
+    min-width: 0;
+}
+
+
+.small-title {
+
+    margin-bottom: 3px;
+
+    color:
+        #67ddff;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 4px;
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size:
+        clamp(
+            22px,
+            5vw,
+            30px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #6de8ff,
+            #b792ff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+/* =========================================
+   ホーム
+========================================= */
+
+.home-button {
+
+    flex-shrink: 0;
+
+    min-height: 44px;
+
+    padding:
+        0 16px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #178fff,
+            #7557ff
+        );
+
+    box-shadow:
+        0 8px 25px
+        rgba(72,105,255,0.25);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.home-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 12px 30px
+        rgba(72,105,255,0.35);
+}
+
+
+/* =========================================
+   メイン
+========================================= */
+
+.container {
+
+    position: relative;
+
+    z-index: 2;
+
+    width:
+        min(
+            850px,
+            94%
+        );
+
+    margin:
+        24px auto
+        70px;
+}
+
+
+/* =========================================
+   上部説明
+========================================= */
+
+.board-top {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 19px;
+
+    padding:
+        16px 18px;
+
+    border:
+        1px solid
+        rgba(100,220,255,0.12);
+
+    border-radius: 18px;
+
+    background:
+        rgba(7,17,39,0.75);
+
+    backdrop-filter:
+        blur(15px);
+}
+
+
+.board-description {
+
+    min-width: 0;
+}
+
+
+.board-description strong {
+
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: white;
+
+    font-size: 15px;
+}
+
+
+.board-description span {
+
+    color:
+        #879ab8;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   投稿ボタン
+========================================= */
+
+.post-button {
+
+    flex-shrink: 0;
+
+    display: inline-flex;
+
+    min-height: 44px;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding:
+        0 17px;
+
+    border-radius: 14px;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 950;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff477b,
+            #a84fff
+        );
+
+    box-shadow:
+        0 9px 28px
+        rgba(255,62,145,0.25);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.post-button:hover {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 13px 35px
+        rgba(255,62,145,0.36);
+}
+
+
+/* =========================================
+   投稿一覧
+========================================= */
+
+.board-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 13px;
+}
+
+
+/* =========================================
+   投稿カード
+========================================= */
+
+.board-card {
+
+    position: relative;
+
+    overflow: hidden;
+
+    padding:
+        20px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius:
+        20px;
+
+    background:
+        rgba(7,17,39,0.80);
+
+    backdrop-filter:
+        blur(17px);
+
+    box-shadow:
+        0 12px 35px
+        rgba(0,0,0,0.20);
+
+    transition:
+        transform 0.2s,
+        border-color 0.2s,
+        background 0.2s;
+}
+
+
+.board-card:hover {
+
+    transform:
+        translateY(-3px);
+
+    border-color:
+        rgba(93,220,255,0.23);
+
+    background:
+        rgba(11,27,56,0.90);
+}
+
+
+/* 左アクセント */
+
+.board-card::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    top: 17px;
+
+    width: 3px;
+    height: 55px;
+
+    border-radius:
+        0 4px 4px 0;
+
+    background:
+        linear-gradient(
+            #5ee1ff,
+            #9c68ff
+        );
+}
+
+
+/* =========================================
+   投稿タイトル
+========================================= */
+
+.board-title {
+
+    margin:
+        0 0 13px;
+
+    padding-left: 4px;
+
+    color:
+        #ffffff;
+
+    font-size:
+        clamp(
+            17px,
+            4vw,
+            20px
+        );
+
+    font-weight: 950;
+
+    line-height: 1.45;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================
+   投稿本文
+========================================= */
+
+.board-body {
+
+    margin: 0;
+
+    color:
+        #c8d5e8;
+
+    font-size: 14px;
+
+    line-height: 1.8;
+
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================
+   投稿者
+========================================= */
+
+.board-footer {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-top: 17px;
+
+    padding-top: 13px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,0.06);
+}
+
+
+.author-label {
+
+    color:
+        #6f83a2;
+
+    font-size: 11px;
+}
+
+
+.author-link {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    margin-left: 5px;
+
+    padding:
+        6px 10px;
+
+    border-radius: 999px;
+
+    color:
+        #73ddff;
+
+    text-decoration: none;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    background:
+        rgba(80,210,255,0.08);
+
+    border:
+        1px solid
+        rgba(80,210,255,0.13);
+
+    transition:
+        background 0.2s,
+        color 0.2s;
+}
+
+
+.author-link:hover {
+
+    color: white;
+
+    background:
+        rgba(80,210,255,0.16);
+}
+
+
+/* =========================================
+   空の場合
+========================================= */
+
+.empty {
+
+    padding:
+        60px 20px;
+
+    text-align: center;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius: 22px;
+
+    color:
+        #8fa2c0;
+
+    background:
+        rgba(7,17,39,0.75);
+
+    box-shadow:
+        0 15px 40px
+        rgba(0,0,0,0.20);
+}
+
+
+.empty-icon {
+
+    margin-bottom: 14px;
+
+    font-size: 58px;
+}
+
+
+.empty h2 {
+
+    margin:
+        0 0 8px;
+
+    color: white;
+
+    font-size: 20px;
+}
+
+
+.empty p {
+
+    margin:
+        0 0 20px;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+
+.empty-post-button {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 44px;
+
+    padding:
+        0 18px;
+
+    border-radius: 14px;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff477b,
+            #9c58ff
+        );
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 600px) {
+
+    .header {
+
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+
+    .header-inner {
+
+        gap: 8px;
+    }
+
+
+    .small-title {
+
+        font-size: 7px;
+
+        letter-spacing: 2px;
+    }
+
+
+    .header h1 {
+
+        font-size: 19px;
+    }
+
+
+    .home-button {
+
+        min-height: 39px;
+
+        padding:
+            0 10px;
+
+        font-size: 11px;
+    }
+
+
+    .container {
+
+        width: 95%;
+
+        margin-top: 14px;
+    }
+
+
+    .board-top {
+
+        padding:
+            13px;
+
+        gap: 10px;
+    }
+
+
+    .board-description strong {
+
+        font-size: 13px;
+    }
+
+
+    .board-description span {
+
+        font-size: 10px;
+    }
+
+
+    .post-button {
+
+        min-height: 40px;
+
+        padding:
+            0 12px;
+
+        font-size: 11px;
+    }
+
+
+    .board-list {
+
+        gap: 9px;
+    }
+
+
+    .board-card {
+
+        padding:
+            16px 14px;
+
+        border-radius: 17px;
+    }
+
+
+    .board-title {
+
+        margin-bottom: 9px;
+
+        font-size: 16px;
+    }
+
+
+    .board-body {
+
+        font-size: 13px;
+
+        line-height: 1.7;
+    }
+
+
+    .board-footer {
+
+        margin-top: 13px;
+
+        padding-top: 10px;
+    }
+
+
+    .author-label {
+
+        font-size: 10px;
+    }
+
+
+    .author-link {
+
+        padding:
+            5px 8px;
+
+        font-size: 10px;
+    }
+}
+
+
+/* =========================================
+   かなり小さいスマホ
+========================================= */
+
+@media (max-width: 370px) {
+
+    .home-text {
+
+        display: none;
+    }
+
+
+    .home-button {
+
+        width: 40px;
+
+        padding: 0;
+    }
+
+
+    .board-top {
+
+        align-items: stretch;
+
+        flex-direction: column;
+    }
+
+
+    .post-button {
+
+        width: 100%;
+    }
+}
+
+</style>
+
 </head>
+
+
 <body>
 
-<h1>掲示板</h1>
 
-<a href="/board_post">投稿する</a><br><br>
+<!-- =========================================
+     ヘッダー
+========================================= -->
 
-{% for b in boards %}
-<div style="border:1px solid #ccc; padding:10px; margin:10px;">
-    <h3>{{ b.title }}</h3>
-    <p>{{ b.body }}</p>
+<header class="header">
 
-    <!-- 投稿者プロフィールへ飛ぶリンク -->
-    <small>
-        投稿者：
-        <a href="/profile/{{ b.user_id }}">{{ b.user_id }}</a>
-    </small>
-</div>
-{% endfor %}
+    <div class="header-inner">
 
-<a href="/home">ホームに戻る</a>
+
+        <div class="title-area">
+
+            <div class="small-title">
+                COMMUNITY BOARD
+            </div>
+
+
+            <h1>
+                📋 掲示板
+            </h1>
+
+        </div>
+
+
+        <button
+            type="button"
+            class="home-button"
+            onclick="location.href='/home'"
+        >
+
+            🏠
+
+            <span class="home-text">
+                ホーム
+            </span>
+
+        </button>
+
+
+    </div>
+
+</header>
+
+
+<!-- =========================================
+     メイン
+========================================= -->
+
+<main class="container">
+
+
+    <!-- =====================================
+         掲示板上部
+    ====================================== -->
+
+    <section class="board-top">
+
+
+        <div class="board-description">
+
+            <strong>
+                みんなの掲示板
+            </strong>
+
+
+            <span>
+                気になることや話したいことを投稿してみよう。
+            </span>
+
+        </div>
+
+
+        <a href="/board_post" class="btn btn-primary">
+            ✏️ 投稿する
+        </a>
+
+
+    </section>
+
+
+    <!-- =====================================
+         投稿一覧
+    ====================================== -->
+
+    {% if boards %}
+
+
+        <div class="board-list">
+
+
+            {% for b in boards %}
+
+
+                <article class="board-card">
+
+
+                    <h2 class="board-title">
+
+                        {{ b.title }}
+
+                    </h2>
+
+
+                    <p class="board-body">{{ b.body }}</p>
+
+
+                    <div class="board-footer">
+
+
+                        <div class="author-label">
+
+                            投稿者
+
+                            /profile/{{ b.user_id }}
+                                👤 {{ b.user_id }}
+                            </a>
+
+                        </div>
+
+
+                    </div>
+
+
+                </article>
+
+
+            {% endfor %}
+
+
+        </div>
+
+
+    {% else %}
+
+
+        <!-- =================================
+             投稿が0件
+        ================================== -->
+
+        <div class="empty">
+
+
+            <div class="empty-icon">
+                📝
+            </div>
+
+
+            <h2>
+                まだ投稿はありません
+            </h2>
+
+
+            <p>
+                最初の投稿をしてみましょう。
+            </p>
+
+
+            <a href="/board_post" class="btn btn-primary">
+                ✏️ 投稿してみる
+            </a>
+
+
+        </div>
+
+
+    {% endif %}
+
+
+</main>
+
 
 </body>
+
 </html>

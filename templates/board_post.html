@@ -1,24 +1,987 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <title>掲示板投稿</title>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<title>掲示板投稿</title>
+
+<style>
+
+/* =========================================
+   基本
+========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+
+    min-height: 100vh;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(0, 197, 255, 0.20),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 85%,
+            rgba(142, 72, 255, 0.28),
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+
+    background-attachment: fixed;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        );
+
+    background-size: 45px 45px;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+.header {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+
+    width: 100%;
+
+    padding:
+        max(13px, env(safe-area-inset-top))
+        16px
+        13px;
+
+    background:
+        rgba(4,13,31,0.90);
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 8px 30px
+        rgba(0,0,0,0.18);
+}
+
+
+.header-inner {
+
+    width: min(760px, 100%);
+
+    margin: 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+
+.title-area {
+
+    min-width: 0;
+}
+
+
+.small-title {
+
+    margin-bottom: 3px;
+
+    color: #67ddff;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 4px;
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size:
+        clamp(
+            21px,
+            5vw,
+            29px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #6de8ff,
+            #b792ff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+/* =========================================
+   戻るボタン
+========================================= */
+
+.back-button {
+
+    flex-shrink: 0;
+
+    display: inline-flex;
+
+    min-height: 42px;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 0 15px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius: 14px;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.back-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.13);
+}
+
+
+/* =========================================
+   メイン
+========================================= */
+
+.container {
+
+    position: relative;
+
+    z-index: 2;
+
+    width: min(760px, 94%);
+
+    margin:
+        28px auto
+        70px;
+}
+
+
+/* =========================================
+   投稿フォーム本体
+========================================= */
+
+.post-card {
+
+    padding:
+        25px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius: 24px;
+
+    background:
+        rgba(7,17,39,0.82);
+
+    backdrop-filter:
+        blur(19px);
+
+    box-shadow:
+        0 18px 50px
+        rgba(0,0,0,0.28);
+}
+
+
+.post-heading {
+
+    margin-bottom: 24px;
+}
+
+
+.post-heading h2 {
+
+    margin:
+        0 0 6px;
+
+    font-size: 21px;
+}
+
+
+.post-heading p {
+
+    margin: 0;
+
+    color: #8497b7;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   フォーム
+========================================= */
+
+.form-group {
+
+    margin-bottom: 20px;
+}
+
+
+.form-label {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #dce8f8;
+
+    font-size: 13px;
+
+    font-weight: 900;
+}
+
+
+.form-label span {
+
+    margin-left: 5px;
+
+    color: #ff709e;
+
+    font-size: 10px;
+}
+
+
+/* =========================================
+   タイトル
+========================================= */
+
+.title-input {
+
+    width: 100%;
+
+    height: 50px;
+
+    padding:
+        0 15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-size: 14px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.title-input::placeholder {
+
+    color: #71829f;
+}
+
+
+.title-input:focus {
+
+    border-color:
+        rgba(80,218,255,0.55);
+
+    background:
+        rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(80,218,255,0.06);
+}
+
+
+/* =========================================
+   本文
+========================================= */
+
+.body-input {
+
+    display: block;
+
+    width: 100%;
+
+    min-height: 190px;
+
+    resize: vertical;
+
+    padding: 15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.11);
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.body-input::placeholder {
+
+    color: #71829f;
+}
+
+
+.body-input:focus {
+
+    border-color:
+        rgba(80,218,255,0.55);
+
+    background:
+        rgba(255,255,255,0.09);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(80,218,255,0.06);
+}
+
+
+/* =========================================
+   画像
+========================================= */
+
+.photo-box {
+
+    position: relative;
+
+    padding: 16px;
+
+    border:
+        1px dashed
+        rgba(126,221,255,0.28);
+
+    border-radius: 15px;
+
+    background:
+        rgba(80,210,255,0.035);
+}
+
+
+.photo-description {
+
+    margin-bottom: 11px;
+
+    color: #879ab7;
+
+    font-size: 11px;
+}
+
+
+.photo-input {
+
+    display: block;
+
+    width: 100%;
+
+    color: #bccbe0;
+
+    font-size: 12px;
+}
+
+
+.photo-input::file-selector-button {
+
+    margin-right: 11px;
+
+    padding:
+        9px 13px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    color: white;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #198dff,
+            #7558ff
+        );
+}
+
+
+/* =========================================
+   操作ボタン
+========================================= */
+
+.actions {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 2fr;
+
+    gap: 10px;
+
+    margin-top: 27px;
+}
+
+
+.cancel-button {
+
+    min-height: 50px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    border-radius: 14px;
+
+    color: #c9d6e8;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.cancel-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.11);
+}
+
+
+.submit-button {
+
+    min-height: 50px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: 950;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff467b,
+            #a64fff
+        );
+
+    box-shadow:
+        0 10px 30px
+        rgba(255,68,151,0.25);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.submit-button:hover {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 14px 38px
+        rgba(255,68,151,0.37);
+}
+
+
+/* =========================================
+   注意
+========================================= */
+
+.notice {
+
+    margin-top: 18px;
+
+    padding:
+        11px 13px;
+
+    border-radius: 12px;
+
+    color: #8193af;
+
+    font-size: 10px;
+
+    line-height: 1.6;
+
+    background:
+        rgba(255,255,255,0.035);
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 600px) {
+
+    .header {
+
+        padding-left: 10px;
+
+        padding-right: 10px;
+    }
+
+
+    .header-inner {
+
+        gap: 8px;
+    }
+
+
+    .small-title {
+
+        font-size: 7px;
+
+        letter-spacing: 2px;
+    }
+
+
+    .header h1 {
+
+        font-size: 18px;
+    }
+
+
+    .back-button {
+
+        min-height: 38px;
+
+        padding:
+            0 10px;
+
+        font-size: 10px;
+    }
+
+
+    .container {
+
+        width: 95%;
+
+        margin-top: 14px;
+    }
+
+
+    .post-card {
+
+        padding:
+            18px 13px;
+
+        border-radius: 19px;
+    }
+
+
+    .post-heading {
+
+        margin-bottom: 19px;
+    }
+
+
+    .post-heading h2 {
+
+        font-size: 18px;
+    }
+
+
+    .title-input {
+
+        height: 47px;
+
+        font-size: 13px;
+    }
+
+
+    .body-input {
+
+        min-height: 170px;
+
+        font-size: 13px;
+    }
+
+
+    .actions {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 8px;
+    }
+
+
+    .submit-button {
+
+        order: 1;
+    }
+
+
+    .cancel-button {
+
+        order: 2;
+    }
+}
+
+
+/* =========================================
+   小さいスマホ
+========================================= */
+
+@media (max-width: 360px) {
+
+    .back-text {
+
+        display: none;
+    }
+
+
+    .back-button {
+
+        width: 40px;
+
+        padding: 0;
+    }
+}
+
+</style>
+
 </head>
+
+
 <body>
 
-<h1>掲示板に投稿する</h1>
 
-<form action="/board_post" method="POST" enctype="multipart/form-data">
-    <input type="text" name="title" placeholder="タイトル"><br><br>
-    <textarea name="body" placeholder="本文"></textarea><br><br>
+<!-- =========================================
+     ヘッダー
+========================================= -->
 
-    <label>画像を選択：</label>
-    <input type="file" name="photo"><br><br>
+<header class="header">
 
-    <button type="submit">投稿する</button>
-</form>
+    <div class="header-inner">
 
-<a href="/board">掲示板に戻る</a>
+
+        <div class="title-area">
+
+            <div class="small-title">
+                NEW POST
+            </div>
+
+            <h1>
+                ✏️ 掲示板投稿
+            </h1>
+
+        </div>
+
+
+        /board
+            ←
+
+            <span class="back-text">
+                掲示板へ戻る
+            </span>
+        </a>
+
+
+    </div>
+
+</header>
+
+
+<!-- =========================================
+     メイン
+========================================= -->
+
+<main class="container">
+
+
+    <section class="post-card">
+
+
+        <div class="post-heading">
+
+            <h2>
+                📝 新しい投稿
+            </h2>
+
+            <p>
+                タイトルと本文を入力して投稿してください。
+            </p>
+
+        </div>
+
+
+        /board_post
+
+
+            <!-- タイトル -->
+
+            <div class="form-group">
+
+                <label
+                    for="title"
+                    class="form-label"
+                >
+                    タイトル
+                    <span>必須</span>
+                </label>
+
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    class="title-input"
+                    placeholder="投稿のタイトルを入力"
+                    maxlength="100"
+                    required
+                >
+
+            </div>
+
+
+            <!-- 本文 -->
+
+            <div class="form-group">
+
+                <label
+                    for="body"
+                    class="form-label"
+                >
+                    本文
+                    <span>必須</span>
+                </label>
+
+
+                <textarea
+                    id="body"
+                    name="body"
+                    class="body-input"
+                    placeholder="投稿内容を入力してください"
+                    required
+                ></textarea>
+
+            </div>
+
+
+            <!-- 画像 -->
+
+            <div class="form-group">
+
+                <label
+                    for="photo"
+                    class="form-label"
+                >
+                    📷 画像
+                </label>
+
+
+                <div class="photo-box">
+
+                    <div class="photo-description">
+                        投稿に画像を追加できます。
+                    </div>
+
+
+                    <input
+                        type="file"
+                        id="photo"
+                        name="photo"
+                        class="photo-input"
+                        accept="image/*"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- ボタン -->
+
+            <div class="actions">
+
+                /board
+                    キャンセル
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="submit-button"
+                >
+                    🚀 投稿する
+                </button>
+
+            </div>
+
+
+        </form>
+
+
+        <div class="notice">
+            ※ 現在のサーバー処理ではタイトルと本文が保存されます。
+            画像保存を有効にするには、Python側の画像アップロード処理も追加する必要があります。
+        </div>
+
+
+    </section>
+
+
+</main>
+
 
 </body>
+
 </html>
