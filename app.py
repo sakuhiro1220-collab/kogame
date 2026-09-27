@@ -1728,17 +1728,106 @@ def profile_edit():
 # -------------------------
 # チャット一覧
 # -------------------------
+# チャット一覧
+# -------------------------
 @app.route("/chat_page")
 def chat_page():
-    user_id = session.get("user_id")
+
+    user_id = session.get(
+        "user_id"
+    )
+
     if not user_id:
-        return redirect(url_for("top"))
+
+        return redirect(
+            url_for("top")
+        )
+
+
+    # -------------------------
+    # ログインユーザー確認
+    # -------------------------
+
+    current_user = db.session.get(
+        User,
+        user_id
+    )
+
+    if not current_user:
+
+        session.pop(
+            "user_id",
+            None
+        )
+
+        return redirect(
+            url_for("top")
+        )
+
+
+    # -------------------------
+    # チャット相手一覧
+    # -------------------------
 
     partners = {}
-    for msg in chats.get(user_id, []):
-        partners[msg["partner"]] = msg
 
-    return render_template("chat_page.html", partners=partners, users=users)
+    for msg in chats.get(
+        user_id,
+        []
+    ):
+
+        partner_id = msg.get(
+            "partner"
+        )
+
+        if not partner_id:
+            continue
+
+        partners[
+            partner_id
+        ] = msg
+
+
+    # -------------------------
+    # 相手ユーザーをDBから取得
+    # -------------------------
+
+    partner_users = {}
+
+    for partner_id in partners.keys():
+
+        partner_user = db.session.get(
+            User,
+            partner_id
+        )
+
+        if partner_user:
+
+            partner_users[
+                partner_id
+            ] = partner_user
+
+
+    # -------------------------
+    # DBに存在しない相手を除外
+    # -------------------------
+
+    partners = {
+
+        partner_id: last_message
+
+        for partner_id, last_message
+        in partners.items()
+
+        if partner_id in partner_users
+    }
+
+
+    return render_template(
+        "chat_page.html",
+        partners=partners,
+        users=partner_users
+    )
 
 
 # -------------------------

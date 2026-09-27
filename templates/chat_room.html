@@ -2146,6 +2146,12 @@ function sendRankGift(rank) {
     giftSending =
         true;
 
+    console.log(
+"ギフト送信:",
+rank,
+partnerId
+);  
+
 
     socket.emit(
         "send_rank_gift",
