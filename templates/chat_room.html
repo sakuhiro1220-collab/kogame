@@ -1625,64 +1625,58 @@ body::before {
 
 
     <!-- =====================================
-         入力エリア
-    ====================================== -->
+     入力エリア
+====================================== -->
 
-    <footer class="input-area">
+<footer class="input-area">
 
+    /chat_room/{{ partner }}
 
-        /chat_room/{{ partner }}
-
-
-            <label
-                class="file-label"
-                title="写真を選択"
-            >
-
-                📷
-
-                <input
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    class="file-input"
-                >
-
-            </label>
-
+        <label
+            class="file-label"
+            title="写真を選択"
+        >
+            📷
 
             <input
-                type="text"
-                name="message"
-                class="message-input"
-                placeholder="メッセージ..."
-                autocomplete="off"
+                type="file"
+                name="photo"
+                accept="image/*"
+                class="file-input"
             >
+        </label>
 
 
-            <button
-                type="submit"
-                class="send-button"
-            >
-                送信
-            </button>
+        <input
+            type="text"
+            name="message"
+            class="message-input"
+            placeholder="メッセージ..."
+            autocomplete="off"
+        >
 
 
-            <button
-                type="button"
-                class="gift-open-button"
-                onclick="openGiftMenu()"
-                aria-label="ギフト"
-                title="ギフト"
-            >
-                🎁
-            </button>
+        <button
+            type="submit"
+            class="send-button"
+        >
+            送信
+        </button>
 
 
-        </form>
+        <button
+            type="button"
+            class="gift-open-button"
+            onclick="openGiftMenu()"
+            aria-label="ギフト"
+            title="ギフト"
+        >
+            🎁
+        </button>
 
+    </form>
 
-    </footer>
+</footer>
 
 
 </div>
@@ -2184,6 +2178,33 @@ function sendRankGift(rank) {
         1300
     );
 }
+
+/* =========================================
+   ギフト送信成功
+========================================= */
+
+socket.on(
+    "gift_sent",
+   function(data) {
+
+        giftSending = false;
+
+
+        addGiftMessage(
+            "🎁 "
+            + data.rank
+            + "ギフトを送りました！（+"
+            + data.stars
+            + "）",
+            true
+        );
+
+
+        playGiftAnimation(
+            data.rank
+        );
+    }
+);
 
 
 /* =========================================

@@ -1744,10 +1744,25 @@ def chat_page():
 # -------------------------
 # SocketIO: チャットルーム入室
 # -------------------------
+# -------------------------
+# SocketIO: チャットルーム入室
+# -------------------------
 @socketio.on("join_room")
 def handle_join_room(data):
-    room = data["room"]
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return
+
+    room = str(user_id)
+
     join_room(room)
+
+    print(
+        "SocketIO room参加:",
+        room
+    )
 
 
 # -------------------------
@@ -2034,15 +2049,36 @@ def handle_send_rank_gift(data):
         chats
     )
 
+    # -------------------------
+# 送信者へ成功通知
+# -------------------------
+
     socketio.emit(
-        "gift_received",
-        {
-            "from": user_id,
-            "rank": rank,
-            "stars": stars
-        },
-        room=partner
-    )
+    "gift_sent",
+    {
+        "to": partner,
+        "rank": rank,
+        "stars": stars,
+        "cost": cost,
+        "coins_left": sender_user.coins
+    },
+    room=str(user_id)
+)
+
+
+# -------------------------
+# 受信者へギフト通知
+# -------------------------
+
+    socketio.emit(
+    "gift_received",
+    {
+        "from": user_id,
+        "rank": rank,
+        "stars": stars
+    },
+    room=str(partner)
+)
 
 
 
