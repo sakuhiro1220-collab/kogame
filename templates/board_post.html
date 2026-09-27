@@ -826,7 +826,7 @@ body::before {
         </div>
 
 
-        /board
+        <a href="/board" class="back-button">
             ←
 
             <span class="back-text">
@@ -863,7 +863,7 @@ body::before {
         </div>
 
 
-        /board_post
+        <form action="/board_post" method="POST" enctype="multipart/form-data">
 
 
             <!-- タイトル -->
@@ -952,7 +952,10 @@ body::before {
 
             <div class="actions">
 
-                /board
+                <a
+                    href="/board"
+                    class="cancel-button"
+                >
                     キャンセル
                 </a>
 

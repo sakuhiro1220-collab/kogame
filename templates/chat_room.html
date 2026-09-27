@@ -1630,7 +1630,11 @@ body::before {
 
 <footer class="input-area">
 
-    /chat_room/{{ partner }}
+    <form
+    action="/chat_room/{{ partner }}"
+    method="POST"
+    enctype="multipart/form-data"
+    
 
         <label
             class="file-label"
