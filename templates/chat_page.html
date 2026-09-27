@@ -861,7 +861,7 @@ body::before {
             {% for partner, last in partners.items() %}
 
 
-                /chat_room/{{ partner }}
+                {{ url_for('chat_room', partner=partner) }}
 
 
                     <div class="chat-item">

@@ -469,6 +469,8 @@ body::before {
             env(safe-area-inset-bottom)
         );
 
+    
+
     background:
         rgba(4,13,31,0.95);
 
@@ -500,6 +502,8 @@ body::before {
     align-items: center;
 
     gap: 8px;
+
+    padding-left: 80px;
 }
 
 
@@ -1519,13 +1523,13 @@ body::before {
         </div>
 
 
-        <button
-            type="button"
-            class="header-button profile-button"
-            onclick="openPartnerProfile()"
-        >
-            👤 詳細
-        </button>
+        <a
+    href="{{ url_for('profile_uid', uid=partner) }}"
+    class="header-button profile-button"
+>
+    👤 詳細
+</a>
+
 
 
     </header>
