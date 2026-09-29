@@ -1,130 +1,1448 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <title>コイン購入</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            padding: 20px;
-            margin: 0;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 20px;
-        }
-        .coin-box {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .coin-box:hover {
-            transform: scale(1.05);
-        }
-        .coin {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .price {
-            font-size: 18px;
-            margin-top: 10px;
-            color: #555;
-        }
-        .back {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
 
-<h1>コイン購入</h1>
+<meta charset="UTF-8">
 
-<div class="grid">
-    <div class="coin-box" onclick="payStripe(100)">
-        <div class="coin">100 コイン</div>
-        <div class="price">980円</div>
-    </div>
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
 
-    <div class="coin-box" onclick="payStripe(500)">
-        <div class="coin">500 コイン</div>
-        <div class="price">3980円</div>
-    </div>
+<title>コイン購入</title>
 
-    <div class="coin-box" onclick="payStripe(1000)">
-        <div class="coin">1000 コイン</div>
-        <div class="price">6980円</div>
-    </div>
+<style>
 
-    <div class="coin-box" onclick="payStripe(10000)">
-        <div class="coin">10000 コイン</div>
-        <div class="price">59800円</div>
-    </div>
-</div>
+/* =========================================
+   基本
+========================================= */
 
-<a href="/home" class="back">ホームに戻る</a>
+* {
+    box-sizing: border-box;
+}
 
-<script>
-function payStripe(coin) {
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
 
-    fetch("/pay/stripe", {
+body {
 
-        method: "POST",
+    min-height: 100vh;
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+    color: white;
 
-        body: JSON.stringify({
-            amount: coin
-        })
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
 
-    })
-
-    .then(response => response.json())
-
-    .then(data => {
-
-        if (data.url) {
-
-            window.location.href = data.url;
-
-        } else {
-
-            alert(
-                "Stripeエラー: " +
-                (data.error || "不明なエラー")
-            );
-
-        }
-
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-        alert(
-            "決済ページを開けませんでした"
+    background:
+        radial-gradient(
+            circle at 15% 5%,
+            rgba(0, 200, 255, 0.22),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 88% 80%,
+            rgba(142, 72, 255, 0.30),
+            transparent 40%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
         );
 
-    });
+    background-attachment: fixed;
+
+    overflow-x: hidden;
 }
+
+
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    opacity: 0.55;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        45px 45px;
+
+    z-index: 0;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+.header {
+
+    position: relative;
+
+    z-index: 10;
+
+    padding:
+        max(22px, env(safe-area-inset-top))
+        18px
+        18px;
+
+    text-align: center;
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size:
+        clamp(
+            27px,
+            6vw,
+            42px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #ffd95a,
+            #ffb300
+        );
+
+    -webkit-background-clip: text;
+
+    background-clip: text;
+
+    color: transparent;
+}
+
+
+.header p {
+
+    margin:
+        8px 0 0;
+
+    color:
+        #8ea2c3;
+
+    font-size:
+        13px;
+}
+
+
+/* =========================================
+   メイン
+========================================= */
+
+.container {
+
+    position: relative;
+
+    z-index: 2;
+
+    width:
+        min(
+            1000px,
+            94%
+        );
+
+    margin:
+        10px auto
+        60px;
+}
+
+
+/* =========================================
+   コイングリッド
+========================================= */
+
+.grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
+    gap: 18px;
+}
+
+
+/* =========================================
+   購入カード
+========================================= */
+
+.coin-box {
+
+    position: relative;
+
+    min-height: 390px;
+
+    overflow: hidden;
+
+    padding:
+        20px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius:
+        24px;
+
+    text-align:
+        center;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(10,26,51,0.94),
+            rgba(18,14,49,0.92)
+        );
+
+    box-shadow:
+        0 16px 45px
+        rgba(0,0,0,0.27);
+
+    transition:
+        transform 0.25s,
+        border-color 0.25s,
+        box-shadow 0.25s;
+}
+
+
+.coin-box:hover {
+
+    transform:
+        translateY(-7px);
+
+    border-color:
+        rgba(255,213,76,0.38);
+
+    box-shadow:
+        0 22px 55px
+        rgba(0,0,0,0.38),
+        0 0 35px
+        rgba(255,191,27,0.10);
+}
+
+
+/* =========================================
+   カードの金色オーラ
+========================================= */
+
+.coin-box::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: 50%;
+
+    top: 110px;
+
+    width: 290px;
+
+    height: 180px;
+
+    transform:
+        translateX(-50%);
+
+    border-radius:
+        50%;
+
+    pointer-events:
+        none;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255,199,30,0.18),
+            transparent 70%
+        );
+
+    filter:
+        blur(15px);
+}
+
+
+/* =========================================
+   コイン山エリア
+========================================= */
+
+.coin-pile {
+
+    position: relative;
+
+    height: 190px;
+
+    margin-bottom: 4px;
+}
+
+
+/* =========================================
+   コイン本体
+========================================= */
+
+.gold-coin {
+
+    position: absolute;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 53px;
+
+    height: 53px;
+
+    font-size: 43px;
+
+    filter:
+        drop-shadow(
+            0 5px 4px
+            rgba(0,0,0,0.45)
+        )
+        drop-shadow(
+            0 0 8px
+            rgba(255,197,35,0.35)
+        );
+
+    user-select: none;
+}
+
+
+/* =========================================
+   100コイン
+========================================= */
+
+.pile-small .c1 {
+    left: calc(50% - 27px);
+    bottom: 15px;
+}
+
+.pile-small .c2 {
+    left: calc(50% - 55px);
+    bottom: 12px;
+}
+
+.pile-small .c3 {
+    left: calc(50% + 2px);
+    bottom: 12px;
+}
+
+.pile-small .c4 {
+    left: calc(50% - 27px);
+    bottom: 52px;
+}
+
+
+/* =========================================
+   500コイン
+========================================= */
+
+.pile-medium .c1 {
+    left: calc(50% - 80px);
+    bottom: 12px;
+}
+
+.pile-medium .c2 {
+    left: calc(50% - 35px);
+    bottom: 10px;
+}
+
+.pile-medium .c3 {
+    left: calc(50% + 15px);
+    bottom: 12px;
+}
+
+.pile-medium .c4 {
+    left: calc(50% + 55px);
+    bottom: 8px;
+}
+
+.pile-medium .c5 {
+    left: calc(50% - 58px);
+    bottom: 48px;
+}
+
+.pile-medium .c6 {
+    left: calc(50% - 7px);
+    bottom: 51px;
+}
+
+.pile-medium .c7 {
+    left: calc(50% + 38px);
+    bottom: 46px;
+}
+
+.pile-medium .c8 {
+    left: calc(50% - 29px);
+    bottom: 86px;
+}
+
+
+/* =========================================
+   1000コイン
+========================================= */
+
+.pile-large .gold-coin {
+
+    width: 48px;
+    height: 48px;
+
+    font-size: 40px;
+}
+
+.pile-large .c1 {
+    left: calc(50% - 108px);
+    bottom: 8px;
+}
+
+.pile-large .c2 {
+    left: calc(50% - 68px);
+    bottom: 10px;
+}
+
+.pile-large .c3 {
+    left: calc(50% - 27px);
+    bottom: 8px;
+}
+
+.pile-large .c4 {
+    left: calc(50% + 15px);
+    bottom: 10px;
+}
+
+.pile-large .c5 {
+    left: calc(50% + 57px);
+    bottom: 8px;
+}
+
+.pile-large .c6 {
+    left: calc(50% + 92px);
+    bottom: 6px;
+}
+
+.pile-large .c7 {
+    left: calc(50% - 88px);
+    bottom: 44px;
+}
+
+.pile-large .c8 {
+    left: calc(50% - 45px);
+    bottom: 47px;
+}
+
+.pile-large .c9 {
+    left: calc(50% - 3px);
+    bottom: 46px;
+}
+
+.pile-large .c10 {
+    left: calc(50% + 39px);
+    bottom: 45px;
+}
+
+.pile-large .c11 {
+    left: calc(50% + 76px);
+    bottom: 42px;
+}
+
+.pile-large .c12 {
+    left: calc(50% - 64px);
+    bottom: 83px;
+}
+
+.pile-large .c13 {
+    left: calc(50% - 21px);
+    bottom: 85px;
+}
+
+.pile-large .c14 {
+    left: calc(50% + 22px);
+    bottom: 82px;
+}
+
+.pile-large .c15 {
+    left: calc(50% + 60px);
+    bottom: 78px;
+}
+
+.pile-large .c16 {
+    left: calc(50% - 39px);
+    bottom: 120px;
+}
+
+.pile-large .c17 {
+    left: calc(50% + 4px);
+    bottom: 120px;
+}
+
+.pile-large .c18 {
+    left: calc(50% + 38px);
+    bottom: 114px;
+}
+
+
+/* =========================================
+   10000コイン
+========================================= */
+
+.pile-huge {
+
+    transform:
+        scale(1.08);
+}
+
+
+.pile-huge .gold-coin {
+
+    width: 45px;
+    height: 45px;
+
+    font-size: 38px;
+}
+
+
+.pile-huge .c1 {
+    left: calc(50% - 120px);
+    bottom: 4px;
+}
+
+.pile-huge .c2 {
+    left: calc(50% - 82px);
+    bottom: 5px;
+}
+
+.pile-huge .c3 {
+    left: calc(50% - 44px);
+    bottom: 3px;
+}
+
+.pile-huge .c4 {
+    left: calc(50% - 6px);
+    bottom: 5px;
+}
+
+.pile-huge .c5 {
+    left: calc(50% + 32px);
+    bottom: 3px;
+}
+
+.pile-huge .c6 {
+    left: calc(50% + 70px);
+    bottom: 5px;
+}
+
+.pile-huge .c7 {
+    left: calc(50% + 105px);
+    bottom: 2px;
+}
+
+.pile-huge .c8 {
+    left: calc(50% - 101px);
+    bottom: 38px;
+}
+
+.pile-huge .c9 {
+    left: calc(50% - 63px);
+    bottom: 42px;
+}
+
+.pile-huge .c10 {
+    left: calc(50% - 25px);
+    bottom: 39px;
+}
+
+.pile-huge .c11 {
+    left: calc(50% + 13px);
+    bottom: 41px;
+}
+
+.pile-huge .c12 {
+    left: calc(50% + 51px);
+    bottom: 38px;
+}
+
+.pile-huge .c13 {
+    left: calc(50% + 87px);
+    bottom: 35px;
+}
+
+.pile-huge .c14 {
+    left: calc(50% - 83px);
+    bottom: 75px;
+}
+
+.pile-huge .c15 {
+    left: calc(50% - 45px);
+    bottom: 78px;
+}
+
+.pile-huge .c16 {
+    left: calc(50% - 7px);
+    bottom: 76px;
+}
+
+.pile-huge .c17 {
+    left: calc(50% + 31px);
+    bottom: 76px;
+}
+
+.pile-huge .c18 {
+    left: calc(50% + 68px);
+    bottom: 72px;
+}
+
+.pile-huge .c19 {
+    left: calc(50% - 64px);
+    bottom: 112px;
+}
+
+.pile-huge .c20 {
+    left: calc(50% - 26px);
+    bottom: 115px;
+}
+
+.pile-huge .c21 {
+    left: calc(50% + 12px);
+    bottom: 113px;
+}
+
+.pile-huge .c22 {
+    left: calc(50% + 49px);
+    bottom: 107px;
+}
+
+.pile-huge .c23 {
+    left: calc(50% - 43px);
+    bottom: 146px;
+}
+
+.pile-huge .c24 {
+    left: calc(50% - 5px);
+    bottom: 149px;
+}
+
+.pile-huge .c25 {
+    left: calc(50% + 32px);
+    bottom: 143px;
+}
+
+
+/* =========================================
+   最高額カード
+========================================= */
+
+.premium {
+
+    border:
+        1px solid
+        rgba(255,207,51,0.38);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(26,29,50,0.97),
+            rgba(45,23,59,0.97)
+        );
+
+    box-shadow:
+        0 18px 50px
+        rgba(0,0,0,0.30),
+        0 0 40px
+        rgba(255,184,25,0.10);
+}
+
+
+.premium-badge {
+
+    position: absolute;
+
+    top: 12px;
+    right: 12px;
+
+    z-index: 5;
+
+    padding:
+        6px 10px;
+
+    border-radius:
+        999px;
+
+    color:
+        #311a00;
+
+    font-size:
+        10px;
+
+    font-weight:
+        950;
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff27e,
+            #ffae00
+        );
+
+    box-shadow:
+        0 4px 15px
+        rgba(255,183,0,0.32);
+}
+
+
+/* =========================================
+   コイン数
+========================================= */
+
+.coin {
+
+    position: relative;
+
+    z-index: 3;
+
+    margin-top: 4px;
+
+    color:
+        #fff3ad;
+
+    font-size:
+        clamp(
+            22px,
+            5vw,
+            29px
+        );
+
+    font-weight:
+        950;
+
+    text-shadow:
+        0 0 16px
+        rgba(255,201,68,0.22);
+}
+
+
+.coin-unit {
+
+    margin-left:
+        4px;
+
+    color:
+        #ffd55a;
+
+    font-size:
+        13px;
+
+    font-weight:
+        850;
+}
+
+
+/* =========================================
+   値段
+========================================= */
+
+.price {
+
+    margin-top:
+        7px;
+
+    color:
+        #c8d4e8;
+
+    font-size:
+        17px;
+
+    font-weight:
+        800;
+}
+
+
+/* =========================================
+   購入ボタン
+========================================= */
+
+.buy-button {
+
+    width: 100%;
+
+    min-height: 47px;
+
+    margin-top:
+        17px;
+
+    border: none;
+
+    border-radius:
+        14px;
+
+    color:
+        #251500;
+
+    font-size:
+        13px;
+
+    font-weight:
+        950;
+
+    cursor:
+        pointer;
+
+    pointer-events:
+        none;
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff27c,
+            #ffbd16,
+            #ff9800
+        );
+
+    box-shadow:
+        0 8px 25px
+        rgba(255,177,22,0.20);
+}
+
+
+/* =========================================
+   ホーム
+========================================= */
+
+.back-area {
+
+    margin-top:
+        28px;
+
+    text-align:
+        center;
+}
+
+
+.back {
+
+    display: inline-flex;
+
+    min-height: 45px;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding:
+        0 20px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius:
+        14px;
+
+    color:
+        white;
+
+    text-decoration:
+        none;
+
+    font-size:
+        13px;
+
+    font-weight:
+        900;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+
+.back:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.11);
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 650px) {
+
+    .header {
+
+        padding-top:
+            max(
+                18px,
+                env(safe-area-inset-top)
+            );
+    }
+
+
+    .header p {
+
+        font-size:
+            11px;
+    }
+
+
+    .container {
+
+        width:
+            95%;
+    }
+
+
+    .grid {
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap:
+            9px;
+    }
+
+
+    .coin-box {
+
+        min-height:
+            315px;
+
+        padding:
+            12px 9px;
+
+        border-radius:
+            18px;
+    }
+
+
+    .coin-pile {
+
+        height:
+            150px;
+
+        transform-origin:
+            center bottom;
+    }
+
+
+    .pile-small {
+
+        transform:
+            scale(0.78);
+    }
+
+
+    .pile-medium {
+
+        transform:
+            scale(0.72);
+    }
+
+
+    .pile-large {
+
+        transform:
+            scale(0.64);
+    }
+
+
+    .pile-huge {
+
+        transform:
+            scale(0.60);
+    }
+
+
+    .coin {
+
+        font-size:
+            18px;
+    }
+
+
+    .coin-unit {
+
+        font-size:
+            10px;
+    }
+
+
+    .price {
+
+        font-size:
+            14px;
+    }
+
+
+    .buy-button {
+
+        min-height:
+            42px;
+
+        margin-top:
+            12px;
+
+        font-size:
+            11px;
+    }
+
+
+    .premium-badge {
+
+        padding:
+            5px 7px;
+
+        font-size:
+            8px;
+    }
+}
+
+
+/* =========================================
+   小型スマホ
+========================================= */
+
+@media (max-width: 390px) {
+
+    .grid {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .coin-box {
+
+        min-height:
+            320px;
+    }
+
+
+    .coin-pile {
+
+        height:
+            160px;
+    }
+
+
+    .pile-small {
+
+        transform:
+            scale(0.85);
+    }
+
+
+    .pile-medium {
+
+        transform:
+            scale(0.80);
+    }
+
+
+    .pile-large {
+
+        transform:
+            scale(0.70);
+    }
+
+
+    .pile-huge {
+
+        transform:
+            scale(0.68);
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     ヘッダー
+========================================= -->
+
+<header class="header">
+
+    <h1>
+        🪙 コインショップ
+    </h1>
+
+    <p>
+        コインを購入してギフトやチャットを楽しもう
+    </p>
+
+</header>
+
+
+<main class="container">
+
+
+    <div class="grid">
+
+
+        <!-- =================================
+             100 COIN
+        ================================== -->
+
+        <div
+            class="coin-box"
+            onclick="payStripe(100)"
+        >
+
+            <div class="coin-pile pile-small">
+
+                <span class="gold-coin c1">🪙</span>
+                <span class="gold-coin c2">🪙</span>
+                <span class="gold-coin c3">🪙</span>
+                <span class="gold-coin c4">🪙</span>
+
+            </div>
+
+
+            <div class="coin">
+
+                100
+
+                <span class="coin-unit">
+                    COIN
+                </span>
+
+            </div>
+
+
+            <div class="price">
+                980円
+            </div>
+
+
+            <button
+                type="button"
+                class="buy-button"
+            >
+                🪙 購入する
+            </button>
+
+        </div>
+
+
+        <!-- =================================
+             500 COIN
+        ================================== -->
+
+        <div
+            class="coin-box"
+            onclick="payStripe(500)"
+        >
+
+            <div class="coin-pile pile-medium">
+
+                <span class="gold-coin c1">🪙</span>
+                <span class="gold-coin c2">🪙</span>
+                <span class="gold-coin c3">🪙</span>
+                <span class="gold-coin c4">🪙</span>
+                <span class="gold-coin c5">🪙</span>
+                <span class="gold-coin c6">🪙</span>
+                <span class="gold-coin c7">🪙</span>
+                <span class="gold-coin c8">🪙</span>
+
+            </div>
+
+
+            <div class="coin">
+
+                500
+
+                <span class="coin-unit">
+                    COIN
+                </span>
+
+            </div>
+
+
+            <div class="price">
+                3,980円
+            </div>
+
+
+            <button
+                type="button"
+                class="buy-button"
+            >
+                🪙 購入する
+            </button>
+
+        </div>
+
+
+        <!-- =================================
+             1000 COIN
+        ================================== -->
+
+        <div
+            class="coin-box"
+            onclick="payStripe(1000)"
+        >
+
+            <div class="coin-pile pile-large">
+
+                <span class="gold-coin c1">🪙</span>
+                <span class="gold-coin c2">🪙</span>
+                <span class="gold-coin c3">🪙</span>
+                <span class="gold-coin c4">🪙</span>
+                <span class="gold-coin c5">🪙</span>
+                <span class="gold-coin c6">🪙</span>
+                <span class="gold-coin c7">🪙</span>
+                <span class="gold-coin c8">🪙</span>
+                <span class="gold-coin c9">🪙</span>
+                <span class="gold-coin c10">🪙</span>
+                <span class="gold-coin c11">🪙</span>
+                <span class="gold-coin c12">🪙</span>
+                <span class="gold-coin c13">🪙</span>
+                <span class="gold-coin c14">🪙</span>
+                <span class="gold-coin c15">🪙</span>
+                <span class="gold-coin c16">🪙</span>
+                <span class="gold-coin c17">🪙</span>
+                <span class="gold-coin c18">🪙</span>
+
+            </div>
+
+
+            <div class="coin">
+
+                1,000
+
+                <span class="coin-unit">
+                    COIN
+                </span>
+
+            </div>
+
+
+            <div class="price">
+                6,980円
+            </div>
+
+
+            <button
+                type="button"
+                class="buy-button"
+            >
+                🪙 購入する
+            </button>
+
+        </div>
+
+
+        <!-- =================================
+             10000 COIN
+        ================================== -->
+
+        <div
+            class="coin-box premium"
+            onclick="payStripe(10000)"
+        >
+
+            <div class="premium-badge">
+                👑 MAX
+            </div>
+
+
+            <div class="coin-pile pile-huge">
+
+                <span class="gold-coin c1">🪙</span>
+                <span class="gold-coin c2">🪙</span>
+                <span class="gold-coin c3">🪙</span>
+                <span class="gold-coin c4">🪙</span>
+                <span class="gold-coin c5">🪙</span>
+                <span class="gold-coin c6">🪙</span>
+                <span class="gold-coin c7">🪙</span>
+                <span class="gold-coin c8">🪙</span>
+                <span class="gold-coin c9">🪙</span>
+                <span class="gold-coin c10">🪙</span>
+                <span class="gold-coin c11">🪙</span>
+                <span class="gold-coin c12">🪙</span>
+                <span class="gold-coin c13">🪙</span>
+                <span class="gold-coin c14">🪙</span>
+                <span class="gold-coin c15">🪙</span>
+                <span class="gold-coin c16">🪙</span>
+                <span class="gold-coin c17">🪙</span>
+                <span class="gold-coin c18">🪙</span>
+                <span class="gold-coin c19">🪙</span>
+                <span class="gold-coin c20">🪙</span>
+                <span class="gold-coin c21">🪙</span>
+                <span class="gold-coin c22">🪙</span>
+                <span class="gold-coin c23">🪙</span>
+                <span class="gold-coin c24">🪙</span>
+                <span class="gold-coin c25">🪙</span>
+
+            </div>
+
+
+            <div class="coin">
+
+                10,000
+
+                <span class="coin-unit">
+                    COIN
+                </span>
+
+            </div>
+
+
+            <div class="price">
+                59,800円
+            </div>
+
+
+            <button
+                type="button"
+                class="buy-button"
+            >
+                👑 購入する
+            </button>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================
+         ホームへ戻る
+    ====================================== -->
+
+    <div class="back-area">
+
+        <a href="/home">
+            🏠 ホームに戻る
+        </a>
+
+    </div>
+
+
+</main>
+
+
+<script>
+
+/* =========================================
+   Stripe決済
+========================================= */
+
+function payStripe(coin) {
+
+    fetch(
+        "/pay/stripe",
+        {
+
+            method:
+                "POST",
+
+            headers: {
+
+                "Content-Type":
+                    "application/json"
+            },
+
+            body:
+                JSON.stringify({
+                    amount: coin
+                })
+        }
+    )
+
+    .then(
+        response =>
+            response.json()
+    )
+
+    .then(
+        data => {
+
+            if (data.url) {
+
+                window.location.href =
+                    data.url;
+
+            } else {
+
+                alert(
+                    "Stripeエラー: "
+                    + (
+                        data.error
+                        || "不明なエラー"
+                    )
+                );
+            }
+        }
+    )
+
+    .catch(
+        error => {
+
+            console.error(
+                error
+            );
+
+            alert(
+                "決済ページを開けませんでした"
+            );
+        }
+    );
+}
+
 </script>
 
+
 </body>
+
 </html>
 
 
