@@ -486,7 +486,6 @@ body::before {
         rgba(0,0,0,0.22);
 }
 
-
 .message-form {
 
     width:
@@ -503,7 +502,8 @@ body::before {
 
     gap: 8px;
 
-    padding-left: 80px;
+    /* 入力欄・送信・ギフトを全体的に右へ */
+    padding-left: 130px;
 }
 
 
@@ -1368,8 +1368,10 @@ body::before {
 
     .message-form {
 
-        gap: 5px;
-    }
+    gap: 5px;
+
+    transform: translateX(35px);
+}
 
 
     .message-input {
