@@ -1,67 +1,623 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
+
 <head>
+
 <meta charset="UTF-8">
-<title>質問で相性診断</title>
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<title>PAIR LINK</title>
+
 <style>
-body { font-family:sans-serif; padding:20px; }
-.question { margin-bottom:20px; }
-button { padding:10px 20px; font-size:18px; }
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+    min-height: 100vh;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 15% 10%,
+            rgba(0, 210, 255, 0.20),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 85% 80%,
+            rgba(170, 65, 255, 0.28),
+            transparent 40%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+}
+
+
+.container {
+
+    width: min(720px, 94%);
+
+    margin: 0 auto;
+
+    padding:
+        30px 0
+        60px;
+}
+
+
+.header {
+
+    text-align: center;
+
+    margin-bottom: 25px;
+}
+
+
+.logo {
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    letter-spacing: 5px;
+
+    color: #62ddff;
+}
+
+
+h1 {
+
+    margin:
+        8px 0;
+
+    font-size:
+        clamp(
+            31px,
+            8vw,
+            49px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #66e7ff,
+            #cb72ff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+.description {
+
+    color: #8799b7;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+
+.game-card {
+
+    padding: 22px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 24px;
+
+    background:
+        rgba(7,17,39,0.82);
+
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,0.30);
+}
+
+
+.game-title {
+
+    text-align: center;
+
+    font-size: 20px;
+
+    font-weight: 900;
+
+    margin-bottom: 7px;
+}
+
+
+.cost {
+
+    text-align: center;
+
+    color: #ffd54a;
+
+    font-size: 14px;
+
+    font-weight: 900;
+}
+
+
+.players {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 13px;
+
+    margin:
+        25px 0;
+}
+
+
+.player {
+
+    min-height: 110px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius: 18px;
+
+    background:
+        rgba(255,255,255,0.05);
+}
+
+
+.player-icon {
+
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-size: 27px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #173255,
+            #332459
+        );
+}
+
+
+.waiting {
+
+    color: #6f81a0;
+
+    font-size: 11px;
+}
+
+
+.counter {
+
+    text-align: center;
+
+    margin-bottom: 20px;
+
+    color: #a4b8d4;
+
+    font-weight: 800;
+}
+
+
+.counter-number {
+
+    color: #67e2ff;
+
+    font-size: 23px;
+
+    font-weight: 950;
+}
+
+
+.join-button {
+
+    width: 100%;
+
+    min-height: 55px;
+
+    border: none;
+
+    border-radius: 16px;
+
+    color: white;
+
+    font-size: 15px;
+
+    font-weight: 950;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #725cff,
+            #b243ff
+        );
+
+    box-shadow:
+        0 12px 35px
+        rgba(104,70,255,0.30);
+}
+
+
+.flow {
+
+    margin-top: 20px;
+
+    padding: 17px;
+
+    border-radius: 17px;
+
+    background:
+        rgba(255,255,255,0.035);
+}
+
+
+.flow-title {
+
+    margin-bottom: 12px;
+
+    color: #69ddff;
+
+    font-size: 12px;
+
+    font-weight: 900;
+}
+
+
+.flow-step {
+
+    padding:
+        8px 0;
+
+    color: #a4b4ce;
+
+    font-size: 12px;
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.05);
+}
+
+
+.flow-step:last-child {
+
+    border-bottom: none;
+}
+
+
+.reward {
+
+    margin-top: 18px;
+
+    padding: 15px;
+
+    border:
+        1px solid
+        rgba(255,209,62,0.16);
+
+    border-radius: 16px;
+
+    text-align: center;
+
+    color: #ffdb5c;
+
+    background:
+        rgba(255,193,7,0.055);
+}
+
+
+.back {
+
+    display: block;
+
+    margin-top: 20px;
+
+    text-align: center;
+
+    color: #72deff;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: 800;
+}
+
+
+@media (max-width: 500px) {
+
+    .container {
+
+        padding-top: 20px;
+    }
+
+
+    .game-card {
+
+        padding:
+            18px 12px;
+
+        border-radius: 20px;
+    }
+
+
+    .players {
+
+        gap: 8px;
+    }
+
+
+    .player {
+
+        min-height: 95px;
+    }
+
+
+    .player-icon {
+
+        width: 46px;
+        height: 46px;
+
+        font-size: 23px;
+    }
+
+}
+
 </style>
+
 </head>
+
+
 <body>
 
-<h2>📝 質問で相性診断</h2>
+<div class="container">
 
-<form action="/answer_question" method="POST">
 
-    <div class="question">
-        <p>Q1. 好きなデートは？</p>
-        <select name="q1">
-            <option value="A">映画</option>
-            <option value="B">カフェ</option>
-            <option value="C">ショッピング</option>
-        </select>
-    </div>
+    <header class="header">
 
-    <div class="question">
-        <p>Q2. 好きな性格は？</p>
-        <select name="q2">
-            <option value="A">優しい</option>
-            <option value="B">明るい</option>
-            <option value="C">落ち着いてる</option>
-        </select>
-    </div>
+        <div class="logo">
+            PAIR LINK
+        </div>
 
-    <div class="question">
-        <p>Q3. 好きな休日の過ごし方は？</p>
-        <select name="q3">
-            <option value="A">家でゆっくり</option>
-            <option value="B">外出</option>
-            <option value="C">趣味</option>
-        </select>
-    </div>
+        <h1>
+            💕 相性診断ゲーム
+        </h1>
 
-    <div class="question">
-        <p>Q4. 好きな音楽は？</p>
-        <select name="q4">
-            <option value="A">J-POP</option>
-            <option value="B">洋楽</option>
-            <option value="C">K-POP</option>
-        </select>
-    </div>
+        <div class="description">
+            6人で話して、答えて、遊んで、
+            <br>
+            相性のいいペアを見つけよう。
+        </div>
 
-    <div class="question">
-        <p>Q5. 好きな食べ物は？</p>
-        <select name="q5">
-            <option value="A">寿司</option>
-            <option value="B">ラーメン</option>
-            <option value="C">焼肉</option>
-        </select>
-    </div>
+    </header>
 
-    <button type="submit">診断する</button>
-</form>
+
+    <main class="game-card">
+
+
+        <div class="game-title">
+            🎙 6人マッチング
+        </div>
+
+
+        <div class="cost">
+            参加費 100 COIN
+        </div>
+
+
+        <div class="players">
+
+
+            <div class="player">
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="waiting">
+                    PLAYER 1
+                </div>
+
+            </div>
+
+
+            <div class="player">
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="waiting">
+                    PLAYER 2
+                </div>
+
+            </div>
+
+
+            <div class="player">
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="waiting">
+                    PLAYER 3
+                </div>
+
+            </div>
+
+
+            <div class="player">
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="waiting">
+                    PLAYER 4
+                </div>
+
+            </div>
+
+
+            <div class="player">
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="waiting">
+                    PLAYER 5
+                </div>
+
+            </div>
+
+
+            <div class="player">
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="waiting">
+                    PLAYER 6
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="counter">
+
+            現在
+
+            <span class="counter-number">
+                0 / 6
+            </span>
+
+            人
+
+        </div>
+
+
+        <button
+            type="button"
+            class="join-button"
+        >
+            🎮 100 COINで参加
+        </button>
+
+
+        <div class="flow">
+
+            <div class="flow-title">
+                GAME FLOW
+            </div>
+
+
+            <div class="flow-step">
+                🎙 ① 1人60秒の自己紹介
+            </div>
+
+
+            <div class="flow-step">
+                📝 ② ランダム5問の相性診断
+            </div>
+
+
+            <div class="flow-step">
+                💕 ③ 相性から3ペアを決定
+            </div>
+
+
+            <div class="flow-step">
+                ⚡ ④ 2 vs 2 vs 2 PAIR REACTION
+            </div>
+
+
+            <div class="flow-step">
+                🏆 ⑤ 優勝ペア決定
+            </div>
+
+
+            <div class="flow-step">
+                💬 ⑥ ペアのチャット解放
+            </div>
+
+        </div>
+
+
+        <div class="reward">
+
+            🏆 優勝賞金
+            <br>
+            1人 200 COIN
+
+        </div>
+
+
+    </main>
+
+
+    <a href="/home" class="home-link">
+        🏠 ホームに戻る
+    </a>
+
+
+</div>
 
 </body>
+
 </html>

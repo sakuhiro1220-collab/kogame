@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <title>PAIR LINK - 回答待機</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+
+            color: white;
+
+            font-family:
+                "Segoe UI",
+                "Hiragino Sans",
+                "Yu Gothic",
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 15% 8%,
+                    rgba(0, 205, 255, 0.20),
+                    transparent 34%
+                ),
+                radial-gradient(
+                    circle at 88% 85%,
+                    rgba(165, 67, 255, 0.28),
+                    transparent 40%
+                ),
+                linear-gradient(
+                    145deg,
+                    #020617,
+                    #07162d,
+                    #100822
+                );
+
+            background-attachment: fixed;
+
+            overflow-x: hidden;
+        }
+
+
+        body::before {
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            background-image:
+                linear-gradient(
+                    rgba(255,255,255,0.022) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.022) 1px,
+                    transparent 1px
+                );
+
+            background-size: 45px 45px;
+        }
+
+
+        .container {
+            position: relative;
+
+            z-index: 2;
+
+            width: min(720px, 94%);
+
+            margin: 0 auto;
+
+            padding:
+                max(25px, env(safe-area-inset-top))
+                0
+                60px;
+        }
+
+
+        .header {
+            margin-bottom: 22px;
+
+            text-align: center;
+        }
+
+
+        .logo {
+            color: #68dfff;
+
+            font-size: 9px;
+
+            font-weight: 900;
+
+            letter-spacing: 5px;
+        }
+
+
+        .header h1 {
+            margin: 7px 0 7px;
+
+            font-size:
+                clamp(
+                    28px,
+                    7vw,
+                    40px
+                );
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff,
+                    #6ce8ff,
+                    #c67bff
+                );
+
+            background-clip: text;
+
+            -webkit-background-clip: text;
+
+            color: transparent;
+        }
+
+
+        .subtitle {
+            color: #8799b7;
+
+            font-size: 12px;
+
+            line-height: 1.7;
+        }
+
+
+        .waiting-card {
+            position: relative;
+
+            overflow: hidden;
+
+            padding: 30px 22px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.09);
+
+            border-radius: 24px;
+
+            text-align: center;
+
+            background:
+                rgba(7,17,39,0.84);
+
+            backdrop-filter:
+                blur(18px);
+
+            box-shadow:
+                0 18px 50px
+                rgba(0,0,0,0.30);
+        }
+
+
+        .waiting-card::before {
+            content: "";
+
+            position: absolute;
+
+            width: 330px;
+
+            height: 330px;
+
+            top: -130px;
+
+            left: 50%;
+
+            transform:
+                translateX(-50%);
+
+            border-radius: 50%;
+
+            pointer-events: none;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(92,208,255,0.16),
+                    rgba(128,75,255,0.08),
+                    transparent 70%
+                );
+
+            filter: blur(25px);
+        }
+
+
+        .complete-icon {
+            position: relative;
+
+            z-index: 2;
+
+            width: 82px;
+
+            height: 82px;
+
+            margin:
+                0 auto
+                17px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border:
+                1px solid
+                rgba(101,226,255,0.25);
+
+            border-radius: 50%;
+
+            color: #6ff0ca;
+
+            font-size: 37px;
+
+            font-weight: 900;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(31,150,255,0.22),
+                    rgba(141,74,255,0.22)
+                );
+
+            box-shadow:
+                0 0 35px
+                rgba(79,195,255,0.14);
+        }
+
+
+        .complete-text {
+            position: relative;
+
+            z-index: 2;
+
+            color: #6ee8c2;
+
+            font-size: 10px;
+
+            font-weight: 900;
+
+            letter-spacing: 3px;
+        }
+
+
+        .waiting-title {
+            position: relative;
+
+            z-index: 2;
+
+            margin: 8px 0 6px;
+
+            color: white;
+
+            font-size: 24px;
+
+            font-weight: 900;
+        }
+
+
+        .waiting-description {
+            position: relative;
+
+            z-index: 2;
+
+            color: #879ab8;
+
+            font-size: 12px;
+
+            line-height: 1.8;
+        }
+
+
+        .count-area {
+            position: relative;
+
+            z-index: 2;
+
+            margin-top: 25px;
+
+            padding: 14px;
+
+            border:
+                1px solid
+                rgba(101,221,255,0.08);
+
+            border-radius: 16px;
+
+            background:
+                rgba(255,255,255,0.025);
+        }
+
+
+        .count-label {
+            color: #8699b7;
+
+            font-size: 10px;
+
+            font-weight: 800;
+        }
+
+
+        .count-number {
+            margin-top: 4px;
+
+            color: #6ee5ff;
+
+            font-size: 28px;
+
+            font-weight: 900;
+        }
+
+
+        .players {
+            position: relative;
+
+            z-index: 2;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(6, 1fr);
+
+            gap: 8px;
+
+            margin-top: 20px;
+        }
+
+
+        .player {
+            min-width: 0;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            gap: 6px;
+        }
+
+
+        .player-icon {
+            width: 45px;
+
+            height: 45px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.08);
+
+            border-radius: 50%;
+
+            color: #71839f;
+
+            font-size: 20px;
+
+            background:
+                rgba(255,255,255,0.045);
+
+            transition: 0.25s;
+        }
+
+
+        .player-status {
+            overflow: hidden;
+
+            max-width: 100%;
+
+            color: #667995;
+
+            font-size: 8px;
+
+            font-weight: 800;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .player.done .player-icon {
+            color: white;
+
+            border-color:
+                rgba(100,230,255,0.30);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(20,145,255,0.45),
+                    rgba(123,77,255,0.45)
+                );
+
+            box-shadow:
+                0 0 18px
+                rgba(78,200,255,0.15);
+        }
+
+
+        .player.done .player-status {
+            color: #69e0be;
+        }
+
+
+        .loading {
+            position: relative;
+
+            z-index: 2;
+
+            width: 42px;
+
+            height: 42px;
+
+            margin:
+                26px auto
+                13px;
+
+            border:
+                3px solid
+                rgba(255,255,255,0.08);
+
+            border-top-color:
+                #64dcff;
+
+            border-right-color:
+                #9869ff;
+
+            border-radius: 50%;
+
+            animation:
+                spin 0.8s linear infinite;
+        }
+
+
+        @keyframes spin {
+            to {
+                transform:
+                    rotate(360deg);
+            }
+        }
+
+
+        .loading-text {
+            position: relative;
+
+            z-index: 2;
+
+            color: #8598b7;
+
+            font-size: 11px;
+        }
+
+
+        .all-complete {
+            display: none;
+
+            position: relative;
+
+            z-index: 2;
+
+            margin-top: 20px;
+
+            padding: 16px;
+
+            border:
+                1px solid
+                rgba(100,237,190,0.18);
+
+            border-radius: 16px;
+
+            color: #75efc8;
+
+            font-size: 12px;
+
+            font-weight: 900;
+
+            background:
+                rgba(65,225,170,0.055);
+        }
+
+
+        .next-info {
+            position: relative;
+
+            z-index: 2;
+
+            margin-top: 20px;
+
+            padding: 15px;
+
+            border:
+                1px solid
+                rgba(102,221,255,0.09);
+
+            border-radius: 16px;
+
+            color: #92a4c2;
+
+            font-size: 11px;
+
+            line-height: 1.7;
+
+            background:
+                rgba(70,132,255,0.045);
+        }
+
+
+        .next-title {
+            margin-bottom: 5px;
+
+            color: #6de0ff;
+
+            font-size: 9px;
+
+            font-weight: 900;
+
+            letter-spacing: 3px;
+        }
+
+
+        .back-area {
+            margin-top: 20px;
+
+            text-align: center;
+        }
+
+
+        .back-button {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 42px;
+
+            padding: 0 16px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.08);
+
+            border-radius: 13px;
+
+            color: #9bb0ce;
+
+            text-decoration: none;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            background:
+                rgba(255,255,255,0.04);
+        }
+
+
+        .back-button:hover {
+            color: #70ddff;
+
+            background:
+                rgba(255,255,255,0.08);
+        }
+
+
+        @media (max-width: 520px) {
+
+            .container {
+                width: 95%;
+
+                padding-top:
+                    max(
+                        20px,
+                        env(safe-area-inset-top)
+                    );
+            }
+
+
+            .waiting-card {
+                padding: 25px 12px;
+
+                border-radius: 20px;
+            }
+
+
+            .complete-icon {
+                width: 70px;
+
+                height: 70px;
+
+                font-size: 31px;
+            }
+
+
+            .waiting-title {
+                font-size: 21px;
+            }
+
+
+            .players {
+                gap: 5px;
+            }
+
+
+            .player-icon {
+                width: 38px;
+
+                height: 38px;
+
+                font-size: 17px;
+            }
+
+
+            .player-status {
+                font-size: 7px;
+            }
+        }
+
+
+        @media (max-width: 360px) {
+
+            .players {
+                grid-template-columns:
+                    repeat(3, 1fr);
+
+                gap: 14px;
+            }
+
+
+            .player-icon {
+                width: 44px;
+
+                height: 44px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<main class="container">
+
+
+    <header class="header">
+
+        <div class="logo">
+            PAIR LINK
+        </div>
+
+        <h1>
+            💕 相性診断
+        </h1>
+
+        <div class="subtitle">
+
+            回答ありがとうございます。
+
+            <br>
+
+            全員の回答が揃うまでお待ちください。
+
+        </div>
+
+    </header>
+
+
+    <section class="waiting-card">
+
+
+        <div class="complete-icon">
+            ✓
+        </div>
+
+
+        <div class="complete-text">
+            ANSWER COMPLETE
+        </div>
+
+
+        <div class="waiting-title">
+            回答完了！
+        </div>
+
+
+        <div class="waiting-description">
+
+            あなたの5つの回答を受け付けました。
+
+            <br>
+
+            他の参加者はまだ回答中です。
+
+        </div>
+
+
+        <div class="count-area">
+
+            <div class="count-label">
+                回答完了人数
+            </div>
+
+            <div
+                class="count-number"
+                id="completeCount"
+            >
+                1 / 6
+            </div>
+
+        </div>
+
+
+        <div
+            class="players"
+            id="players"
+        >
+
+
+            <div
+                class="player done"
+                id="player1"
+            >
+
+                <div class="player-icon">
+                    ✓
+                </div>
+
+                <div class="player-status">
+                    完了
+                </div>
+
+            </div>
+
+
+            <div
+                class="player"
+                id="player2"
+            >
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="player-status">
+                    回答中
+                </div>
+
+            </div>
+
+
+            <div
+                class="player"
+                id="player3"
+            >
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="player-status">
+                    回答中
+                </div>
+
+            </div>
+
+
+            <div
+                class="player"
+                id="player4"
+            >
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="player-status">
+                    回答中
+                </div>
+
+            </div>
+
+
+            <div
+                class="player"
+                id="player5"
+            >
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="player-status">
+                    回答中
+                </div>
+
+            </div>
+
+
+            <div
+                class="player"
+                id="player6"
+            >
+
+                <div class="player-icon">
+                    👤
+                </div>
+
+                <div class="player-status">
+                    回答中
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div
+            class="loading"
+            id="loading"
+        ></div>
+
+
+        <div
+            class="loading-text"
+            id="loadingText"
+        >
+            他の参加者を待っています...
+        </div>
+
+
+        <div
+            class="all-complete"
+            id="allComplete"
+        >
+
+            ✓ 全員の回答が完了しました！
+
+            <br>
+
+            相性を計算しています...
+
+        </div>
+
+
+        <div class="next-info">
+
+            <div class="next-title">
+                NEXT
+            </div>
+
+            6人全員の回答が揃うと、
+            回答内容から相性スコアを計算します。
+
+            <br><br>
+
+            相性の高い組み合わせから3ペアを作成し、
+            PAIR REACTIONへ進みます。
+
+        </div>
+
+
+    </section>
+
+
+    <div class="back-area">
+
+        <a href="/home"> 
+            🏠 ホームへ戻る
+        </a>
+
+    </div>
+
+
+</main>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+
+<script>
+
+/* =========================================
+   初期値
+========================================= */
+
+let completedPlayers = 1;
+
+
+/* =========================================
+   回答済みプレイヤー表示更新
+========================================= */
+
+function updatePlayers(count) {
+
+    if (
+        typeof count !== "number"
+    ) {
+        return;
+    }
+
+
+    if (
+        count < 1
+    ) {
+        count = 1;
+    }
+
+
+    if (
+        count > 6
+    ) {
+        count = 6;
+    }
+
+
+    completedPlayers =
+        count;
+
+
+    const countElement =
+        document.getElementById(
+            "completeCount"
+        );
+
+
+    if (
+        countElement
+    ) {
+
+        countElement.textContent =
+            completedPlayers
+            + " / 6";
+    }
+
+
+    for (
+        let number = 1;
+        number <= 6;
+        number += 1
+    ) {
+
+        const player =
+            document.getElementById(
+                "player"
+                + number
+            );
+
+
+        if (
+            !player
+        ) {
+            continue;
+        }
+
+
+        const icon =
+            player.querySelector(
+                ".player-icon"
+            );
+
+
+        const status =
+            player.querySelector(
+                ".player-status"
+            );
+
+
+        if (
+            number <=
+            completedPlayers
+        ) {
+
+            player.classList.add(
+                "done"
+            );
+
+
+            if (
+                icon
+            ) {
+
+                icon.textContent =
+                    "✓";
+            }
+
+
+            if (
+                status
+            ) {
+
+                status.textContent =
+                    "完了";
+            }
+
+        } else {
+
+            player.classList.remove(
+                "done"
+            );
+
+
+            if (
+                icon
+            ) {
+
+                icon.textContent =
+                    "👤";
+            }
+
+
+            if (
+                status
+            ) {
+
+                status.textContent =
+                    "回答中";
+            }
+        }
+    }
+
+
+    if (
+        completedPlayers >= 6
+    ) {
+
+        showAllComplete();
+    }
+}
+
+
+/* =========================================
+   全員回答完了
+========================================= */
+
+function showAllComplete() {
+
+    const loading =
+        document.getElementById(
+            "loading"
+        );
+
+
+    const loadingText =
+        document.getElementById(
+            "loadingText"
+        );
+
+
+    const allComplete =
+        document.getElementById(
+            "allComplete"
+        );
+
+
+    if (
+        loading
+    ) {
+
+        loading.style.display =
+            "none";
+    }
+
+
+    if (
+        loadingText
+    ) {
+
+        loadingText.style.display =
+            "none";
+    }
+
+
+    if (
+        allComplete
+    ) {
+
+        allComplete.style.display =
+            "block";
+    }
+}
+
+
+/* =========================================
+   Socket.IO
+========================================= */
+
+if (
+    typeof io !==
+    "undefined"
+) {
+
+    const socket =
+        io();
+
+
+    socket.on(
+        "connect",
+        function() {
+
+            console.log(
+                "PAIR LINK Socket接続完了"
+            );
+
+
+            socket.emit(
+                "pair_link_join_waiting",
+                {}
+            );
+        }
+    );
+
+
+    /* =====================================
+       回答人数更新
+    ====================================== */
+
+    socket.on(
+        "pair_link_answer_count",
+        function(data) {
+
+            if (
+                !data
+            ) {
+                return;
+            }
+
+
+            const count =
+                Number(
+                    data.count
+                );
+
+
+            if (
+                Number.isNaN(
+                    count
+                )
+            ) {
+                return;
+            }
+
+
+            updatePlayers(
+                count
+            );
+        }
+    );
+
+
+    /* =====================================
+       6人全員回答完了
+    ====================================== */
+
+    socket.on(
+        "pair_link_all_answered",
+        function(data) {
+
+            updatePlayers(
+                6
+            );
+
+
+            if (
+                data
+                &&
+                data.next_url
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        window.location.href =
+                            data.next_url;
+
+                    },
+                    1800
+                );
+            }
+        }
+    );
+
+
+    /* =====================================
+       Socket切断
+    ====================================== */
+
+    socket.on(
+        "disconnect",
+        function() {
+
+            console.log(
+                "PAIR LINK Socket切断"
+            );
+        }
+    );
+
+}
+
+
+/* =========================================
+   初期表示
+========================================= */
+
+updatePlayers(
+    completedPlayers
+);
+
+</script>
+
+
+</body>
+
+</html>

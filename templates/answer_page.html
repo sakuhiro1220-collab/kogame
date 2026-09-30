@@ -1,49 +1,1356 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <title>質問ページ</title>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<title>PAIR LINK - 相性診断</title>
+
+<style>
+
+/* =========================================
+   基本
+========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+
+    min-height: 100vh;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 15% 8%,
+            rgba(0,205,255,0.20),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 88% 85%,
+            rgba(165,67,255,0.28),
+            transparent 40%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+
+    background-attachment: fixed;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.022) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        45px 45px;
+}
+
+
+/* =========================================
+   全体
+========================================= */
+
+.container {
+
+    position: relative;
+
+    z-index: 2;
+
+    width:
+        min(
+            720px,
+            94%
+        );
+
+    margin:
+        0 auto;
+
+    padding:
+        max(25px, env(safe-area-inset-top))
+        0
+        60px;
+}
+
+
+/* =========================================
+   ヘッダー
+========================================= */
+
+.header {
+
+    margin-bottom: 22px;
+
+    text-align: center;
+}
+
+
+.logo {
+
+    color: #65dfff;
+
+    font-size: 9px;
+
+    font-weight: 950;
+
+    letter-spacing: 5px;
+}
+
+
+.header h1 {
+
+    margin:
+        7px 0
+        6px;
+
+    font-size:
+        clamp(
+            27px,
+            7vw,
+            39px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #6de6ff,
+            #c07aff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+.description {
+
+    color: #8799b7;
+
+    font-size: 12px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================
+   進捗
+========================================= */
+
+.progress-area {
+
+    margin-bottom: 16px;
+}
+
+
+.progress-top {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 8px;
+
+    color: #92a5c3;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+
+.progress-count {
+
+    color: #6ee3ff;
+
+    font-weight: 950;
+}
+
+
+.progress-bar {
+
+    width: 100%;
+
+    height: 7px;
+
+    overflow: hidden;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,0.07);
+}
+
+
+.progress-fill {
+
+    width: 20%;
+
+    height: 100%;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            #19baff,
+            #765cff,
+            #d44dff
+        );
+
+    transition:
+        width 0.3s ease;
+}
+
+
+/* =========================================
+   質問カード
+========================================= */
+
+.question-card {
+
+    position: relative;
+
+    overflow: hidden;
+
+    padding:
+        25px 22px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius: 23px;
+
+    background:
+        rgba(7,17,39,0.84);
+
+    backdrop-filter:
+        blur(18px);
+
+    box-shadow:
+        0 18px 50px
+        rgba(0,0,0,0.30);
+}
+
+
+.question-card::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 250px;
+
+    height: 250px;
+
+    top: -130px;
+
+    right: -100px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(119,71,255,0.14);
+
+    filter:
+        blur(35px);
+
+    pointer-events: none;
+}
+
+
+/* =========================================
+   質問ページ
+========================================= */
+
+.question-page {
+
+    display: none;
+
+    position: relative;
+
+    z-index: 2;
+}
+
+
+.question-page.active {
+
+    display: block;
+}
+
+
+/* =========================================
+   質問番号
+========================================= */
+
+.question-number {
+
+    color: #68dfff;
+
+    font-size: 10px;
+
+    font-weight: 950;
+
+    letter-spacing: 3px;
+}
+
+
+/* =========================================
+   質問文
+========================================= */
+
+.question-title {
+
+    margin:
+        10px 0
+        23px;
+
+    color: white;
+
+    font-size:
+        clamp(
+            20px,
+            5vw,
+            27px
+        );
+
+    font-weight: 950;
+
+    line-height: 1.45;
+}
+
+
+/* =========================================
+   選択肢
+========================================= */
+
+.options {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 11px;
+}
+
+
+.option {
+
+    appearance: none;
+
+    position: relative;
+
+    min-height: 85px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 12px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius: 16px;
+
+    color: #dce8fa;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    background:
+        rgba(255,255,255,0.045);
+
+    font-family: inherit;
+
+    transition:
+        transform 0.18s,
+        background 0.18s,
+        border-color 0.18s,
+        box-shadow 0.18s;
+}
+
+
+.option:hover {
+
+    transform:
+        translateY(-2px);
+
+    border-color:
+        rgba(87,218,255,0.30);
+
+    background:
+        rgba(82,146,255,0.10);
+}
+
+
+.option.selected {
+
+    border-color: #65e1ff;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(26,147,255,0.22),
+            rgba(139,73,255,0.22)
+        );
+
+    box-shadow:
+        0 0 22px
+        rgba(75,189,255,0.13);
+}
+
+
+.option-letter {
+
+    width: 29px;
+
+    height: 29px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    color: #72e2ff;
+
+    font-size: 11px;
+
+    font-weight: 950;
+
+    background:
+        rgba(100,220,255,0.10);
+}
+
+
+.option.selected .option-letter {
+
+    color: #061629;
+
+    background:
+        linear-gradient(
+            135deg,
+            #70eaff,
+            #a799ff
+        );
+}
+
+
+.option-text {
+
+    font-size: 13px;
+
+    font-weight: 850;
+
+    line-height: 1.35;
+}
+
+
+/* =========================================
+   下部操作
+========================================= */
+
+.bottom-area {
+
+    position: relative;
+
+    z-index: 2;
+
+    margin-top: 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+
+.status {
+
+    color: #7487a6;
+
+    font-size: 10px;
+
+    line-height: 1.5;
+}
+
+
+.status.answered {
+
+    color: #66e4bb;
+}
+
+
+/* =========================================
+   次へボタン
+========================================= */
+
+.next-button {
+
+    min-width: 125px;
+
+    min-height: 46px;
+
+    padding:
+        0 17px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    color: white;
+
+    font-size: 12px;
+
+    font-weight: 950;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            #198fff,
+            #795cff,
+            #b84bff
+        );
+
+    box-shadow:
+        0 9px 25px
+        rgba(87,75,255,0.25);
+
+    transition:
+        opacity 0.2s,
+        transform 0.2s;
+}
+
+
+.next-button:disabled {
+
+    opacity: 0.38;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
+}
+
+
+.next-button:not(:disabled):hover {
+
+    transform:
+        translateY(-2px);
+}
+
+
+/* =========================================
+   注意書き
+========================================= */
+
+.notice {
+
+    margin-top: 15px;
+
+    padding:
+        12px 14px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.06);
+
+    border-radius: 14px;
+
+    color: #7183a1;
+
+    font-size: 10px;
+
+    line-height: 1.6;
+
+    text-align: center;
+
+    background:
+        rgba(255,255,255,0.03);
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 520px) {
+
+    .container {
+
+        width: 95%;
+
+        padding-top:
+            max(
+                18px,
+                env(safe-area-inset-top)
+            );
+    }
+
+
+    .header {
+
+        margin-bottom: 15px;
+    }
+
+
+    .header h1 {
+
+        font-size: 27px;
+    }
+
+
+    .question-card {
+
+        padding:
+            20px 13px;
+
+        border-radius: 19px;
+    }
+
+
+    .question-title {
+
+        margin-bottom: 17px;
+
+        font-size: 19px;
+    }
+
+
+    .options {
+
+        gap: 8px;
+    }
+
+
+    .option {
+
+        min-height: 78px;
+
+        padding:
+            9px 7px;
+
+        border-radius: 14px;
+    }
+
+
+    .option-text {
+
+        font-size: 11px;
+    }
+
+
+    .bottom-area {
+
+        align-items: flex-end;
+    }
+
+
+    .next-button {
+
+        min-width: 110px;
+
+        min-height: 43px;
+    }
+
+}
+
+
+/* =========================================
+   小さいスマホ
+========================================= */
+
+@media (max-width: 360px) {
+
+    .options {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .option {
+
+        min-height: 60px;
+
+        flex-direction: row;
+
+        justify-content: flex-start;
+
+        text-align: left;
+    }
+
+
+    .option-text {
+
+        text-align: left;
+    }
+
+}
+
+</style>
+
 </head>
+
+
 <body>
-    <h1>相性診断</h1>
 
-    <form action="/answer" method="post">
-        <label>Q1：好きな色は？</label><br>
-        <select name="q1">
-            <option value="A">赤</option>
-            <option value="B">青</option>
-            <option value="C">緑</option>
-        </select><br><br>
 
-        <label>Q2：休日は？</label><br>
-        <select name="q2">
-            <option value="A">家でゆっくり</option>
-            <option value="B">外出する</option>
-            <option value="C">ゲームする</option>
-        </select><br><br>
+<main class="container">
 
-        <label>Q3：好きな食べ物は？</label><br>
-        <select name="q3">
-            <option value="A">寿司</option>
-            <option value="B">ラーメン</option>
-            <option value="C">焼肉</option>
-        </select><br><br>
 
-        <label>Q4：性格は？</label><br>
-        <select name="q4">
-            <option value="A">明るい</option>
-            <option value="B">静か</option>
-            <option value="C">気分屋</option>
-        </select><br><br>
+    <!-- =====================================
+         ヘッダー
+    ====================================== -->
 
-        <label>Q5：好きなタイプは？</label><br>
-        <select name="q5">
-            <option value="A">優しい</option>
-            <option value="B">面白い</option>
-            <option value="C">落ち着いてる</option>
-        </select><br><br>
+    <header class="header">
 
-        <button type="submit">診断する</button>
+        <div class="logo">
+            PAIR LINK
+        </div>
+
+        <h1>
+            💕 相性診断
+        </h1>
+
+        <div class="description">
+
+            直感で答えてください。
+
+            <br>
+
+            他の参加者の回答は
+            診断終了まで表示されません。
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================
+         進捗
+    ====================================== -->
+
+    <div class="progress-area">
+
+        <div class="progress-top">
+
+            <span>
+                COMPATIBILITY QUESTIONS
+            </span>
+
+            <span
+                class="progress-count"
+                id="progressCount"
+            >
+                1 / {{ questions|length }}
+            </span>
+
+        </div>
+
+
+        <div class="progress-bar">
+
+            <div
+                class="progress-fill"
+                id="progressFill"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         回答フォーム
+    ====================================== -->
+
+    /answer_question
+
+
+        <section class="question-card">
+
+
+            <!-- =============================
+                 質問一覧
+            ============================== -->
+
+            {% for question in questions %}
+
+                {% set question_index = loop.index0 %}
+                {% set question_number = loop.index %}
+
+
+                <div
+                    class="question-page {% if loop.first %}active{% endif %}"
+                    data-index="{{ question_index }}"
+                >
+
+
+                    <div class="question-number">
+
+                        QUESTION
+                        {{ question_number }}
+                        /
+                        {{ questions|length }}
+
+                    </div>
+
+
+                    <div class="question-title">
+
+                        {{ question.text }}
+
+                    </div>
+
+
+                    <div class="options">
+
+
+                        {% for option in question.options %}
+
+
+                            <button
+                                type="button"
+                                class="option"
+                                data-question-index="{{ question_index }}"
+                                data-value="{{ option.value }}"
+                                onclick="selectAnswerFromButton(this)"
+                            >
+
+
+                                <span class="option-letter">
+
+                                    {{ option.value }}
+
+                                </span>
+
+
+                                <span class="option-text">
+
+                                    {{ option.text }}
+
+                                </span>
+
+
+                            </button>
+
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                    <input
+                        type="hidden"
+                        name="q{{ question_number }}"
+                        id="answer{{ question_index }}"
+                        value=""
+                    >
+
+
+                </div>
+
+
+            {% endfor %}
+
+
+            <!-- =============================
+                 操作部分
+            ============================== -->
+
+            <div class="bottom-area">
+
+
+                <div
+                    class="status"
+                    id="statusText"
+                >
+
+                    回答を1つ選択してください
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="next-button"
+                    id="nextButton"
+                    disabled
+                    onclick="nextQuestion()"
+                >
+
+                    次へ
+
+                </button>
+
+
+            </div>
+
+
+        </section>
+
+
     </form>
+
+
+    <div class="notice">
+
+        💡 回答中は他の参加者の選択肢を見ることはできません。
+
+        <br>
+
+        すべての回答が完了すると相性判定へ進みます。
+
+    </div>
+
+
+</main>
+
+
+<script>
+
+/* =========================================
+   基本情報
+========================================= */
+
+const questionPages =
+    document.querySelectorAll(
+        ".question-page"
+    );
+
+
+const totalQuestions =
+    questionPages.length;
+
+
+let currentQuestion = 0;
+
+
+const answers =
+    new Array(
+        totalQuestions
+    ).fill(null);
+
+
+/* =========================================
+   ボタンから回答を取得
+========================================= */
+
+function selectAnswerFromButton(button) {
+
+    const questionIndex =
+        Number(
+            button.dataset.questionIndex
+        );
+
+
+    const value =
+        button.dataset.value;
+
+
+    selectAnswer(
+        questionIndex,
+        value,
+        button
+    );
+}
+
+
+/* =========================================
+   回答選択
+========================================= */
+
+function selectAnswer(
+    questionIndex,
+    value,
+    element
+) {
+
+    answers[
+        questionIndex
+    ] = value;
+
+
+    const page =
+        document.querySelector(
+            '.question-page[data-index="'
+            + questionIndex
+            + '"]'
+        );
+
+
+    if (!page) {
+
+        return;
+    }
+
+
+    const options =
+        page.querySelectorAll(
+            ".option"
+        );
+
+
+    options.forEach(
+        function(option) {
+
+            option.classList.remove(
+                "selected"
+            );
+        }
+    );
+
+
+    element.classList.add(
+        "selected"
+    );
+
+
+    const hiddenInput =
+        document.getElementById(
+            "answer"
+            + questionIndex
+        );
+
+
+    if (hiddenInput) {
+
+        hiddenInput.value =
+            value;
+    }
+
+
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    nextButton.disabled =
+        false;
+
+
+    const statusText =
+        document.getElementById(
+            "statusText"
+        );
+
+
+    statusText.textContent =
+        "✓ 回答しました";
+
+
+    statusText.classList.add(
+        "answered"
+    );
+}
+
+
+/* =========================================
+   次の質問へ
+========================================= */
+
+function nextQuestion() {
+
+    if (
+        totalQuestions === 0
+    ) {
+
+        return;
+    }
+
+
+    if (
+        answers[currentQuestion]
+        === null
+    ) {
+
+        return;
+    }
+
+
+    /* =====================================
+       最終質問なら送信
+    ====================================== */
+
+    if (
+        currentQuestion
+        === totalQuestions - 1
+    ) {
+
+        submitAnswers();
+
+        return;
+    }
+
+
+    questionPages[
+        currentQuestion
+    ].classList.remove(
+        "active"
+    );
+
+
+    currentQuestion += 1;
+
+
+    questionPages[
+        currentQuestion
+    ].classList.add(
+        "active"
+    );
+
+
+    updateScreen();
+}
+
+
+/* =========================================
+   画面更新
+========================================= */
+
+function updateScreen() {
+
+    const number =
+        currentQuestion + 1;
+
+
+    const progressCount =
+        document.getElementById(
+            "progressCount"
+        );
+
+
+    progressCount.textContent =
+        number
+        + " / "
+        + totalQuestions;
+
+
+    const progressFill =
+        document.getElementById(
+            "progressFill"
+        );
+
+
+    progressFill.style.width =
+        (
+            number
+            / totalQuestions
+            * 100
+        )
+        + "%";
+
+
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    if (
+        currentQuestion
+        === totalQuestions - 1
+    ) {
+
+        nextButton.textContent =
+            "回答を送信";
+
+    } else {
+
+        nextButton.textContent =
+            "次へ";
+    }
+
+
+    if (
+        answers[currentQuestion]
+        === null
+    ) {
+
+        nextButton.disabled =
+            true;
+
+    } else {
+
+        nextButton.disabled =
+            false;
+    }
+
+
+    const statusText =
+        document.getElementById(
+            "statusText"
+        );
+
+
+    if (
+        answers[currentQuestion]
+        === null
+    ) {
+
+        statusText.textContent =
+            "回答を1つ選択してください";
+
+
+        statusText.classList.remove(
+            "answered"
+        );
+
+    } else {
+
+        statusText.textContent =
+            "✓ 回答しました";
+
+
+        statusText.classList.add(
+            "answered"
+        );
+    }
+}
+
+
+/* =========================================
+   回答送信
+========================================= */
+
+function submitAnswers() {
+
+    for (
+        let index = 0;
+        index < totalQuestions;
+        index += 1
+    ) {
+
+        if (
+            answers[index]
+            === null
+        ) {
+
+            return;
+        }
+    }
+
+
+    const nextButton =
+        document.getElementById(
+            "nextButton"
+        );
+
+
+    nextButton.disabled =
+        true;
+
+
+    nextButton.textContent =
+        "送信中...";
+
+
+    const statusText =
+        document.getElementById(
+            "statusText"
+        );
+
+
+    statusText.textContent =
+        "回答を送信しています";
+
+
+    document.getElementById(
+        "questionForm"
+    ).submit();
+}
+
+
+/* =========================================
+   初期表示
+========================================= */
+
+if (
+    totalQuestions > 0
+) {
+
+    updateScreen();
+
+}
+
+</script>
+
+
 </body>
+
 </html>

@@ -485,25 +485,17 @@ body::before {
         0 -10px 35px
         rgba(0,0,0,0.22);
 }
-
 .message-form {
 
-    width:
-        min(
-            900px,
-            100%
-        );
+    width: min(900px, calc(100% - 120px));
 
-    margin: 0 auto;
+    margin-left: 120px;
+    margin-right: 0;
 
     display: flex;
-
     align-items: center;
 
     gap: 8px;
-
-    /* 入力欄・送信・ギフトを全体的に右へ */
-    padding-left: 130px;
 }
 
 
@@ -1366,11 +1358,21 @@ body::before {
     }
 
 
+    @media (max-width: 600px) {
+
     .message-form {
 
-    gap: 5px;
+        width: calc(100% - 35px);
 
-    transform: translateX(35px);
+        margin-left: 35px;
+        margin-right: 0;
+
+        gap: 5px;
+
+        transform: none;
+        padding-left: 0;
+    }
+
 }
 
 

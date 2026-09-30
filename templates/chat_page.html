@@ -91,7 +91,8 @@ body::before {
             transparent 1px
         );
 
-    background-size: 45px 45px;
+    background-size:
+        45px 45px;
 }
 
 
@@ -132,9 +133,14 @@ body::before {
 
 .header-inner {
 
-    width: min(850px, 100%);
+    width:
+        min(
+            850px,
+            100%
+        );
 
-    margin: 0 auto;
+    margin:
+        0 auto;
 
     display: flex;
 
@@ -146,14 +152,17 @@ body::before {
 }
 
 
+/* =========================================
+   タイトル
+========================================= */
+
 .title-area {
+
     min-width: 0;
 }
 
 
 .small-title {
-
-    margin-bottom: 3px;
 
     color: #67ddff;
 
@@ -162,6 +171,8 @@ body::before {
     font-weight: 900;
 
     letter-spacing: 3px;
+
+    margin-bottom: 3px;
 }
 
 
@@ -169,14 +180,14 @@ body::before {
 
     margin: 0;
 
-    white-space: nowrap;
-
     font-size:
         clamp(
             21px,
             5vw,
             30px
         );
+
+    white-space: nowrap;
 
     background:
         linear-gradient(
@@ -195,7 +206,7 @@ body::before {
 
 
 /* =========================================
-   ホーム
+   ホームボタン
 ========================================= */
 
 .home-button {
@@ -204,7 +215,8 @@ body::before {
 
     min-height: 44px;
 
-    padding: 0 16px;
+    padding:
+        0 16px;
 
     border:
         1px solid
@@ -214,19 +226,11 @@ body::before {
 
     color: white;
 
-    text-decoration: none;
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 5px;
-
     font-size: 13px;
 
     font-weight: 900;
+
+    cursor: pointer;
 
     background:
         linear-gradient(
@@ -247,7 +251,8 @@ body::before {
 
 .home-button:hover {
 
-    transform: translateY(-2px);
+    transform:
+        translateY(-2px);
 
     box-shadow:
         0 12px 30px
@@ -265,7 +270,11 @@ body::before {
 
     z-index: 2;
 
-    width: min(850px, 94%);
+    width:
+        min(
+            850px,
+            94%
+        );
 
     margin:
         25px auto
@@ -274,14 +283,15 @@ body::before {
 
 
 /* =========================================
-   説明
+   説明エリア
 ========================================= */
 
 .chat-summary {
 
     margin-bottom: 17px;
 
-    padding: 15px 17px;
+    padding:
+        15px 17px;
 
     border:
         1px solid
@@ -318,16 +328,26 @@ body::before {
 
 
 /* =========================================
+   リンク
+========================================= */
+
+.chat-link {
+
+    display: block;
+
+    color: inherit;
+
+    text-decoration: none;
+}
+
+
+/* =========================================
    チャットカード
 ========================================= */
 
-.chat-card {
+.chat-item {
 
     position: relative;
-
-    width: 100%;
-
-    min-height: 82px;
 
     display: flex;
 
@@ -335,7 +355,10 @@ body::before {
 
     gap: 14px;
 
-    padding: 13px 16px;
+    min-height: 82px;
+
+    padding:
+        13px 16px;
 
     overflow: hidden;
 
@@ -344,10 +367,6 @@ body::before {
         rgba(255,255,255,0.08);
 
     border-radius: 19px;
-
-    color: white;
-
-    text-decoration: none;
 
     background:
         rgba(7,17,39,0.80);
@@ -359,8 +378,6 @@ body::before {
         0 10px 30px
         rgba(0,0,0,0.20);
 
-    cursor: pointer;
-
     transition:
         transform 0.2s,
         background 0.2s,
@@ -369,7 +386,7 @@ body::before {
 }
 
 
-.chat-card:hover {
+.chat-item:hover {
 
     transform:
         translateY(-3px);
@@ -386,9 +403,9 @@ body::before {
 }
 
 
-/* 左アクセント */
+/* 左側アクセント */
 
-.chat-card::before {
+.chat-item::before {
 
     content: "";
 
@@ -416,97 +433,57 @@ body::before {
 }
 
 
-.chat-card:hover::before {
+.chat-item:hover::before {
+
     opacity: 1;
 }
 
 
 /* =========================================
-   アイコン
+   プロフィール画像
 ========================================= */
 
-.avatar-area {
+.photo-wrapper {
 
     position: relative;
 
     flex-shrink: 0;
-
-    width: 58px;
-    height: 58px;
 }
 
 
-.avatar {
+.chat-item img {
 
     display: block;
 
     width: 58px;
     height: 58px;
 
-    object-fit: cover;
+    margin: 0;
 
     border-radius: 50%;
+
+    object-fit: cover;
+
+    background: #16223b;
 
     border:
         2px solid
         rgba(106,223,255,0.28);
 
-    background: #16223b;
-
     box-shadow:
         0 5px 18px
         rgba(0,0,0,0.25);
 }
 
 
-/* =========================================
-   写真なし
-========================================= */
-
-.avatar-default {
-
-    width: 58px;
-    height: 58px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    border-radius: 50%;
-
-    border:
-        2px solid
-        rgba(106,223,255,0.22);
-
-    color: #d9e9ff;
-
-    font-size: 28px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #122746,
-            #251a47
-        );
-
-    box-shadow:
-        0 5px 18px
-        rgba(0,0,0,0.25);
-}
-
-
-/* =========================================
-   オンライン風ドット
-========================================= */
+/* オンライン風の装飾 */
 
 .status-dot {
 
     position: absolute;
 
-    right: 0;
-    bottom: 1px;
+    right: 1px;
+    bottom: 2px;
 
     width: 13px;
     height: 13px;
@@ -527,10 +504,10 @@ body::before {
 
 
 /* =========================================
-   チャット情報
+   メッセージ情報
 ========================================= */
 
-.chat-info {
+.chat-content {
 
     flex: 1;
 
@@ -538,7 +515,7 @@ body::before {
 }
 
 
-.chat-name {
+.name {
 
     overflow: hidden;
 
@@ -554,7 +531,7 @@ body::before {
 }
 
 
-.last-message {
+.message {
 
     margin-top: 6px;
 
@@ -591,7 +568,7 @@ body::before {
 
     color: #75dfff;
 
-    font-size: 22px;
+    font-size: 20px;
 
     background:
         rgba(96,213,255,0.07);
@@ -602,7 +579,7 @@ body::before {
 }
 
 
-.chat-card:hover .chat-arrow {
+.chat-item:hover .chat-arrow {
 
     transform:
         translateX(3px);
@@ -613,7 +590,7 @@ body::before {
 
 
 /* =========================================
-   チャットなし
+   チャットがない場合
 ========================================= */
 
 .empty {
@@ -678,12 +655,12 @@ body::before {
     .header {
 
         padding-left: 10px;
-
         padding-right: 10px;
     }
 
 
     .header-inner {
+
         gap: 8px;
     }
 
@@ -697,6 +674,7 @@ body::before {
 
 
     .header h1 {
+
         font-size: 19px;
     }
 
@@ -705,7 +683,8 @@ body::before {
 
         min-height: 39px;
 
-        padding: 0 10px;
+        padding:
+            0 10px;
 
         font-size: 11px;
     }
@@ -721,7 +700,8 @@ body::before {
 
     .chat-summary {
 
-        padding: 11px 13px;
+        padding:
+            11px 13px;
 
         margin-bottom: 11px;
 
@@ -730,15 +710,17 @@ body::before {
 
 
     .chat-list {
+
         gap: 8px;
     }
 
 
-    .chat-card {
+    .chat-item {
 
         min-height: 75px;
 
-        padding: 10px 11px;
+        padding:
+            10px 11px;
 
         gap: 11px;
 
@@ -746,9 +728,7 @@ body::before {
     }
 
 
-    .avatar-area,
-    .avatar,
-    .avatar-default {
+    .chat-item img {
 
         width: 52px;
 
@@ -756,18 +736,13 @@ body::before {
     }
 
 
-    .avatar-default {
+    .name {
 
-        font-size: 25px;
-    }
-
-
-    .chat-name {
         font-size: 14px;
     }
 
 
-    .last-message {
+    .message {
 
         margin-top: 4px;
 
@@ -781,7 +756,7 @@ body::before {
 
         height: 30px;
 
-        font-size: 18px;
+        font-size: 17px;
     }
 }
 
@@ -793,6 +768,7 @@ body::before {
 @media (max-width: 360px) {
 
     .home-text {
+
         display: none;
     }
 
@@ -806,6 +782,7 @@ body::before {
 
 
     .chat-arrow {
+
         display: none;
     }
 }
@@ -826,6 +803,7 @@ body::before {
 
     <div class="header-inner">
 
+
         <div class="title-area">
 
             <div class="small-title">
@@ -839,13 +817,20 @@ body::before {
         </div>
 
 
-        /home
+        <button
+            type="button"
+            class="home-button"
+            onclick="location.href='/home'"
+        >
+
             🏠
 
             <span class="home-text">
                 ホームに戻る
             </span>
-        </a>
+
+        </button>
+
 
     </div>
 
@@ -875,116 +860,73 @@ body::before {
 
             {% for partner, msg in partners.items() %}
 
+<a
+    href="{{ url_for('chat_room', partner=partner) }}"
+    class="chat-card"
+>
 
-                 }}"
-                    class="chat-card"
-                >
+    <!-- プロフィール画像 -->
+ {% if users[partner].photo_url %}
 
+            <img
+                src="{{ users[partner].photo_url }}"
+                alt="プロフィール画像"
+               style="display:none;"
+            >
+                👤
+            </div>
 
-                    <!-- =========================
-                         プロフィール画像
-                    ========================== -->
+        {% else %}
 
-                    <div class="avatar-area">
+            <div class="avatar-default">
+                👤
+            </div>
 
+        {% endif %}
 
-                        {% if users.get(partner) and users[partner].photo_url %}
-
-
-                            {{ users[partner].photo_url }}                            >
-
-
-                            <div
-                                class="avatar-default"
-                                style="display:none;"
-                            >
-                                👤
-                            </div>
-
-
-                        {% else %}
+    </div>
 
 
-                            <div class="avatar-default">
-                                👤
-                            </div>
+    <!-- 相手情報 -->
+    <div class="chat-info">
+
+        <div class="chat-name">
+            {{ users[partner].name }}
+        </div>
+
+        <div class="last-message">
+
+            {% if msg.gift %}
+
+                🎁 {{ msg.message }}
+
+            {% elif msg.message %}
+
+                {{ msg.message }}
+
+            {% elif msg.photo %}
+
+                📷 写真
+
+            {% else %}
+
+                メッセージがあります
+
+            {% endif %}
+
+        </div>
+
+    </div>
 
 
-                        {% endif %}
+    <!-- 右矢印 -->
+    <div class="chat-arrow">
+        ›
+    </div>
 
+</a>
 
-                        <span class="status-dot"></span>
-
-
-                    </div>
-
-
-                    <!-- =========================
-                         相手情報
-                    ========================== -->
-
-                    <div class="chat-info">
-
-
-                        <div class="chat-name">
-
-                            {% if users.get(partner) %}
-
-                                {{ users[partner].name }}
-
-                            {% else %}
-
-                                {{ partner }}
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <div class="last-message">
-
-
-                            {% if msg.gift %}
-
-                                🎁 {{ msg.message }}
-
-
-                            {% elif msg.message %}
-
-                                {{ msg.message }}
-
-
-                            {% elif msg.photo %}
-
-                                📷 写真
-
-
-                            {% else %}
-
-                                メッセージがあります
-
-                            {% endif %}
-
-
-                        </div>
-
-
-                    </div>
-
-
-                    <!-- =========================
-                         右矢印
-                    ========================== -->
-
-                    <div class="chat-arrow">
-                        ›
-                    </div>
-
-
-                </a>
-
-
-            {% endfor %}
+{% endfor %}
 
 
         </div>
@@ -993,23 +935,35 @@ body::before {
     {% else %}
 
 
+        <!-- =================================
+             チャットがない場合
+        ================================== -->
+
         <div class="empty">
 
+
             <div class="empty-icon">
+
                 💬
+
             </div>
 
 
             <h2>
+
                 まだチャットはありません
+
             </h2>
 
 
             <p>
+
                 マッチした相手とのチャットが
                 <br>
                 ここに表示されます。
+
             </p>
+
 
         </div>
 
@@ -1018,32 +972,6 @@ body::before {
 
 
 </main>
-
-
-<script>
-
-/* =========================================
-   プロフィール写真読み込み失敗時
-========================================= */
-
-function showDefaultAvatar(image) {
-
-    image.style.display =
-        "none";
-
-
-    const defaultAvatar =
-        image.nextElementSibling;
-
-
-    if (defaultAvatar) {
-
-        defaultAvatar.style.display =
-            "flex";
-    }
-}
-
-</script>
 
 
 </body>

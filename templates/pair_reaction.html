@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<title>PAIR REACTION</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+
+    min-height: 100vh;
+
+    color: white;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 15% 8%,
+            rgba(0,205,255,0.18),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 88% 85%,
+            rgba(165,67,255,0.28),
+            transparent 40%
+        ),
+        linear-gradient(
+            145deg,
+            #020617,
+            #07162d,
+            #100822
+        );
+
+    overflow-x: hidden;
+}
+
+
+.container {
+
+    width: min(760px, 94%);
+
+    margin: 0 auto;
+
+    padding:
+        28px 0
+        60px;
+}
+
+
+.header {
+
+    text-align: center;
+
+    margin-bottom: 20px;
+}
+
+
+.logo {
+
+    color: #67e2ff;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 5px;
+}
+
+
+h1 {
+
+    margin: 7px 0;
+
+    font-size:
+        clamp(
+            29px,
+            7vw,
+            42px
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #65e6ff,
+            #c16fff
+        );
+
+    background-clip: text;
+
+    -webkit-background-clip: text;
+
+    color: transparent;
+}
+
+
+.sub {
+
+    color: #8396b4;
+
+    font-size: 12px;
+}
+
+
+/* -----------------------------------------
+   ラウンド
+----------------------------------------- */
+
+.round-area {
+
+    margin-bottom: 15px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+}
+
+
+.round {
+
+    color: #6ce4ff;
+
+    font-size: 12px;
+
+    font-weight: 900;
+}
+
+
+.timer {
+
+    color: #ffda66;
+
+    font-size: 19px;
+
+    font-weight: 900;
+}
+
+
+/* -----------------------------------------
+   ゲームカード
+----------------------------------------- */
+
+.game-card {
+
+    position: relative;
+
+    padding: 25px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius: 24px;
+
+    text-align: center;
+
+    background:
+        rgba(7,17,39,0.86);
+
+    box-shadow:
+        0 20px 55px
+        rgba(0,0,0,0.30);
+}
+
+
+.rule-label {
+
+    color: #8092af;
+
+    font-size: 10px;
+
+    letter-spacing: 2px;
+
+    font-weight: 900;
+}
+
+
+.instruction {
+
+    margin:
+        10px 0
+        21px;
+
+    font-size:
+        clamp(
+            23px,
+            6vw,
+            34px
+        );
+
+    font-weight: 900;
+}
+
+
+/* -----------------------------------------
+   選択肢
+----------------------------------------- */
+
+.reaction-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 12px;
+}
+
+
+.reaction-button {
+
+    height: 125px;
+
+    border:
+        2px solid
+        rgba(255,255,255,0.13);
+
+    border-radius: 20px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    font-weight: 900;
+
+    color: white;
+
+    transition:
+        transform 0.12s,
+        filter 0.12s;
+}
+
+
+.reaction-button:active {
+
+    transform:
+        scale(0.96);
+}
+
+
+.red {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff334f,
+            #b90028
+        );
+}
+
+
+.blue {
+
+    background:
+        linear-gradient(
+            135deg,
+            #258cff,
+            #1342cb
+        );
+}
+
+
+.green {
+
+    background:
+        linear-gradient(
+            135deg,
+            #37db8b,
+            #078552
+        );
+}
+
+
+.yellow {
+
+    color: #302300;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffe563,
+            #f5a900
+        );
+}
+
+
+/* -----------------------------------------
+   結果表示
+----------------------------------------- */
+
+.message {
+
+    min-height: 26px;
+
+    margin-top: 17px;
+
+    font-size: 13px;
+
+    font-weight: 900;
+}
+
+
+.correct {
+
+    color: #68edbe;
+}
+
+
+.wrong {
+
+    color: #ff7182;
+}
+
+
+/* -----------------------------------------
+   個人タイム
+----------------------------------------- */
+
+.personal-result {
+
+    display: none;
+
+    margin-top: 20px;
+
+    padding: 17px;
+
+    border:
+        1px solid
+        rgba(94,226,255,0.12);
+
+    border-radius: 17px;
+
+    background:
+        rgba(255,255,255,0.035);
+}
+
+
+.personal-label {
+
+    color: #7f92af;
+
+    font-size: 10px;
+}
+
+
+.personal-time {
+
+    margin-top: 5px;
+
+    color: #6ce8ff;
+
+    font-size: 30px;
+
+    font-weight: 900;
+}
+
+
+/* -----------------------------------------
+   ペアスコア
+----------------------------------------- */
+
+.team-area {
+
+    margin-top: 17px;
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 10px;
+}
+
+
+.member {
+
+    padding: 13px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255,255,255,0.04);
+}
+
+
+.member-title {
+
+    color: #8395b2;
+
+    font-size: 9px;
+}
+
+
+.member-time {
+
+    margin-top: 3px;
+
+    font-size: 17px;
+
+    font-weight: 900;
+}
+
+
+/* -----------------------------------------
+   ペア合計
+----------------------------------------- */
+
+.team-total {
+
+    margin-top: 12px;
+
+    padding: 15px;
+
+    border:
+        1px solid
+        rgba(255,213,69,0.14);
+
+    border-radius: 15px;
+
+    color: #ffdc63;
+
+    background:
+        rgba(255,194,25,0.04);
+}
+
+
+.total-label {
+
+    font-size: 9px;
+
+    letter-spacing: 2px;
+}
+
+
+.total-time {
+
+    margin-top: 4px;
+
+    font-size: 27px;
+
+    font-weight: 900;
+}
+
+
+/* -----------------------------------------
+   開始画面
+----------------------------------------- */
+
+.start-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+    background:
+        rgba(2,6,23,0.92);
+
+    backdrop-filter:
+        blur(18px);
+}
+
+
+.start-box {
+
+    width: min(450px, 100%);
+
+    padding: 30px 20px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 24px;
+
+    text-align: center;
+
+    background:
+        #09142a;
+}
+
+
+.start-box h2 {
+
+    margin:
+        0 0
+        10px;
+
+    font-size: 28px;
+}
+
+
+.start-box p {
+
+    color: #899bb8;
+
+    font-size: 12px;
+
+    line-height: 1.8;
+}
+
+
+.start-button {
+
+    width: 100%;
+
+    min-height: 53px;
+
+    margin-top: 15px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    font-weight: 900;
+
+    background:
+        linear-gradient(
+            135deg,
+            #178fff,
+            #765bff,
+            #bb48ff
+        );
+}
+
+
+/* -----------------------------------------
+   スマホ
+----------------------------------------- */
+
+@media (max-width: 520px) {
+
+    .container {
+
+        width: 95%;
+
+        padding-top: 18px;
+    }
+
+
+    .game-card {
+
+        padding:
+            20px
+            12px;
+
+        border-radius: 19px;
+    }
+
+
+    .reaction-grid {
+
+        gap: 8px;
+    }
+
+
+    .reaction-button {
+
+        height: 105px;
+
+        border-radius: 16px;
+    }
+
+
+    .instruction {
+
+        font-size: 23px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div
+    class="start-overlay"
+    id="startOverlay"
+>
+
+    <div class="start-box">
+
+        <h2>
+            ⚡ PAIR REACTION
+        </h2>
+
+        <p>
+
+            表示された指示に従って、
+            できるだけ早く正しいボタンを押してください。
+
+            <br><br>
+
+            ペア2人のクリアタイムを合計し、
+            最も速いペアが優勝です。
+
+            <br><br>
+
+            間違えるとタイムペナルティが加算されます。
+
+        </p>
+
+        <button
+            class="start-button"
+            type="button"
+            onclick="startGame()"
+        >
+            ゲーム開始
+        </button>
+
+    </div>
+
+</div>
+
+
+<main class="container">
+
+
+    <header class="header">
+
+        <div class="logo">
+            PAIR LINK
+        </div>
+
+        <h1>
+            ⚡ PAIR REACTION
+        </h1>
+
+        <div class="sub">
+            ペア2人の合計タイムで勝負
+        </div>
+
+    </header>
+
+
+    <div class="round-area">
+
+        <div
+            class="round"
+            id="round"
+        >
+            ROUND 1 / 10
+        </div>
+
+        <div
+            class="timer"
+            id="timer"
+        >
+            0.00
+        </div>
+
+    </div>
+
+
+    <section class="game-card">
+
+
+        <div class="rule-label">
+            CHALLENGE
+        </div>
+
+
+        <div
+            class="instruction"
+            id="instruction"
+        >
+            準備してください
+        </div>
+
+
+        <div
+            class="reaction-grid"
+            id="reactionGrid"
+        >
+
+
+            <button
+                type="button"
+                class="reaction-button red"
+                data-color="red"
+                onclick="answer(this)"
+            >
+                赤
+            </button>
+
+
+            <button
+                type="button"
+                class="reaction-button blue"
+                data-color="blue"
+                onclick="answer(this)"
+            >
+                青
+            </button>
+
+
+            <button
+                type="button"
+                class="reaction-button green"
+                data-color="green"
+                onclick="answer(this)"
+            >
+                緑
+            </button>
+
+
+            <button
+                type="button"
+                class="reaction-button yellow"
+                data-color="yellow"
+                onclick="answer(this)"
+            >
+                黄
+            </button>
+
+
+        </div>
+
+
+        <div
+            class="message"
+            id="message"
+        ></div>
+
+
+        <div
+            class="personal-result"
+            id="personalResult"
+        >
+
+            <div class="personal-label">
+                YOUR TIME
+            </div>
+
+            <div
+                class="personal-time"
+                id="personalTime"
+            >
+                0.00秒
+            </div>
+
+        </div>
+
+
+        <div class="team-area">
+
+            <div class="member">
+
+                <div class="member-title">
+                    あなた
+                </div>
+
+                <div
+                    class="member-time"
+                    id="myTime"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="member">
+
+                <div class="member-title">
+                    ペア相手
+                </div>
+
+                <div
+                    class="member-time"
+                    id="partnerTime"
+                >
+                    --
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="team-total">
+
+            <div class="total-label">
+                PAIR TOTAL
+            </div>
+
+            <div
+                class="total-time"
+                id="totalTime"
+            >
+                -- 秒
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+
+<script>
+
+const socket = io();
+
+const TOTAL_ROUNDS = 10;
+
+const PENALTY_SECONDS = 2;
+
+
+const colorNames = {
+
+    red: "赤",
+
+    blue: "青",
+
+    green: "緑",
+
+    yellow: "黄"
+
+};
+
+
+let currentRound = 0;
+
+let correctColor = null;
+
+let gameStarted = false;
+
+let finished = false;
+
+let startTime = 0;
+
+let penaltyTime = 0;
+
+let timerInterval = null;
+
+
+/* -----------------------------------------
+   ゲーム開始
+----------------------------------------- */
+
+function startGame() {
+
+    const overlay =
+        document.getElementById(
+            "startOverlay"
+        );
+
+
+    overlay.style.display =
+        "none";
+
+
+    gameStarted = true;
+
+    finished = false;
+
+    currentRound = 0;
+
+    penaltyTime = 0;
+
+    startTime =
+        performance.now();
+
+
+    timerInterval =
+        setInterval(
+            updateTimer,
+            30
+        );
+
+
+    nextRound();
+}
+
+
+/* -----------------------------------------
+   タイマー表示
+----------------------------------------- */
+
+function updateTimer() {
+
+    if (
+        !gameStarted
+        ||
+        finished
+    ) {
+
+        return;
+    }
+
+
+    const elapsed =
+        (
+            performance.now()
+            - startTime
+        )
+        / 1000;
+
+
+    const displayTime =
+        elapsed
+        + penaltyTime;
+
+
+    document.getElementById(
+        "timer"
+    ).textContent =
+        displayTime.toFixed(2);
+}
+
+
+/* -----------------------------------------
+   次ラウンド
+----------------------------------------- */
+
+function nextRound() {
+
+    currentRound += 1;
+
+
+    if (
+        currentRound
+        > TOTAL_ROUNDS
+    ) {
+
+        finishGame();
+
+        return;
+    }
+
+
+    document.getElementById(
+        "round"
+    ).textContent =
+        "ROUND "
+        + currentRound
+        + " / "
+        + TOTAL_ROUNDS;
+
+
+    const colors = [
+
+        "red",
+
+        "blue",
+
+        "green",
+
+        "yellow"
+
+    ];
+
+
+    correctColor =
+        colors[
+            Math.floor(
+                Math.random()
+                * colors.length
+            )
+        ];
+
+
+    document.getElementById(
+        "instruction"
+    ).textContent =
+        colorNames[
+            correctColor
+        ]
+        + "を押せ！";
+
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    message.textContent =
+        "";
+
+
+    message.className =
+        "message";
+
+
+    shuffleButtons();
+}
+
+
+/* -----------------------------------------
+   ボタン配置ランダム化
+----------------------------------------- */
+
+function shuffleButtons() {
+
+    const grid =
+        document.getElementById(
+            "reactionGrid"
+        );
+
+
+    const buttons =
+        Array.from(
+            grid.children
+        );
+
+
+    for (
+        let index =
+            buttons.length - 1;
+
+        index > 0;
+
+        index -= 1
+    ) {
+
+        const randomIndex =
+            Math.floor(
+                Math.random()
+                * (
+                    index + 1
+                )
+            );
+
+
+        const temporary =
+            buttons[index];
+
+
+        buttons[index] =
+            buttons[randomIndex];
+
+
+        buttons[randomIndex] =
+            temporary;
+    }
+
+
+    buttons.forEach(
+        function(button) {
+
+            grid.appendChild(
+                button
+            );
+        }
+    );
+}
+
+
+/* -----------------------------------------
+   回答
+----------------------------------------- */
+
+function answer(button) {
+
+    if (
+        !gameStarted
+        ||
+        finished
+    ) {
+
+        return;
+    }
+
+
+    const selectedColor =
+        button.dataset.color;
+
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    if (
+        selectedColor
+        === correctColor
+    ) {
+
+        message.textContent =
+            "✓ 正解";
+
+
+        message.className =
+            "message correct";
+
+
+        setTimeout(
+            nextRound,
+            180
+        );
+
+    } else {
+
+        penaltyTime +=
+            PENALTY_SECONDS;
+
+
+        message.textContent =
+            "× ミス +"
+            + PENALTY_SECONDS
+            + "秒";
+
+
+        message.className =
+            "message wrong";
+    }
+}
+
+
+/* -----------------------------------------
+   ゲーム終了
+----------------------------------------- */
+
+function finishGame() {
+
+    finished = true;
+
+    gameStarted = false;
+
+
+    clearInterval(
+        timerInterval
+    );
+
+
+    const elapsed =
+        (
+            performance.now()
+            - startTime
+        )
+        / 1000;
+
+
+    const finalTime =
+        elapsed
+        + penaltyTime;
+
+
+    document.getElementById(
+        "timer"
+    ).textContent =
+        finalTime.toFixed(2);
+
+
+    document.getElementById(
+        "instruction"
+    ).textContent =
+        "FINISH!";
+
+
+    document.getElementById(
+        "reactionGrid"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "personalResult"
+    ).style.display =
+        "block";
+
+
+    document.getElementById(
+        "personalTime"
+    ).textContent =
+        finalTime.toFixed(2)
+        + "秒";
+
+
+    document.getElementById(
+        "myTime"
+    ).textContent =
+        finalTime.toFixed(2)
+        + "秒";
+
+
+    socket.emit(
+        "pair_reaction_finish",
+        {
+            time:
+                Number(
+                    finalTime.toFixed(3)
+                ),
+
+            penalty:
+                penaltyTime
+        }
+    );
+}
+
+
+/* -----------------------------------------
+   ペアタイム更新
+----------------------------------------- */
+
+socket.on(
+    "pair_reaction_team_result",
+    function(data) {
+
+        if (
+            !data
+        ) {
+
+            return;
+        }
+
+
+        if (
+            data.my_time
+            !== undefined
+        ) {
+
+            document.getElementById(
+                "myTime"
+            ).textContent =
+                Number(
+                    data.my_time
+                ).toFixed(2)
+                + "秒";
+        }
+
+
+        if (
+            data.partner_time
+            !== undefined
+            &&
+            data.partner_time !== null
+        ) {
+
+            document.getElementById(
+                "partnerTime"
+            ).textContent =
+                Number(
+                    data.partner_time
+                ).toFixed(2)
+                + "秒";
+        }
+
+
+        if (
+            data.total_time
+            !== undefined
+            &&
+            data.total_time !== null
+        ) {
+
+            document.getElementById(
+                "totalTime"
+            ).textContent =
+                Number(
+                    data.total_time
+                ).toFixed(2)
+                + "秒";
+        }
+
+    }
+);
+
+
+/* -----------------------------------------
+   全ペア結果確定
+----------------------------------------- */
+
+socket.on(
+    "pair_reaction_finished",
+    function(data) {
+
+        if (
+            !data
+            ||
+            !data.next_url
+        ) {
+
+            return;
+        }
+
+
+        setTimeout(
+            function() {
+
+                window.location.href =
+                    data.next_url;
+
+            },
+            1500
+        );
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
