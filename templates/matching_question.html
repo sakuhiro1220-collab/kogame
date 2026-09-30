@@ -14,13 +14,23 @@
 
 <style>
 
+/* =========================================
+   基本
+========================================= */
+
 * {
     box-sizing: border-box;
 }
 
+html,
+body {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
 body {
 
-    margin: 0;
     min-height: 100vh;
 
     color: white;
@@ -34,12 +44,12 @@ body {
     background:
         radial-gradient(
             circle at 15% 10%,
-            rgba(0, 210, 255, 0.20),
+            rgba(0,210,255,0.20),
             transparent 35%
         ),
         radial-gradient(
             circle at 85% 80%,
-            rgba(170, 65, 255, 0.28),
+            rgba(170,65,255,0.28),
             transparent 40%
         ),
         linear-gradient(
@@ -51,11 +61,19 @@ body {
 }
 
 
+/* =========================================
+   コンテナ
+========================================= */
+
 .container {
 
-    width: min(720px, 94%);
+    width: min(
+        720px,
+        94%
+    );
 
-    margin: 0 auto;
+    margin:
+        0 auto;
 
     padding:
         30px 0
@@ -63,23 +81,32 @@ body {
 }
 
 
+/* =========================================
+   ヘッダー
+========================================= */
+
 .header {
 
     text-align: center;
 
-    margin-bottom: 25px;
+    margin-bottom:
+        25px;
 }
 
 
 .logo {
 
-    font-size: 12px;
+    font-size:
+        12px;
 
-    font-weight: 900;
+    font-weight:
+        900;
 
-    letter-spacing: 5px;
+    letter-spacing:
+        5px;
 
-    color: #62ddff;
+    color:
+        #62ddff;
 }
 
 
@@ -103,33 +130,45 @@ h1 {
             #cb72ff
         );
 
-    background-clip: text;
+    background-clip:
+        text;
 
-    -webkit-background-clip: text;
+    -webkit-background-clip:
+        text;
 
-    color: transparent;
+    color:
+        transparent;
 }
 
 
 .description {
 
-    color: #8799b7;
+    color:
+        #8799b7;
 
-    font-size: 13px;
+    font-size:
+        13px;
 
-    line-height: 1.7;
+    line-height:
+        1.7;
 }
 
 
+/* =========================================
+   ゲームカード
+========================================= */
+
 .game-card {
 
-    padding: 22px;
+    padding:
+        22px;
 
     border:
         1px solid
         rgba(255,255,255,0.10);
 
-    border-radius: 24px;
+    border-radius:
+        24px;
 
     background:
         rgba(7,17,39,0.82);
@@ -142,36 +181,53 @@ h1 {
 
 .game-title {
 
-    text-align: center;
+    text-align:
+        center;
 
-    font-size: 20px;
+    font-size:
+        20px;
 
-    font-weight: 900;
+    font-weight:
+        900;
 
-    margin-bottom: 7px;
+    margin-bottom:
+        7px;
 }
 
 
 .cost {
 
-    text-align: center;
+    text-align:
+        center;
 
-    color: #ffd54a;
+    color:
+        #ffd54a;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
-    font-weight: 900;
+    font-weight:
+        900;
 }
 
 
+/* =========================================
+   プレイヤー表示
+========================================= */
+
 .players {
 
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
-        repeat(3, 1fr);
+        repeat(
+            3,
+            1fr
+        );
 
-    gap: 13px;
+    gap:
+        13px;
 
     margin:
         25px 0;
@@ -180,43 +236,75 @@ h1 {
 
 .player {
 
-    min-height: 110px;
+    min-height:
+        110px;
 
-    display: flex;
+    display:
+        flex;
 
-    flex-direction: column;
+    flex-direction:
+        column;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: center;
+    justify-content:
+        center;
 
-    gap: 8px;
+    gap:
+        8px;
 
     border:
         1px solid
         rgba(255,255,255,0.08);
 
-    border-radius: 18px;
+    border-radius:
+        18px;
 
     background:
         rgba(255,255,255,0.05);
+
+    transition:
+        0.25s;
+}
+
+
+.player.active {
+
+    border-color:
+        rgba(75,219,255,0.45);
+
+    background:
+        rgba(65,193,255,0.10);
+
+    box-shadow:
+        0 0 25px
+        rgba(54,201,255,0.09);
 }
 
 
 .player-icon {
 
-    width: 54px;
-    height: 54px;
+    width:
+        54px;
 
-    display: flex;
+    height:
+        54px;
 
-    align-items: center;
+    display:
+        flex;
 
-    justify-content: center;
+    align-items:
+        center;
 
-    border-radius: 50%;
+    justify-content:
+        center;
 
-    font-size: 27px;
+    border-radius:
+        50%;
+
+    font-size:
+        27px;
 
     background:
         linear-gradient(
@@ -227,53 +315,101 @@ h1 {
 }
 
 
-.waiting {
+.player.active
+.player-icon {
 
-    color: #6f81a0;
-
-    font-size: 11px;
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #7659ff
+        );
 }
 
 
+.waiting {
+
+    color:
+        #6f81a0;
+
+    font-size:
+        11px;
+
+    font-weight:
+        700;
+}
+
+
+.player.active
+.waiting {
+
+    color:
+        #80e6ff;
+}
+
+
+/* =========================================
+   人数
+========================================= */
+
 .counter {
 
-    text-align: center;
+    text-align:
+        center;
 
-    margin-bottom: 20px;
+    margin-bottom:
+        20px;
 
-    color: #a4b8d4;
+    color:
+        #a4b8d4;
 
-    font-weight: 800;
+    font-weight:
+        800;
 }
 
 
 .counter-number {
 
-    color: #67e2ff;
+    color:
+        #67e2ff;
 
-    font-size: 23px;
+    font-size:
+        23px;
 
-    font-weight: 950;
+    font-weight:
+        950;
 }
 
 
+/* =========================================
+   参加ボタン
+========================================= */
+
 .join-button {
 
-    width: 100%;
+    width:
+        100%;
 
-    min-height: 55px;
+    min-height:
+        55px;
 
-    border: none;
+    border:
+        none;
 
-    border-radius: 16px;
+    border-radius:
+        16px;
 
-    color: white;
+    color:
+        white;
 
-    font-size: 15px;
+    font-size:
+        15px;
 
-    font-weight: 950;
+    font-weight:
+        950;
 
-    cursor: pointer;
+    cursor:
+        pointer;
 
     background:
         linear-gradient(
@@ -286,16 +422,95 @@ h1 {
     box-shadow:
         0 12px 35px
         rgba(104,70,255,0.30);
+
+    transition:
+        transform 0.2s,
+        opacity 0.2s,
+        box-shadow 0.2s;
 }
 
 
+.join-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 16px 40px
+        rgba(104,70,255,0.40);
+}
+
+
+.join-button:disabled {
+
+    cursor:
+        default;
+
+    opacity:
+        0.72;
+
+    transform:
+        none;
+}
+
+
+/* =========================================
+   マッチング状態
+========================================= */
+
+.join-message {
+
+    min-height:
+        22px;
+
+    margin-top:
+        13px;
+
+    text-align:
+        center;
+
+    color:
+        #72e5ff;
+
+    font-size:
+        12px;
+
+    font-weight:
+        800;
+
+    line-height:
+        1.5;
+}
+
+
+.join-message.error {
+
+    color:
+        #ff8296;
+}
+
+
+.join-message.success {
+
+    color:
+        #7effb0;
+}
+
+
+/* =========================================
+   GAME FLOW
+========================================= */
+
 .flow {
 
-    margin-top: 20px;
+    margin-top:
+        20px;
 
-    padding: 17px;
+    padding:
+        17px;
 
-    border-radius: 17px;
+    border-radius:
+        17px;
 
     background:
         rgba(255,255,255,0.035);
@@ -304,13 +519,17 @@ h1 {
 
 .flow-title {
 
-    margin-bottom: 12px;
+    margin-bottom:
+        12px;
 
-    color: #69ddff;
+    color:
+        #69ddff;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
-    font-weight: 900;
+    font-weight:
+        900;
 }
 
 
@@ -319,9 +538,11 @@ h1 {
     padding:
         8px 0;
 
-    color: #a4b4ce;
+    color:
+        #a4b4ce;
 
-    font-size: 12px;
+    font-size:
+        12px;
 
     border-bottom:
         1px solid
@@ -331,54 +552,80 @@ h1 {
 
 .flow-step:last-child {
 
-    border-bottom: none;
+    border-bottom:
+        none;
 }
 
 
+/* =========================================
+   報酬
+========================================= */
+
 .reward {
 
-    margin-top: 18px;
+    margin-top:
+        18px;
 
-    padding: 15px;
+    padding:
+        15px;
 
     border:
         1px solid
         rgba(255,209,62,0.16);
 
-    border-radius: 16px;
+    border-radius:
+        16px;
 
-    text-align: center;
+    text-align:
+        center;
 
-    color: #ffdb5c;
+    color:
+        #ffdb5c;
 
     background:
         rgba(255,193,7,0.055);
 }
 
 
-.back {
+/* =========================================
+   HOME
+========================================= */
 
-    display: block;
+.home-link {
 
-    margin-top: 20px;
+    display:
+        block;
 
-    text-align: center;
+    margin-top:
+        20px;
 
-    color: #72deff;
+    text-align:
+        center;
 
-    text-decoration: none;
+    color:
+        #72deff;
 
-    font-size: 12px;
+    text-decoration:
+        none;
 
-    font-weight: 800;
+    font-size:
+        12px;
+
+    font-weight:
+        800;
 }
 
+
+/* =========================================
+   スマホ
+========================================= */
 
 @media (max-width: 500px) {
 
     .container {
 
-        padding-top: 20px;
+        padding-top:
+            20px;
     }
 
 
@@ -387,28 +634,45 @@ h1 {
         padding:
             18px 12px;
 
-        border-radius: 20px;
+        border-radius:
+            20px;
     }
 
 
     .players {
 
-        gap: 8px;
+        gap:
+            8px;
     }
 
 
     .player {
 
-        min-height: 95px;
+        min-height:
+            95px;
     }
 
 
     .player-icon {
 
-        width: 46px;
-        height: 46px;
+        width:
+            46px;
 
-        font-size: 23px;
+        height:
+            46px;
+
+        font-size:
+            23px;
+    }
+
+
+    .join-button {
+
+        min-height:
+            53px;
+
+        font-size:
+            14px;
     }
 
 }
@@ -420,8 +684,13 @@ h1 {
 
 <body>
 
+
 <div class="container">
 
+
+    <!-- =====================================
+         ヘッダー
+    ====================================== -->
 
     <header class="header">
 
@@ -429,18 +698,28 @@ h1 {
             PAIR LINK
         </div>
 
+
         <h1>
             💕 相性診断ゲーム
         </h1>
 
+
         <div class="description">
+
             6人で話して、答えて、遊んで、
+
             <br>
+
             相性のいいペアを見つけよう。
+
         </div>
 
     </header>
 
+
+    <!-- =====================================
+         ゲーム
+    ====================================== -->
 
     <main class="game-card">
 
@@ -455,10 +734,20 @@ h1 {
         </div>
 
 
-        <div class="players">
+        <!-- =================================
+             6人表示
+        ================================== -->
+
+        <div
+            class="players"
+            id="players"
+        >
 
 
-            <div class="player">
+            <div
+                class="player"
+                data-player="1"
+            >
 
                 <div class="player-icon">
                     👤
@@ -471,7 +760,10 @@ h1 {
             </div>
 
 
-            <div class="player">
+            <div
+                class="player"
+                data-player="2"
+            >
 
                 <div class="player-icon">
                     👤
@@ -484,7 +776,10 @@ h1 {
             </div>
 
 
-            <div class="player">
+            <div
+                class="player"
+                data-player="3"
+            >
 
                 <div class="player-icon">
                     👤
@@ -497,7 +792,10 @@ h1 {
             </div>
 
 
-            <div class="player">
+            <div
+                class="player"
+                data-player="4"
+            >
 
                 <div class="player-icon">
                     👤
@@ -510,7 +808,10 @@ h1 {
             </div>
 
 
-            <div class="player">
+            <div
+                class="player"
+                data-player="5"
+            >
 
                 <div class="player-icon">
                     👤
@@ -523,7 +824,10 @@ h1 {
             </div>
 
 
-            <div class="player">
+            <div
+                class="player"
+                data-player="6"
+            >
 
                 <div class="player-icon">
                     👤
@@ -539,11 +843,18 @@ h1 {
         </div>
 
 
+        <!-- =================================
+             人数
+        ================================== -->
+
         <div class="counter">
 
             現在
 
-            <span class="counter-number">
+            <span
+                class="counter-number"
+                id="counterNumber"
+            >
                 0 / 6
             </span>
 
@@ -552,13 +863,28 @@ h1 {
         </div>
 
 
+        <!-- =================================
+             参加
+        ================================== -->
+
         <button
             type="button"
             class="join-button"
+            id="joinButton"
         >
             🎮 100 COINで参加
         </button>
 
+
+        <div
+            id="joinMessage"
+            class="join-message"
+        ></div>
+
+
+        <!-- =================================
+             FLOW
+        ================================== -->
 
         <div class="flow">
 
@@ -599,25 +925,458 @@ h1 {
         </div>
 
 
+                <!-- =================================
+             報酬
+        ================================== -->
+
         <div class="reward">
 
             🏆 優勝賞金
+
             <br>
+
             1人 200 COIN
 
         </div>
 
-
     </main>
 
 
-    <a href="/home" class="home-link">
+    <!-- =====================================
+         ホームへ戻る
+    ====================================== -->
+
+    <a
+        href="/home"
+        class="home-button"
+    >
         🏠 ホームに戻る
     </a>
 
-
 </div>
+
+
+<!-- =========================================
+     PAIR LINK JavaScript
+========================================= -->
+
+<script>
+
+const joinButton =
+    document.getElementById(
+        "joinButton"
+    );
+
+const joinMessage =
+    document.getElementById(
+        "joinMessage"
+    );
+
+const counterNumber =
+    document.getElementById(
+        "counterNumber"
+    );
+
+const playerCards =
+    document.querySelectorAll(
+        ".player"
+    );
+
+let joining = false;
+
+
+/* =========================================
+   待機人数を画面へ反映
+========================================= */
+
+function updatePlayerCount(count) {
+
+    let safeCount =
+        Number(count) || 0;
+
+    if (safeCount < 0) {
+        safeCount = 0;
+    }
+
+    if (safeCount > 6) {
+        safeCount = 6;
+    }
+
+
+    if (counterNumber) {
+
+        counterNumber.textContent =
+            safeCount + " / 6";
+    }
+
+
+    playerCards.forEach(
+        function(card, index) {
+
+            const text =
+                card.querySelector(
+                    ".waiting"
+                );
+
+
+            if (index < safeCount) {
+
+                card.classList.add(
+                    "active"
+                );
+
+                if (text) {
+
+                    text.textContent =
+                        "READY";
+                }
+
+            } else {
+
+                card.classList.remove(
+                    "active"
+                );
+
+                if (text) {
+
+                    text.textContent =
+                        "PLAYER "
+                        + (index + 1);
+                }
+            }
+
+        }
+    );
+}
+
+
+/* =========================================
+   メッセージ表示
+========================================= */
+
+function showMessage(
+    text,
+    type = ""
+) {
+
+    if (!joinMessage) {
+        return;
+    }
+
+
+    joinMessage.textContent =
+        text;
+
+
+    joinMessage.classList.remove(
+        "error",
+        "success"
+    );
+
+
+    if (type) {
+
+        joinMessage.classList.add(
+            type
+        );
+    }
+}
+
+
+/* =========================================
+   100 COINで参加
+========================================= */
+
+async function joinPairLink() {
+
+    if (joining) {
+        return;
+    }
+
+
+    if (!joinButton) {
+
+        console.error(
+            "joinButtonが見つかりません"
+        );
+
+        return;
+    }
+
+
+    joining = true;
+
+
+    joinButton.disabled =
+        true;
+
+
+    joinButton.textContent =
+        "マッチング参加中...";
+
+
+    showMessage(
+        "サーバーに接続しています..."
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/pair_link/join",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "";
+
+
+        /*
+         * Python側で500エラーなどが発生して
+         * HTMLが返ってきた場合
+         */
+
+        if (
+            !contentType.includes(
+                "application/json"
+            )
+        ) {
+
+            const responseText =
+                await response.text();
+
+
+            console.error(
+                "PAIR LINK RESPONSE:",
+                responseText
+            );
+
+
+            throw new Error(
+                "サーバー側でエラーが発生しました"
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        /* =====================================
+           エラー
+        ====================================== */
+
+        if (!response.ok) {
+
+            showMessage(
+                data.message
+                ||
+                data.error
+                ||
+                "参加できませんでした",
+                "error"
+            );
+
+
+            joinButton.disabled =
+                false;
+
+
+            joinButton.textContent =
+                "🎮 100 COINで参加";
+
+
+            joining =
+                false;
+
+
+            return;
+        }
+
+
+        /* =====================================
+           現在人数
+        ====================================== */
+
+        const maleCount =
+            Number(
+                data.male_count || 0
+            );
+
+
+        const femaleCount =
+            Number(
+                data.female_count || 0
+            );
+
+
+        let totalCount =
+            Number(
+                data.total_count
+                ||
+                (
+                    maleCount
+                    +
+                    femaleCount
+                )
+            );
+
+
+        /*
+         * マッチ成立なら6人
+         */
+
+        if (data.matched) {
+
+            totalCount = 6;
+        }
+
+
+        updatePlayerCount(
+            totalCount
+        );
+
+
+        /* =====================================
+           6人マッチング成立
+        ====================================== */
+
+        if (
+            data.matched
+            &&
+            data.next_url
+        ) {
+
+            showMessage(
+                "💕 6人揃いました！ゲームを開始します",
+                "success"
+            );
+
+
+            joinButton.textContent =
+                "ゲーム開始！";
+
+
+            setTimeout(
+                function() {
+
+                    window.location.href =
+                        data.next_url;
+
+                },
+                700
+            );
+
+
+            return;
+        }
+
+
+        /* =====================================
+           待機中
+        ====================================== */
+
+        if (data.waiting) {
+
+            showMessage(
+                "✓ 参加しました　現在 "
+                +
+                totalCount
+                +
+                " / 6 人",
+                "success"
+            );
+
+
+            joinButton.textContent =
+                "✓ 参加済み・待機中";
+
+
+            /*
+             * 二重参加防止
+             * ボタンはdisabledのまま
+             */
+
+            return;
+        }
+
+
+        /* =====================================
+           その他の正常応答
+        ====================================== */
+
+        showMessage(
+            "参加しました",
+            "success"
+        );
+
+
+        joinButton.textContent =
+            "✓ 参加済み";
+
+    } catch (error) {
+
+        console.error(
+            "PAIR LINK JOIN ERROR:",
+            error
+        );
+
+
+        showMessage(
+            error.message
+            ||
+            "通信エラーが発生しました",
+            "error"
+        );
+
+
+        joinButton.disabled =
+            false;
+
+
+        joinButton.textContent =
+            "🎮 100 COINで参加";
+
+
+        joining =
+            false;
+    }
+}
+
+
+/* =========================================
+   ボタンと参加処理を接続
+========================================= */
+
+if (joinButton) {
+
+    joinButton.addEventListener(
+        "click",
+        joinPairLink
+    );
+
+} else {
+
+    console.error(
+        "PAIR LINK: joinButtonが存在しません"
+    );
+}
+
+</script>
 
 </body>
 
 </html>
+
+    

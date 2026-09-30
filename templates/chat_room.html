@@ -486,13 +486,20 @@ body::before {
         rgba(0,0,0,0.22);
 }
 .message-form {
-
-    width: min(900px, calc(100% - 24px));
+    width: 100%;
+    max-width: 1100px;
 
     margin-left: auto;
-    margin-right: 0;
+    margin-right: auto;
 
-    display: flex;
+    display: grid;
+
+    grid-template-columns:
+        46px
+        minmax(0, 1fr)
+        72px
+        48px;
+
     align-items: center;
 
     gap: 8px;
@@ -504,15 +511,12 @@ body::before {
 ========================================= */
 
 .message-input {
-
-    flex: 11 auto;
-
+    width: 100%;
     min-width: 0;
 
     height: 46px;
 
-    padding:
-        0 15px;
+    padding: 0 15px;
 
     outline: none;
 
@@ -528,27 +532,6 @@ body::before {
 
     background:
         rgba(255,255,255,0.07);
-
-    transition:
-        border-color 0.2s,
-        background 0.2s;
-}
-
-
-.message-input:focus {
-
-    border-color:
-        rgba(82,218,255,0.50);
-
-    background:
-        rgba(255,255,255,0.10);
-}
-
-
-.message-input::placeholder {
-
-    color:
-        #7184a3;
 }
 
 
@@ -1358,50 +1341,65 @@ body::before {
     }
 
 
+    @media (max-width: 600px) {
+
     .message-form {
-    width: 100%;
+        width: 100%;
 
-    display: flex;
-    align-items: center;
+        display: grid;
 
-    gap: 7px;
+        grid-template-columns:
+            40px
+            minmax(0, 1fr)
+            58px
+            40px;
 
-    margin: 0;
-    padding: 0;
-}
+        align-items: center;
 
-.file-label {
-    flex: 0 0 43px;
+        gap: 4px;
 
-    width: 43px;
-    height: 43px;
-}
+        margin: 0;
+        padding: 0;
+    }
 
-.message-input {
-    flex: 1 1 auto;
+    .message-input {
+        width: 100%;
+        min-width: 0;
 
-    min-width: 0;
+        height: 43px;
 
-    height: 43px;
-}
+        padding: 0 8px;
 
-.send-button {
-    flex: 0 0 auto;
+        font-size: 13px;
+    }
 
-    height: 43px;
+    .file-label {
+        width: 40px;
+        height: 43px;
 
-    min-width: 64px;
+        min-width: 0;
+    }
 
-    margin-left: auto;
+    .send-button {
+        width: 58px;
+        height: 43px;
 
-    padding: 0 14px;
-}
+        min-width: 0;
 
-.gift-open-button {
-    flex: 0 0 43px;
+        margin: 0;
+        padding: 0 5px;
 
-    width: 43px;
-    height: 43px;
+        font-size: 12px;
+    }
+
+    .gift-open-button {
+        width: 40px;
+        height: 43px;
+
+        min-width: 0;
+
+        margin: 0;
+    }
 }
 
 
