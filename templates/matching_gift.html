@@ -112,27 +112,116 @@ h1 {
 
 </div>
 
+<div id="msg"></div>
+
 <p id="msg"></p>
 
 <script>
-async function sendGift(gift_id) {
-    const receiver = "{{ receiver_id }}"; // ← Flask側で渡す
+async function sendGift(giftId) {
 
-    const res = await fetch("/send_gift", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ gift_id, receiver })
-    });
+    const receiver = "{{ partner }}";
 
-    const data = await res.json();
+    const msg =
+        document.getElementById("msg");
 
-    if (data.error) {
-        document.getElementById("msg").innerText = data.error;
-        return;
+    if (msg) {
+        msg.innerText =
+            "ギフトを送信しています...";
     }
 
-    document.getElementById("msg").innerText =
-        `${data.gift} を贈りました！（+${data.star_added}スター）`;
+    try {
+
+        const response = await fetch(
+            "/send_gift",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    gift_id: giftId,
+                    receiver: receiver
+                })
+            }
+        );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            if (msg) {
+                msg.innerText =
+                    data.error
+                    || "ギフトを送信できませんでした";
+            }
+
+            return;
+        }
+
+
+        if (msg) {
+
+            msg.innerText =
+                data.emoji
+                + " "
+                + data.gift
+                + " を贈りました！"
+                + "（+"
+                + data.star_added
+                + "スター）";
+        }
+
+
+        /*
+         * ギフト一覧を閉じる
+         * openGiftMenu()用のパネルIDが
+         * giftPanelの場合
+         */
+
+        const giftPanel =
+            document.getElementById(
+                "giftPanel"
+            );
+
+
+        if (giftPanel) {
+            giftPanel.classList.remove(
+                "open"
+            );
+        }
+
+
+        /*
+         * チャット履歴へギフトが保存されているので
+         * 再読み込みして即表示
+         */
+
+        setTimeout(
+            function() {
+                window.location.reload();
+            },
+            500
+        );
+
+    } catch (error) {
+
+        console.error(
+            "ギフト送信エラー:",
+            error
+        );
+
+
+        if (msg) {
+            msg.innerText =
+                "通信エラーが発生しました";
+        }
+    }
 }
 </script>
 

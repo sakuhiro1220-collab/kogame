@@ -1358,20 +1358,113 @@ body::before {
     }
 
 
-    @media (max-width: 600px) {
+    .message-form {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    margin: 0;
+    padding: 0;
+}
+
+.file-label {
+    flex: 0 0 43px;
+
+    width: 43px;
+    height: 43px;
+}
+
+.message-input {
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    height: 43px;
+}
+
+.send-button {
+    flex: 0 0 auto;
+
+    height: 43px;
+
+    min-width: 64px;
+
+    margin-left: auto;
+
+    padding: 0 14px;
+}
+
+.gift-open-button {
+    flex: 0 0 43px;
+
+    width: 43px;
+    height: 43px;
+}
+
+
+@media (max-width: 600px) {
+
+    .input-area {
+        width: 100%;
+
+        padding-left: 7px;
+        padding-right: 7px;
+    }
 
     .message-form {
+        width: 100%;
 
-        width: calc(100% - 35px);
+        margin: 0;
 
-        margin-left: 35px;
-        margin-right: 0;
+        display: flex;
+        align-items: center;
 
         gap: 5px;
-
-        transform: none;
-        padding-left: 0;
     }
+
+    .file-label {
+        flex: 0 0 40px;
+
+        width: 40px;
+        height: 43px;
+    }
+
+    .message-input {
+        flex: 1 1 auto;
+
+        min-width: 0;
+
+        height: 43px;
+
+        padding: 0 11px;
+
+        font-size: 13px;
+    }
+
+    .send-button {
+        flex: 0 0 auto;
+
+        min-width: 62px;
+
+        height: 43px;
+
+        margin-left: auto;
+
+        padding: 0 12px;
+
+        font-size: 12px;
+    }
+
+    .gift-open-button {
+        flex: 0 0 40px;
+
+        width: 40px;
+        height: 43px;
+    }
+}
 
 }
 
@@ -1454,7 +1547,7 @@ body::before {
 
         font-size: 10px;
     }
-}
+
 
 
 /* =========================================

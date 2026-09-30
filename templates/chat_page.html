@@ -546,7 +546,85 @@ body::before {
     font-size: 13px;
 }
 
+.chat-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
+.chat-card {
+    width: 100%;
+    min-height: 82px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 14px 18px;
+    gap: 14px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    text-decoration: none;
+    color: white;
+
+    transition: 0.2s;
+}
+
+.chat-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(92, 220, 255, 0.25);
+}
+
+.chat-avatar {
+    width: 58px;
+    height: 58px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    background: #18243a;
+}
+
+.chat-info {
+    flex: 1;
+    min-width: 0;
+
+    text-align: left;
+}
+
+.chat-name {
+    margin-bottom: 5px;
+
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.chat-message {
+    overflow: hidden;
+
+    color: #8fa1bd;
+
+    font-size: 12px;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.chat-arrow {
+    flex-shrink: 0;
+
+    color: #66dfff;
+
+    font-size: 20px;
+}
 /* =========================================
    右矢印
 ========================================= */
