@@ -262,6 +262,53 @@ class Like(db.Model):
             name="uq_like_sender_receiver"
         ),
     )
+class SwipeHistory(db.Model):
+    __tablename__ = "swipe_histories"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    target_user_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    swipe_date = db.Column(
+        db.Date,
+        nullable=False,
+        default=date.today
+    )
+
+    direction = db.Column(
+        db.String(20),
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+
+    __table_args__ = (
+
+        db.UniqueConstraint(
+            "user_id",
+            "target_user_id",
+            "swipe_date",
+            name="uq_daily_swipe_user_target"
+        ),
+
+    )
 
 class SpeedRoom(db.Model):
     __tablename__ = "speed_rooms"
@@ -1802,233 +1849,546 @@ def login():
 @app.route("/home")
 def home():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
 
     if not user_id:
-        return redirect(url_for("top"))
+
+        return redirect(
+            url_for("top")
+        )
+
 
     current_user = db.session.get(
         User,
         user_id
     )
 
+
     if not current_user:
-        session.pop("user_id", None)
-        return redirect(url_for("top"))
+
+        session.pop(
+            "user_id",
+            None
+        )
+
+        return redirect(
+            url_for("top")
+        )
+
+
+    today = date.today()
+
+
+    # =====================================
+    # 今日すでにスワイプした相手
+    # =====================================
+
+    swiped_ids = db.session.execute(
+
+        db.select(
+            SwipeHistory.target_user_id
+        )
+        .where(
+            SwipeHistory.user_id
+            == user_id,
+
+            SwipeHistory.swipe_date
+            == today
+        )
+
+    ).scalars().all()
+
+
+    # =====================================
+    # 今日まだスワイプしていないユーザー
+    # =====================================
+
+    query = (
+        db.select(User)
+        .where(
+            User.id != user_id
+        )
+    )
+
+
+    if swiped_ids:
+
+        query = query.where(
+            User.id.notin_(
+                swiped_ids
+            )
+        )
+
 
     filtered_users = db.session.execute(
-        db.select(User)
-        .where(User.id != user_id)
+        query
     ).scalars().all()
 
 
     return render_template(
         "home.html",
+
         user=current_user,
-        filtered_users=filtered_users
+
+        filtered_users=
+            filtered_users
     )
 
 # -------------------------
 # スワイプ用 次のユーザー
 # -------------------------
-@app.route("/swipe/record", methods=["POST"])
+@app.route(
+    "/swipe/record",
+    methods=["POST"]
+)
 def swipe_record():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
+
 
     if not user_id:
+
         return jsonify({
             "success": False,
-            "message": "ログインしてください"
+            "message":
+                "ログインしてください"
         }), 401
+
 
     user = db.session.get(
         User,
         user_id
     )
 
+
     if not user:
+
         return jsonify({
             "success": False,
-            "message": "ユーザーが見つかりません"
+            "message":
+                "ユーザーが見つかりません"
         }), 404
 
-    data = get_daily_swipe_count(
-        user_id
+
+    payload = request.get_json(
+        silent=True
+    ) or {}
+
+
+    target_user_id = (
+        payload.get(
+            "target_user_id"
+        )
+        or
+        payload.get(
+            "user_id"
+        )
+        or
+        payload.get(
+            "target_id"
+        )
     )
+
+
+    direction = (
+        payload.get(
+            "direction"
+        )
+        or
+        payload.get(
+            "action"
+        )
+        or
+        ""
+    )
+
+
+    if not target_user_id:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "スワイプ相手が指定されていません"
+        }), 400
+
+
+    if target_user_id == user_id:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "自分自身はスワイプできません"
+        }), 400
+
+
+    target = db.session.get(
+        User,
+        target_user_id
+    )
+
+
+    if not target:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "相手ユーザーが存在しません"
+        }), 404
+
+
+    today = date.today()
+
+
+    # =====================================
+    # 今日すでにスワイプ済みか
+    # =====================================
+
+    existing = db.session.execute(
+
+        db.select(
+            SwipeHistory
+        )
+        .where(
+            SwipeHistory.user_id
+            == user_id,
+
+            SwipeHistory.target_user_id
+            == target_user_id,
+
+            SwipeHistory.swipe_date
+            == today
+        )
+
+    ).scalar_one_or_none()
+
+
+    if existing:
+
+        return jsonify({
+            "success": True,
+            "already_swiped": True,
+            "message":
+                "すでに本日スワイプ済みです"
+        })
+
+
+    # =====================================
+    # 今日の利用枚数
+    # =====================================
+
+    used_count = db.session.execute(
+
+        db.select(
+            db.func.count(
+                SwipeHistory.id
+            )
+        )
+        .where(
+            SwipeHistory.user_id
+            == user_id,
+
+            SwipeHistory.swipe_date
+            == today
+        )
+
+    ).scalar_one()
+
 
     unlock_data = get_swipe_daily_data(
         user_id
     )
+
 
     extra_cards = unlock_data.get(
         "extra_cards",
         0
     )
 
+
     limit = (
         FREE_SWIPE_LIMIT
-        + extra_cards
+        +
+        extra_cards
     )
 
-    if data["count"] >= limit:
+
+    if used_count >= limit:
 
         return jsonify({
             "success": False,
             "locked": True,
-            "count": data["count"],
-            "limit": limit,
-            "coins": user.coins
+            "count":
+                used_count,
+            "limit":
+                limit,
+            "coins":
+                user.coins
         })
 
-    data["count"] += 1
 
-    swipe_daily[user_id] = data
+    # =====================================
+    # DBへ保存
+    # =====================================
 
-    save_json(
-        SWIPE_DAILY_FILE,
-        swipe_daily
+    history = SwipeHistory(
+
+        user_id=user_id,
+
+        target_user_id=
+            target_user_id,
+
+        swipe_date=
+            today,
+
+        direction=
+            direction
     )
+
+
+    try:
+
+        db.session.add(
+            history
+        )
+
+        db.session.commit()
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+
+        print(
+            "SWIPE HISTORY ERROR:",
+            str(e)
+        )
+
+
+        return jsonify({
+            "success": False,
+            "message":
+                "スワイプ履歴の保存に失敗しました"
+        }), 500
+
+
+    new_count = (
+        used_count + 1
+    )
+
 
     locked = (
-        data["count"] >= limit
+        new_count >= limit
     )
 
+
     return jsonify({
-        "success": True,
-        "locked": locked,
-        "count": data["count"],
-        "limit": limit,
-        "coins": user.coins
+
+        "success":
+            True,
+
+        "locked":
+            locked,
+
+        "count":
+            new_count,
+
+        "limit":
+            limit,
+
+        "coins":
+            user.coins
     })
 
 @app.route("/swipe/next")
 def swipe_next():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
+
 
     if not user_id:
+
         return jsonify({
             "success": False,
-            "message": "ログインしてください"
+            "message":
+                "ログインしてください"
         }), 401
+
 
     current_user = db.session.get(
         User,
         user_id
     )
 
+
     if not current_user:
+
         return jsonify({
             "success": False,
-            "message": "ユーザーが見つかりません"
+            "message":
+                "ユーザーが見つかりません"
         }), 404
 
-    now = time.time()
-    one_day = 60 * 60 * 24
 
-    user_history = swipe_history.get(
-        user_id,
-        {}
-    )
+    today = date.today()
 
-    user_history = {
-        uid: timestamp
-        for uid, timestamp
-        in user_history.items()
-        if now - timestamp < one_day
-    }
 
-    swipe_history[user_id] = user_history
+    # =====================================
+    # 今日の解放枚数
+    # =====================================
 
     daily_data = get_swipe_daily_data(
         user_id
     )
+
 
     extra_cards = daily_data.get(
         "extra_cards",
         0
     )
 
+
     allowed_count = (
         FREE_SWIPE_LIMIT
-        + extra_cards
+        +
+        extra_cards
     )
 
+
+    # =====================================
+    # 今日スワイプ済みの相手
+    # =====================================
+
+    swiped_ids = db.session.execute(
+
+        db.select(
+            SwipeHistory.target_user_id
+        )
+        .where(
+            SwipeHistory.user_id
+            == user_id,
+
+            SwipeHistory.swipe_date
+            == today
+        )
+
+    ).scalars().all()
+
+
     viewed_count = len(
-        user_history
+        swiped_ids
     )
+
+
+    # =====================================
+    # 今日の上限
+    # =====================================
 
     if viewed_count >= allowed_count:
 
         return jsonify({
             "success": False,
+
             "locked": True,
+
             "message":
-                "本日の無料カードをすべて見ました",
+                "本日のカード上限に達しました",
+
             "cost":
                 SWIPE_UNLOCK_COST,
+
             "coins":
                 current_user.coins
         })
 
-    all_users = db.session.execute(
+
+    # =====================================
+    # 自分以外を取得
+    # =====================================
+
+    query = (
         db.select(User)
-        .where(User.id != user_id)
+        .where(
+            User.id != user_id
+        )
+    )
+
+
+    # =====================================
+    # 今日スワイプ済みを除外
+    # =====================================
+
+    if swiped_ids:
+
+        query = query.where(
+            User.id.notin_(
+                swiped_ids
+            )
+        )
+
+
+    candidates = db.session.execute(
+        query
     ).scalars().all()
 
-    candidates = []
 
-    for candidate in all_users:
-
-        if candidate.id in user_history:
-            continue
-
-        candidates.append(
-            candidate
-        )
+    # =====================================
+    # 候補なし
+    # =====================================
 
     if not candidates:
 
         return jsonify({
             "success": False,
+
             "locked": False,
+
             "message":
-                "現在表示できるユーザーはいません"
+                "今日は表示できるユーザーがもういません"
         })
+
 
     selected_user = random.choice(
         candidates
     )
 
-    selected_id = selected_user.id
-
-    swipe_history.setdefault(
-        user_id,
-        {}
-    )[selected_id] = now
-
-    save_json(
-        SWIPE_HISTORY_FILE,
-        swipe_history
-    )
 
     return jsonify({
+
         "success": True,
 
         "user": {
-            "id": selected_user.id,
-            "name": selected_user.name,
-            "age": selected_user.age,
-            "gender": selected_user.gender,
-            "address": selected_user.address,
-            "intro": selected_user.intro,
+
+            "id":
+                selected_user.id,
+
+            "name":
+                selected_user.name,
+
+            "age":
+                selected_user.age,
+
+            "gender":
+                selected_user.gender,
+
+            "address":
+                selected_user.address,
+
+            "intro":
+                selected_user.intro,
+
             "photo_url":
                 selected_user.photo_url
         },
 
         "viewed":
-            viewed_count + 1,
+            viewed_count,
 
         "limit":
             allowed_count

@@ -446,7 +446,6 @@ body::before {
     font-size: 9px;
 }
 
-
 /* =========================================
    入力エリア
 ========================================= */
@@ -460,6 +459,9 @@ body::before {
     z-index: 100;
 
     width: 100%;
+    max-width: 100%;
+
+    margin: 0;
 
     padding:
         9px
@@ -469,7 +471,7 @@ body::before {
             env(safe-area-inset-bottom)
         );
 
-    
+    overflow: hidden;
 
     background:
         rgba(4,13,31,0.95);
@@ -485,12 +487,21 @@ body::before {
         0 -10px 35px
         rgba(0,0,0,0.22);
 }
-.message-form {
-    width: 100%;
-    max-width: 1100px;
 
-    margin-left: auto;
-    margin-right: auto;
+
+/* =========================================
+   PC入力フォーム
+========================================= */
+
+.message-form {
+
+    width: 100%;
+    max-width: 100%;
+
+    min-width: 0;
+
+    margin: 0;
+    padding: 0;
 
     display: grid;
 
@@ -507,44 +518,18 @@ body::before {
 
 
 /* =========================================
-   テキスト入力
-========================================= */
-
-.message-input {
-    width: 100%;
-    min-width: 0;
-
-    height: 46px;
-
-    padding: 0 15px;
-
-    outline: none;
-
-    border:
-        1px solid
-        rgba(255,255,255,0.10);
-
-    border-radius: 15px;
-
-    color: white;
-
-    font-size: 14px;
-
-    background:
-        rgba(255,255,255,0.07);
-}
-
-
-/* =========================================
-   写真選択
+   写真
 ========================================= */
 
 .file-label {
 
-    flex-shrink: 0;
-
     width: 46px;
     height: 46px;
+
+    min-width: 0;
+
+    margin: 0;
+    padding: 0;
 
     display: flex;
 
@@ -565,20 +550,6 @@ body::before {
 
     background:
         rgba(255,255,255,0.07);
-
-    transition:
-        transform 0.2s,
-        background 0.2s;
-}
-
-
-.file-label:hover {
-
-    transform:
-        translateY(-2px);
-
-    background:
-        rgba(255,255,255,0.13);
 }
 
 
@@ -589,17 +560,70 @@ body::before {
 
 
 /* =========================================
-   送信ボタン
+   入力欄
+========================================= */
+
+.message-input {
+
+    width: 100%;
+
+    min-width: 0;
+    max-width: 100%;
+
+    height: 46px;
+
+    margin: 0;
+
+    padding:
+        0 15px;
+
+    outline: none;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    border-radius: 15px;
+
+    color: white;
+
+    font-size: 14px;
+
+    background:
+        rgba(255,255,255,0.07);
+}
+
+
+.message-input:focus {
+
+    border-color:
+        rgba(82,218,255,0.50);
+
+    background:
+        rgba(255,255,255,0.10);
+}
+
+
+.message-input::placeholder {
+
+    color:
+        #7184a3;
+}
+
+
+/* =========================================
+   送信
 ========================================= */
 
 .send-button {
 
-    flex-shrink: 0;
+    width: 72px;
+    min-width: 0;
 
     height: 46px;
 
-    padding:
-        0 17px;
+    margin: 0;
+    padding: 0 8px;
 
     border: none;
 
@@ -607,7 +631,10 @@ body::before {
 
     color: white;
 
+    font-size: 13px;
     font-weight: 900;
+
+    white-space: nowrap;
 
     cursor: pointer;
 
@@ -625,15 +652,18 @@ body::before {
 
 
 /* =========================================
-   ギフトボタン
+   ギフト
 ========================================= */
 
 .gift-open-button {
 
-    flex-shrink: 0;
-
     width: 48px;
+    min-width: 0;
+
     height: 46px;
+
+    margin: 0;
+    padding: 0;
 
     display: flex;
 
@@ -656,27 +686,100 @@ body::before {
             #ff477b,
             #b54cff
         );
-
-    box-shadow:
-        0 8px 25px
-        rgba(255,70,151,0.28);
-
-    transition:
-        transform 0.2s,
-        box-shadow 0.2s;
 }
 
 
-.gift-open-button:hover {
+/* =========================================
+   スマホ
+========================================= */
 
-    transform:
-        translateY(-3px)
-        rotate(-4deg);
+@media (max-width: 600px) {
 
-    box-shadow:
-        0 12px 30px
-        rgba(255,70,151,0.40);
+    .input-area {
+
+        width: 100%;
+        max-width: 100%;
+
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+
+    .message-form {
+
+        width: 100%;
+        max-width: 100%;
+
+        min-width: 0;
+
+        margin: 0;
+        padding: 0;
+
+        grid-template-columns:
+            36px
+            minmax(0, 1fr)
+            52px
+            36px;
+
+        gap: 3px;
+    }
+
+
+    .file-label {
+
+        width: 36px;
+        height: 42px;
+
+        font-size: 17px;
+    }
+
+
+    .message-input {
+
+        width: 100%;
+        min-width: 0;
+
+        height: 42px;
+
+        padding:
+            0 8px;
+
+        font-size: 12px;
+    }
+
+
+    .send-button {
+
+        width: 52px;
+        min-width: 0;
+
+        height: 42px;
+
+        margin: 0;
+        padding: 0 3px;
+
+        font-size: 11px;
+    }
+
+
+    .gift-open-button {
+
+        width: 36px;
+        min-width: 0;
+
+        height: 42px;
+
+        margin: 0;
+
+        font-size: 18px;
+    }
+
 }
+
+
+
+
+
 
 
 /* =========================================
