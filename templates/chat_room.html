@@ -1831,35 +1831,32 @@ body::before {
 
 <footer class="input-area">
 
-    <form
-    action="/chat_room/{{ partner }}"
-    method="POST"
-    enctype="multipart/form-data"
-    
+    /chat_room/{{ partner }}
 
         <label
             class="file-label"
+            for="photoInput"
             title="写真を選択"
         >
             📷
-
-            <input
-                type="file"
-                name="photo"
-                accept="image/*"
-                class="file-input"
-            >
         </label>
 
+        <input
+            type="file"
+            name="photo"
+            accept="image/*"
+            class="file-input"
+            id="photoInput"
+        >
 
         <input
             type="text"
             name="message"
             class="message-input"
+            id="messageInput"
             placeholder="メッセージ..."
             autocomplete="off"
         >
-
 
         <button
             type="submit"
@@ -1867,7 +1864,6 @@ body::before {
         >
             送信
         </button>
-
 
         <button
             type="button"
@@ -1882,41 +1878,6 @@ body::before {
     </form>
 
 </footer>
-
-
-</div>
-
-
-<!-- =========================================
-     ギフトショップ
-========================================= -->
-
-<div
-    id="giftModal"
-    class="gift-modal"
->
-
-
-    <div class="gift-panel">
-
-
-        <div class="gift-panel-header">
-
-
-            <div>
-
-
-                <div class="gift-panel-title">
-                    🎁 ギフトショップ
-                </div>
-
-
-                <div class="gift-panel-subtitle">
-                    SPECIAL GIFTS
-                </div>
-
-
-            </div>
 
 
             <button

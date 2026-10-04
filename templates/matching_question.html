@@ -12,6 +12,9 @@
 
 <title>PAIR LINK</title>
 
+<!-- Socket.IO -->
+<script src="/socket.io/socket.io.js"></script>
+
 <style>
 
 /* =========================================
@@ -962,6 +965,8 @@ h1 {
 
 <script>
 
+
+
 const joinButton =
     document.getElementById(
         "joinButton"
@@ -1372,6 +1377,51 @@ if (joinButton) {
         "PAIR LINK: joinButtonが存在しません"
     );
 }
+
+const socket = io();
+
+socket.on(
+    "connect",
+    function() {
+
+        socket.emit(
+            "pair_link_join"
+        );
+    }
+);
+
+
+socket.on(
+    "pair_link_game_ready",
+    function(data) {
+
+        updatePlayerCount(6);
+
+        showMessage(
+            "💕 6人揃いました！ゲームを開始します",
+            "success"
+        );
+
+        if (joinButton) {
+
+            joinButton.textContent =
+                "ゲーム開始！";
+        }
+
+        if (data.next_url) {
+
+            setTimeout(
+                function() {
+
+                    window.location.href =
+                        data.next_url;
+
+                },
+                700
+            );
+        }
+    }
+);
 
 </script>
 

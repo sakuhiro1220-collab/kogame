@@ -12,6 +12,8 @@
 
 <title>PAIR LINK - 相性診断</title>
 
+<script src="/socket.io/socket.io.js"></script>
+
 <style>
 
 /* =========================================
@@ -763,7 +765,7 @@ body::before {
 </style>
 
 </head>
-
+<body data-room-id="{{ room_id }}"></body>
 
 <body>
 
@@ -831,6 +833,28 @@ body::before {
         </div>
 
     </div>
+
+<div class="voice-controls">
+
+    <div id="voiceStatus">
+        🎙 ボイスチャット準備中
+    </div>
+
+    <button
+        type="button"
+        id="muteButton"
+        onclick="toggleMute()"
+        disabled
+    >
+        🎙 ミュート
+    </button>
+
+</div>
+
+<div
+    id="remoteAudioContainer"
+    style="display:none;"
+></div>
 
 
     <!-- =====================================
@@ -1349,8 +1373,674 @@ if (
 }
 
 </script>
+<script>
 
+const voiceSocket = io();
+
+const voiceRoomId =
+    document.body.dataset.roomId;
+
+let localStream = null;
+let isMuted = false;
+
+const peerConnections = {};
+
+
+/* =========================================
+   WebRTC設定
+========================================= */
+
+const rtcConfig = {
+
+    iceServers: [
+
+        {
+            urls:
+                "stun:stun.l.google.com:19302"
+        }
+
+    ]
+
+};
+
+
+/* =========================================
+   ステータス表示
+========================================= */
+
+function setVoiceStatus(text) {
+
+    const status =
+        document.getElementById(
+            "voiceStatus"
+        );
+
+    if (status) {
+        status.textContent = text;
+    }
+}
+
+
+/* =========================================
+   マイク開始
+========================================= */
+
+async function startVoiceChat() {
+
+    try {
+
+        setVoiceStatus(
+            "🎙 マイクの許可を待っています"
+        );
+
+
+        localStream =
+            await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false
+            });
+
+
+        const muteButton =
+            document.getElementById(
+                "muteButton"
+            );
+
+
+        if (muteButton) {
+
+            muteButton.disabled =
+                false;
+        }
+
+
+        setVoiceStatus(
+            "🔊 ボイスチャット接続中..."
+        );
+
+
+        voiceSocket.emit(
+            "pair_voice_join",
+            {
+                room_id:
+                    voiceRoomId
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "MIC ERROR:",
+            error
+        );
+
+
+        setVoiceStatus(
+            "⚠️ マイクを使用できません"
+        );
+    }
+}
+
+
+/* =========================================
+   PeerConnection作成
+========================================= */
+
+function createPeerConnection(
+    peerId
+) {
+
+    if (
+        peerConnections[
+            peerId
+        ]
+    ) {
+
+        return peerConnections[
+            peerId
+        ];
+    }
+
+
+    const pc =
+        new RTCPeerConnection(
+            rtcConfig
+        );
+
+
+    peerConnections[
+        peerId
+    ] = pc;
+
+
+    /* =====================================
+       自分のマイクを相手へ送信
+    ====================================== */
+
+    if (localStream) {
+
+        localStream
+            .getTracks()
+            .forEach(
+                function(track) {
+
+                    pc.addTrack(
+                        track,
+                        localStream
+                    );
+                }
+            );
+    }
+
+
+    /* =====================================
+       ICE候補
+    ====================================== */
+
+    pc.onicecandidate =
+        function(event) {
+
+            if (!event.candidate) {
+                return;
+            }
+
+
+            voiceSocket.emit(
+                "pair_voice_ice",
+                {
+
+                    room_id:
+                        voiceRoomId,
+
+                    target:
+                        peerId,
+
+                    candidate:
+                        event.candidate
+
+                }
+            );
+        };
+
+
+    /* =====================================
+       相手の音声
+    ====================================== */
+
+    pc.ontrack =
+        function(event) {
+
+            let audio =
+                document.getElementById(
+                    "voice-audio-"
+                    + peerId
+                );
+
+
+            if (!audio) {
+
+                audio =
+                    document.createElement(
+                        "audio"
+                    );
+
+
+                audio.id =
+                    "voice-audio-"
+                    + peerId;
+
+
+                audio.autoplay =
+                    true;
+
+
+                audio.playsInline =
+                    true;
+
+
+                const container =
+                    document.getElementById(
+                        "remoteAudioContainer"
+                    );
+
+
+                container.appendChild(
+                    audio
+                );
+            }
+
+
+            if (
+                event.streams
+                &&
+                event.streams[0]
+            ) {
+
+                audio.srcObject =
+                    event.streams[0];
+            }
+        };
+
+
+    pc.onconnectionstatechange =
+        function() {
+
+            console.log(
+                "VOICE PEER:",
+                peerId,
+                pc.connectionState
+            );
+
+
+            updateVoiceStatus();
+        };
+
+
+    return pc;
+}
+
+
+/* =========================================
+   接続状態表示
+========================================= */
+
+function updateVoiceStatus() {
+
+    const connections =
+        Object.values(
+            peerConnections
+        );
+
+
+    const connectedCount =
+        connections.filter(
+            function(pc) {
+
+                return (
+                    pc.connectionState
+                    ===
+                    "connected"
+                );
+            }
+        ).length;
+
+
+    setVoiceStatus(
+        "🎙 ボイスチャット "
+        +
+        connectedCount
+        +
+        "人と接続中"
+    );
+}
+
+
+/* =========================================
+   新しい参加者
+========================================= */
+
+voiceSocket.on(
+    "pair_voice_peer_joined",
+    async function(data) {
+
+        const peerId =
+            data.peer_id;
+
+
+        if (!peerId) {
+            return;
+        }
+
+
+        const pc =
+            createPeerConnection(
+                peerId
+            );
+
+
+        try {
+
+            const offer =
+                await pc.createOffer();
+
+
+            await pc.setLocalDescription(
+                offer
+            );
+
+
+            voiceSocket.emit(
+                "pair_voice_offer",
+                {
+
+                    room_id:
+                        voiceRoomId,
+
+                    target:
+                        peerId,
+
+                    sdp:
+                        pc.localDescription
+
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "VOICE OFFER ERROR:",
+                error
+            );
+        }
+    }
+);
+
+
+/* =========================================
+   Offer受信
+========================================= */
+
+voiceSocket.on(
+    "pair_voice_offer",
+    async function(data) {
+
+        try {
+
+            const peerId =
+                data.from;
+
+
+            const pc =
+                createPeerConnection(
+                    peerId
+                );
+
+
+            await pc.setRemoteDescription(
+                data.sdp
+            );
+
+
+            const answer =
+                await pc.createAnswer();
+
+
+            await pc.setLocalDescription(
+                answer
+            );
+
+
+            voiceSocket.emit(
+                "pair_voice_answer",
+                {
+
+                    room_id:
+                        voiceRoomId,
+
+                    target:
+                        peerId,
+
+                    sdp:
+                        pc.localDescription
+
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "VOICE OFFER RECEIVE ERROR:",
+                error
+            );
+        }
+    }
+);
+
+
+/* =========================================
+   Answer受信
+========================================= */
+
+voiceSocket.on(
+    "pair_voice_answer",
+    async function(data) {
+
+        try {
+
+            const peerId =
+                data.from;
+
+
+            const pc =
+                peerConnections[
+                    peerId
+                ];
+
+
+            if (!pc) {
+                return;
+            }
+
+
+            await pc.setRemoteDescription(
+                data.sdp
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "VOICE ANSWER ERROR:",
+                error
+            );
+        }
+    }
+);
+
+
+/* =========================================
+   ICE受信
+========================================= */
+
+voiceSocket.on(
+    "pair_voice_ice",
+    async function(data) {
+
+        try {
+
+            const peerId =
+                data.from;
+
+
+            const pc =
+                createPeerConnection(
+                    peerId
+                );
+
+
+            if (
+                data.candidate
+            ) {
+
+                await pc.addIceCandidate(
+                    data.candidate
+                );
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "VOICE ICE ERROR:",
+                error
+            );
+        }
+    }
+);
+
+
+/* =========================================
+   相手退出
+========================================= */
+
+voiceSocket.on(
+    "pair_voice_peer_left",
+    function(data) {
+
+        const peerId =
+            data.peer_id;
+
+
+        const pc =
+            peerConnections[
+                peerId
+            ];
+
+
+        if (pc) {
+
+            pc.close();
+
+            delete peerConnections[
+                peerId
+            ];
+        }
+
+
+        const audio =
+            document.getElementById(
+                "voice-audio-"
+                + peerId
+            );
+
+
+        if (audio) {
+
+            audio.remove();
+        }
+
+
+        updateVoiceStatus();
+    }
+);
+
+
+/* =========================================
+   ミュート
+========================================= */
+
+function toggleMute() {
+
+    if (!localStream) {
+        return;
+    }
+
+
+    isMuted =
+        !isMuted;
+
+
+    localStream
+        .getAudioTracks()
+        .forEach(
+            function(track) {
+
+                track.enabled =
+                    !isMuted;
+            }
+        );
+
+
+    const button =
+        document.getElementById(
+            "muteButton"
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    if (isMuted) {
+
+        button.textContent =
+            "🔇 ミュート解除";
+
+
+        setVoiceStatus(
+            "🔇 ミュート中"
+        );
+
+    } else {
+
+        button.textContent =
+            "🎙 ミュート";
+
+
+        updateVoiceStatus();
+    }
+}
+
+
+/* =========================================
+   ページを離れる
+========================================= */
+
+window.addEventListener(
+    "beforeunload",
+    function() {
+
+        voiceSocket.emit(
+            "pair_voice_leave",
+            {
+                room_id:
+                    voiceRoomId
+            }
+        );
+
+
+        Object.values(
+            peerConnections
+        ).forEach(
+            function(pc) {
+
+                pc.close();
+            }
+        );
+
+
+        if (localStream) {
+
+            localStream
+                .getTracks()
+                .forEach(
+                    function(track) {
+
+                        track.stop();
+                    }
+                );
+        }
+    }
+);
+
+
+/* =========================================
+   Socket接続完了
+========================================= */
+
+voiceSocket.on(
+    "connect",
+    function() {
+
+        startVoiceChat();
+    }
+);
+
+</script>
 
 </body>
-
 </html>

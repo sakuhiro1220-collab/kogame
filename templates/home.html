@@ -1853,7 +1853,8 @@ async function swipeLike(userId) {
         const response =
             await fetch(
                 "/like/"
-                + encodeURIComponent(
+                +
+                encodeURIComponent(
                     userId
                 )
             );
@@ -1871,7 +1872,8 @@ async function swipeLike(userId) {
 
             throw new Error(
                 data.message
-                || "いいねに失敗しました"
+                ||
+                "いいねに失敗しました"
             );
         }
 
@@ -1886,15 +1888,29 @@ async function swipeLike(userId) {
             data.chat_url
         ) {
 
+            /*
+             * マッチ成立の場合でも
+             * スワイプした相手を記録
+             */
+
+            await recordSwipe(
+                userId,
+                "right"
+            );
+
+
             const overlay =
                 document.getElementById(
                     "matchOverlay"
                 );
 
 
-            overlay.classList.add(
-                "show"
-            );
+            if (overlay) {
+
+                overlay.classList.add(
+                    "show"
+                );
+            }
 
 
             setTimeout(
@@ -1937,9 +1953,86 @@ async function swipeLike(userId) {
 
         alert(
             error.message
-            || "いいね処理に失敗しました"
+            ||
+            "いいね処理に失敗しました"
         );
     }
+}
+
+
+/* =========================================
+   スワイプ履歴をDBへ送信
+========================================= */
+
+async function recordSwipe(
+    userId,
+    direction
+) {
+
+    const response =
+        await fetch(
+            "/swipe/record",
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json",
+
+                    "Accept":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+
+                        target_user_id:
+                            userId,
+
+                        direction:
+                            direction
+
+                    })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (
+        !response.ok
+        ||
+        !data.success
+    ) {
+
+        /*
+         * 上限到達
+         */
+
+        if (data.locked) {
+
+            showSwipeLock(
+                data.coins
+            );
+
+            return data;
+        }
+
+
+        throw new Error(
+            data.message
+            ||
+            "スワイプを記録できませんでした"
+        );
+    }
+
+
+    return data;
 }
 
 
@@ -1947,7 +2040,7 @@ async function swipeLike(userId) {
    カードを左右へ飛ばす
 ========================================= */
 
-function flyCard(
+async function flyCard(
     userId,
     direction,
     alreadyLocked = false
@@ -1982,51 +2075,74 @@ function flyCard(
     }
 
 
-    if (
-        direction === "right"
-    ) {
+    try {
 
-        card.classList.add(
-            "fly-right"
-        );
+        /* =================================
+           先にスワイプ履歴を保存
+        ================================= */
 
-    } else {
-
-        card.classList.add(
-            "fly-left"
-        );
-    }
+        const data =
+            await recordSwipe(
+                userId,
+                direction
+            );
 
 
-    setTimeout(
-        async () => {
+        /*
+         * スワイプ前から
+         * 上限だった場合
+         */
+
+        if (
+            data.locked
+            &&
+            !data.success
+        ) {
+
+            return;
+        }
 
 
-            card.remove();
+        /* =================================
+           カードアニメーション
+        ================================= */
+
+        if (
+            direction
+            ===
+            "right"
+        ) {
+
+            card.classList.add(
+                "fly-right"
+            );
+
+        } else {
+
+            card.classList.add(
+                "fly-left"
+            );
+        }
 
 
-            swiper.update();
+        setTimeout(
+            () => {
+
+                card.remove();
 
 
-            try {
-
-                const response =
-                    await fetch(
-                        "/swipe/record",
-                        {
-                            method:
-                                "POST"
-                        }
-                    );
+                swiper.update();
 
 
-                const data =
-                    await response.json();
+                /* =================================
+                   5枚目なら即ロック
 
+                   追加解放後なら
+                   6枚目、7枚目...でも
+                   limit到達時に再ロック
+                ================================= */
 
-                if (
-                    data.locked
-                ) {
+                if (data.locked) {
 
                     showSwipeLock(
                         data.coins
@@ -2036,22 +2152,64 @@ function flyCard(
                 }
 
 
-            } catch (error) {
+                /*
+                 * まだ上限ではない
+                 */
 
-                console.error(
-                    "スワイプ記録エラー:",
-                    error
-                );
-            }
-
-
-            swipeProcessing =
-                false;
+                swipeProcessing =
+                    false;
 
 
-        },
-        450
-    );
+                /*
+                 * 残っているカードへ進む
+                 */
+
+                if (
+                    swiper.slides
+                    &&
+                    swiper.slides.length
+                    >
+                    0
+                ) {
+
+                    swiper.slideNext(
+                        0
+                    );
+
+                } else {
+
+                    /*
+                     * HTML内のカードを
+                     * 全部使った場合は
+                     * サーバーから次を取得
+                     */
+
+                    loadNextSwipeCard();
+                }
+
+            },
+            450
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "SWIPE ERROR:",
+            error
+        );
+
+
+        swipeProcessing =
+            false;
+
+
+        alert(
+            error.message
+            ||
+            "スワイプ処理に失敗しました"
+        );
+    }
 }
 
 
@@ -2091,15 +2249,151 @@ function showSwipeLock(coins) {
     }
 
 
-    document.getElementById(
-        "currentCoins"
-    ).textContent =
-        coins ?? 0;
+    const coinElement =
+        document.getElementById(
+            "currentCoins"
+        );
+
+
+    if (coinElement) {
+
+        coinElement.textContent =
+            coins ?? 0;
+    }
 }
 
 
 /* =========================================
-   50 Coinでカード追加
+   ロック画面を閉じる
+========================================= */
+
+function hideSwipeLock() {
+
+    const swiperElement =
+        document.getElementById(
+            "swiperArea"
+        );
+
+
+    const lockElement =
+        document.getElementById(
+            "swipeLock"
+        );
+
+
+    if (lockElement) {
+
+        lockElement.style.display =
+            "none";
+    }
+
+
+    if (swiperElement) {
+
+        swiperElement.style.display =
+            "";
+    }
+
+
+    swipeProcessing =
+        false;
+}
+
+
+/* =========================================
+   サーバーから次のカードを取得
+========================================= */
+
+async function loadNextSwipeCard() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/swipe/next",
+                {
+
+                    method:
+                        "GET",
+
+                    headers: {
+
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        /* =================================
+           上限
+        ================================= */
+
+        if (data.locked) {
+
+            showSwipeLock(
+                data.coins
+            );
+
+            return;
+        }
+
+
+        /* =================================
+           候補なし
+        ================================= */
+
+        if (
+            !response.ok
+            ||
+            !data.success
+        ) {
+
+            console.log(
+                data.message
+                ||
+                "表示できるユーザーはいません"
+            );
+
+
+            swipeProcessing =
+                false;
+
+
+            return;
+        }
+
+
+        /*
+         * home.htmlでは基本的に
+         * サーバー側で候補カードを生成しているため、
+         * ここではページを再読み込みして
+         * 次の候補を反映する。
+         */
+
+        window.location.reload();
+
+
+    } catch (error) {
+
+        console.error(
+            "SWIPE NEXT ERROR:",
+            error
+        );
+
+
+        swipeProcessing =
+            false;
+    }
+}
+
+
+/* =========================================
+   50 Coinでカード1枚追加
 ========================================= */
 
 async function unlockSwipeCard() {
@@ -2110,12 +2404,15 @@ async function unlockSwipeCard() {
         );
 
 
-    message.style.color =
-        "#ffffff";
+    if (message) {
+
+        message.style.color =
+            "#ffffff";
 
 
-    message.textContent =
-        "解放中...";
+        message.textContent =
+            "解放中...";
+    }
 
 
     try {
@@ -2124,8 +2421,15 @@ async function unlockSwipeCard() {
             await fetch(
                 "/swipe/unlock",
                 {
+
                     method:
-                        "POST"
+                        "POST",
+
+                    headers: {
+
+                        "Accept":
+                            "application/json"
+                    }
                 }
             );
 
@@ -2140,32 +2444,58 @@ async function unlockSwipeCard() {
             !data.success
         ) {
 
-            message.style.color =
-                "#ff91aa";
+            if (message) {
+
+                message.style.color =
+                    "#ff91aa";
 
 
-            message.textContent =
-                data.message
-                || "解放できませんでした";
+                message.textContent =
+                    data.message
+                    ||
+                    "解放できませんでした";
+            }
 
 
             return;
         }
 
 
-        document.getElementById(
-            "currentCoins"
-        ).textContent =
-            data.coins;
+        /* =================================
+           所持コイン更新
+        ================================= */
+
+        const coinElement =
+            document.getElementById(
+                "currentCoins"
+            );
 
 
-        message.style.color =
-            "#72ffad";
+        if (coinElement) {
+
+            coinElement.textContent =
+                data.coins;
+        }
 
 
-        message.textContent =
-            "1枚解放しました！";
+        if (message) {
 
+            message.style.color =
+                "#72ffad";
+
+
+            message.textContent =
+                "1枚解放しました！";
+        }
+
+
+        /*
+         * 1枚追加されたので
+         * ページを読み直す。
+         *
+         * /home 側で今日スワイプ済みの
+         * ユーザーは除外される。
+         */
 
         setTimeout(
             () => {
@@ -2185,12 +2515,15 @@ async function unlockSwipeCard() {
         );
 
 
-        message.style.color =
-            "#ff91aa";
+        if (message) {
+
+            message.style.color =
+                "#ff91aa";
 
 
-        message.textContent =
-            "通信エラーが発生しました";
+            message.textContent =
+                "通信エラーが発生しました";
+        }
     }
 }
 
