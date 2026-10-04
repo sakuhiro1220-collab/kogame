@@ -1525,6 +1525,394 @@ def handle_pair_link_join(
             user_id,
             room_id
         )
+
+# ============================================================
+# PAIR LINK
+# 6人ボイスチャット WebRTC シグナリング
+# ============================================================
+
+
+@socketio.on("pair_voice_join")
+def handle_pair_voice_join(data=None):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    # =========================================
+    # ユーザーが所属しているPAIR LINKルーム
+    # =========================================
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    # =========================================
+    # このゲームの参加者か確認
+    # =========================================
+
+    if user_id not in room["players"]:
+        return
+
+
+    # =========================================
+    # ボイス専用Socket.IOルーム
+    # =========================================
+
+    voice_room = (
+        "pair_voice_"
+        + room_id
+    )
+
+
+    # =========================================
+    # ボイスルームへ参加
+    # =========================================
+
+    join_room(
+        voice_room
+    )
+
+
+    print(
+        "PAIR VOICE JOIN:",
+        user_id,
+        room_id,
+        request.sid
+    )
+
+
+    # =========================================
+    # すでに参加しているユーザーへ
+    # 新規参加者を通知
+    #
+    # 新規参加者側からOfferを作ってもらう
+    # =========================================
+
+    socketio.emit(
+
+        "pair_voice_peer_joined",
+
+        {
+            "peer_id":
+                request.sid
+        },
+
+        room=
+            voice_room,
+
+        skip_sid=
+            request.sid
+    )
+
+
+# ============================================================
+# WebRTC Offer
+# ============================================================
+
+@socketio.on("pair_voice_offer")
+def handle_pair_voice_offer(data=None):
+
+    if not data:
+        return
+
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    if user_id not in room["players"]:
+        return
+
+
+    target = data.get(
+        "target"
+    )
+
+    sdp = data.get(
+        "sdp"
+    )
+
+
+    if not target:
+        return
+
+
+    if not sdp:
+        return
+
+
+    print(
+        "PAIR VOICE OFFER:",
+        request.sid,
+        "->",
+        target
+    )
+
+
+    socketio.emit(
+
+        "pair_voice_offer",
+
+        {
+            "from":
+                request.sid,
+
+            "sdp":
+                sdp
+        },
+
+        to=
+            target
+    )
+
+
+# ============================================================
+# WebRTC Answer
+# ============================================================
+
+@socketio.on("pair_voice_answer")
+def handle_pair_voice_answer(data=None):
+
+    if not data:
+        return
+
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    if user_id not in room["players"]:
+        return
+
+
+    target = data.get(
+        "target"
+    )
+
+    sdp = data.get(
+        "sdp"
+    )
+
+
+    if not target:
+        return
+
+
+    if not sdp:
+        return
+
+
+    print(
+        "PAIR VOICE ANSWER:",
+        request.sid,
+        "->",
+        target
+    )
+
+
+    socketio.emit(
+
+        "pair_voice_answer",
+
+        {
+            "from":
+                request.sid,
+
+            "sdp":
+                sdp
+        },
+
+        to=
+            target
+    )
+
+
+# ============================================================
+# WebRTC ICE Candidate
+# ============================================================
+
+@socketio.on("pair_voice_ice")
+def handle_pair_voice_ice(data=None):
+
+    if not data:
+        return
+
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    if user_id not in room["players"]:
+        return
+
+
+    target = data.get(
+        "target"
+    )
+
+    candidate = data.get(
+        "candidate"
+    )
+
+
+    if not target:
+        return
+
+
+    if not candidate:
+        return
+
+
+    socketio.emit(
+
+        "pair_voice_ice",
+
+        {
+            "from":
+                request.sid,
+
+            "candidate":
+                candidate
+        },
+
+        to=
+            target
+    )
+
+
+# ============================================================
+# ボイスチャット退出
+# ============================================================
+
+@socketio.on("pair_voice_leave")
+def handle_pair_voice_leave(data=None):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    voice_room = (
+        "pair_voice_"
+        + room_id
+    )
+
+
+    print(
+        "PAIR VOICE LEAVE:",
+        user_id,
+        room_id,
+        request.sid
+    )
+
+
+    # =========================================
+    # 他の参加者へ退出通知
+    # =========================================
+
+    socketio.emit(
+
+        "pair_voice_peer_left",
+
+        {
+            "peer_id":
+                request.sid
+        },
+
+        room=
+            voice_room,
+
+        skip_sid=
+            request.sid
+    )
 # -------------------------
 # Stripe設定
 
