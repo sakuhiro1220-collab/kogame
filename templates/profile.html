@@ -1,187 +1,1096 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
+
 <head>
+
 <meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
 <title>{{ user.name }}のプロフィール</title>
 
 <style>
-body{
-    font-family:"Hiragino Sans","Noto Sans JP",sans-serif;
-    background:#f5f7fa;
-    margin:0;
-    padding:0;
+
+/* =========================================
+   基本
+========================================= */
+
+* {
+    box-sizing: border-box;
 }
 
-.container{
-    max-width:480px;
-    margin:40px auto;
-    background:white;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.1);
+html,
+body {
+    margin: 0;
+    min-height: 100%;
 }
 
-.icon{
-    width:120px;
-    height:120px;
-    border-radius:50%;
-    object-fit:cover;
-    display:block;
-    margin:0 auto 15px auto;
-    border:4px solid #eee;
+body {
+
+    min-height: 100vh;
+
+    font-family:
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+    color: white;
+
+    background:
+        radial-gradient(
+            circle at 15% 10%,
+            rgba(0, 200, 255, 0.20),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 85% 85%,
+            rgba(139, 92, 246, 0.25),
+            transparent 38%
+        ),
+        linear-gradient(
+            135deg,
+            #020617,
+            #07182f,
+            #100927,
+            #031423
+        );
+
+    background-attachment: fixed;
 }
 
-h2{
-    text-align:center;
-    margin-bottom:5px;
+
+/* =========================================
+   背景グリッド
+========================================= */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        50px 50px;
 }
 
-.verified{
-    text-align:center;
-    font-size:14px;
-    margin-bottom:15px;
+
+/* =========================================
+   全体
+========================================= */
+
+.page {
+
+    position: relative;
+
+    z-index: 2;
+
+    width:
+        min(
+            650px,
+            94%
+        );
+
+    margin:
+        0 auto;
+
+    padding:
+        25px 0
+        55px;
 }
 
-.verified span{
-    background:#4CAF50;
-    color:white;
-    padding:4px 10px;
-    border-radius:12px;
+
+/* =========================================
+   上部
+========================================= */
+
+.top-bar {
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
 }
 
-.not-verified span{
-    background:#e74c3c;
-    color:white;
-    padding:4px 10px;
-    border-radius:12px;
+
+.back-button {
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+
+    padding:
+        0 16px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    border-radius: 13px;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    backdrop-filter:
+        blur(15px);
+
+    transition:
+        0.2s;
 }
 
-.info-box{
-    background:#fafafa;
-    padding:15px;
-    border-radius:12px;
-    margin-bottom:20px;
-    border:1px solid #eee;
+
+.back-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.12);
 }
 
-.info-box p{
-    margin:8px 0;
+
+.page-label {
+
+    color:
+        #7189ad;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: 3px;
 }
 
-.stats-box{
-    background:#fff8e6;
-    padding:15px;
-    border-radius:12px;
-    border:1px solid #f1d28c;
-    margin-bottom:20px;
+
+/* =========================================
+   プロフィールカード
+========================================= */
+
+.profile-card {
+
+    padding:
+        28px
+        25px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.09);
+
+    border-radius:
+        27px;
+
+    background:
+        rgba(6,17,40,0.78);
+
+    backdrop-filter:
+        blur(20px);
+
+    box-shadow:
+        0 20px 55px
+        rgba(0,0,0,0.28);
 }
 
-.edit-btn{
-    display:block;
-    width:100%;
-    background:#3498db;
-    color:white;
-    text-align:center;
-    padding:12px;
-    border-radius:10px;
-    text-decoration:none;
-    margin-top:10px;
+
+/* =========================================
+   プロフィール画像
+========================================= */
+
+.photo-wrap {
+
+    display: flex;
+
+    justify-content: center;
 }
 
-.back-btn{
-    display:block;
-    width:100%;
-    background:#95a5a6;
-    color:white;
-    text-align:center;
-    padding:10px;
-    border-radius:10px;
-    text-decoration:none;
-    margin-top:15px;
+
+.profile-photo {
+
+    width: 125px;
+    height: 125px;
+
+    display: block;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border:
+        3px solid
+        rgba(100,220,255,0.50);
+
+    background:
+        rgba(255,255,255,0.08);
+
+    box-shadow:
+        0 0 35px
+        rgba(56,189,248,0.20);
 }
 
-.coin-box{
-    background:linear-gradient(45deg,#ffd700,#fff2a8);
-    padding:15px;
-    border-radius:12px;
-    text-align:center;
-    font-size:22px;
-    font-weight:bold;
-    margin-bottom:20px;
+
+/* =========================================
+   名前
+========================================= */
+
+.profile-name {
+
+    margin:
+        17px 0
+        0;
+
+    text-align: center;
+
+    font-size:
+        clamp(
+            23px,
+            6vw,
+            30px
+        );
+
+    font-weight: 950;
+
+    overflow-wrap: anywhere;
 }
+
+
+/* =========================================
+   年齢確認
+========================================= */
+
+.verify-area {
+
+    margin-top: 9px;
+
+    text-align: center;
+}
+
+
+.verified-badge,
+.not-verified-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        6px
+        12px;
+
+    border-radius:
+        999px;
+
+    font-size: 11px;
+
+    font-weight: 900;
+}
+
+
+.verified-badge {
+
+    color:
+        #a7f3d0;
+
+    border:
+        1px solid
+        rgba(52,211,153,0.28);
+
+    background:
+        rgba(16,185,129,0.14);
+}
+
+
+.not-verified-badge {
+
+    color:
+        #fecaca;
+
+    border:
+        1px solid
+        rgba(248,113,113,0.28);
+
+    background:
+        rgba(239,68,68,0.14);
+}
+
+
+/* =========================================
+   Coin
+========================================= */
+
+.coin-box {
+
+    margin-top: 22px;
+
+    padding:
+        16px;
+
+    text-align: center;
+
+    border:
+        1px solid
+        rgba(255,213,76,0.30);
+
+    border-radius:
+        17px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,188,47,0.16),
+            rgba(255,226,111,0.08)
+        );
+}
+
+
+.coin-label {
+
+    color:
+        #d3aa44;
+
+    font-size: 10px;
+
+    font-weight: 900;
+
+    letter-spacing: 2px;
+}
+
+
+.coin-value {
+
+    margin-top: 4px;
+
+    color:
+        #ffe485;
+
+    font-size: 24px;
+
+    font-weight: 950;
+}
+
+
+/* =========================================
+   情報カード
+========================================= */
+
+.info-box {
+
+    margin-top:
+        22px;
+
+    padding:
+        18px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius:
+        18px;
+
+    background:
+        rgba(255,255,255,0.04);
+}
+
+
+.info-row {
+
+    display: grid;
+
+    grid-template-columns:
+        105px
+        1fr;
+
+    gap:
+        12px;
+
+    padding:
+        11px 0;
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,0.06);
+}
+
+
+.info-row:last-child {
+
+    border-bottom:
+        none;
+}
+
+
+.info-label {
+
+    color:
+        #7189aa;
+
+    font-size:
+        12px;
+
+    font-weight: 800;
+}
+
+
+.info-value {
+
+    color:
+        #e8f1ff;
+
+    font-size:
+        14px;
+
+    font-weight: 700;
+
+    overflow-wrap:
+        anywhere;
+}
+
+
+/* =========================================
+   自己紹介
+========================================= */
+
+.intro-box {
+
+    margin-top:
+        15px;
+
+    padding:
+        18px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius:
+        18px;
+
+    background:
+        rgba(255,255,255,0.04);
+}
+
+
+.intro-title {
+
+    margin-bottom:
+        9px;
+
+    color:
+        #70deff;
+
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1px;
+}
+
+
+.intro-text {
+
+    color:
+        #d5e2f4;
+
+    font-size:
+        14px;
+
+    line-height:
+        1.8;
+
+    white-space:
+        pre-wrap;
+
+    overflow-wrap:
+        anywhere;
+}
+
+
+/* =========================================
+   ステータス
+========================================= */
+
+.stats {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
+    gap:
+        12px;
+
+    margin-top:
+        18px;
+}
+
+
+.stat-card {
+
+    padding:
+        18px 10px;
+
+    text-align:
+        center;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius:
+        18px;
+
+    background:
+        rgba(255,255,255,0.04);
+}
+
+
+.stat-icon {
+
+    font-size:
+        23px;
+}
+
+
+.stat-value {
+
+    margin-top:
+        5px;
+
+    color:
+        white;
+
+    font-size:
+        21px;
+
+    font-weight:
+        950;
+}
+
+
+.stat-label {
+
+    margin-top:
+        3px;
+
+    color:
+        #7588a7;
+
+    font-size:
+        10px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        1px;
+}
+
+
+.like-stat {
+
+    border-color:
+        rgba(255,93,139,0.16);
+}
+
+
+.star-stat {
+
+    border-color:
+        rgba(255,210,82,0.16);
+}
+
+
+/* =========================================
+   ボタン
+========================================= */
+
+.actions {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        10px;
+
+    margin-top:
+        22px;
+}
+
+
+.edit-button,
+.home-button {
+
+    width:
+        100%;
+
+    min-height:
+        48px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        14px;
+
+    color:
+        white;
+
+    text-decoration:
+        none;
+
+    font-size:
+        14px;
+
+    font-weight:
+        900;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.edit-button {
+
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #7659ff
+        );
+
+    box-shadow:
+        0 9px 28px
+        rgba(74,110,255,0.22);
+}
+
+
+.home-button {
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    background:
+        rgba(255,255,255,0.06);
+}
+
+
+.edit-button:hover,
+.home-button:hover {
+
+    transform:
+        translateY(-2px);
+}
+
+
+/* =========================================
+   スマホ
+========================================= */
+
+@media (max-width: 600px) {
+
+    .page {
+
+        width:
+            95%;
+
+        padding:
+            14px 0
+            35px;
+    }
+
+
+    .profile-card {
+
+        padding:
+            22px
+            15px;
+
+        border-radius:
+            22px;
+    }
+
+
+    .profile-photo {
+
+        width:
+            105px;
+
+        height:
+            105px;
+    }
+
+
+    .top-bar {
+
+        margin-bottom:
+            13px;
+    }
+
+
+    .back-button {
+
+        min-height:
+            39px;
+
+        padding:
+            0 12px;
+
+        font-size:
+            12px;
+    }
+
+
+    .info-row {
+
+        grid-template-columns:
+            90px
+            1fr;
+
+        gap:
+            8px;
+    }
+
+
+    .info-label {
+
+        font-size:
+            11px;
+    }
+
+
+    .info-value {
+
+        font-size:
+            13px;
+    }
+
+
+    .stats {
+
+        gap:
+            8px;
+    }
+
+
+    .stat-card {
+
+        padding:
+            15px 6px;
+    }
+
+}
+
 </style>
 
 </head>
+
+
 <body>
 
-<div class="container">
 
-{% set is_me = (user.id == session['user_id']) %}
+<div class="page">
 
-<img
-    src="{{ user.photo_url if user.photo_url else '/static/default.png' }}"
-    class="icon"
-    alt="プロフィール画像"
 
-{% if user.verified %}
-<div class="verified">
-<span>✔ 年齢確認済み</span>
-</div>
-{% else %}
-<div class="not-verified">
-<span>✖ 年齢未確認</span>
-</div>
-{% endif %}
+    <!-- =====================================
+         上部
+    ====================================== -->
 
-{% if is_me %}
-<div class="coin-box">
-🪙 {{ user.coins }} Coin
-</div>
-{% endif %}
+    <div class="top-bar">
 
-<div class="info-box">
+        <a href="/home" class="action-btn">
+            ← ホーム
+        </a>
 
-<p><strong>名前：</strong>{{ user.name }}</p>
+        <div class="page-label">
+            PROFILE
+        </div>
 
-<p><strong>住んでいる県：</strong>{{ user.address }}</p>
+    </div>
 
-<p><strong>性別：</strong>{{ user.gender }}</p>
 
-<p><strong>年齢：</strong>{{ user.age }}</p>
+    <!-- =====================================
+         プロフィール
+    ====================================== -->
 
-<p>
-<strong>自己紹介：</strong><br>
-{{ user.intro }}
-</p>
+    <main class="profile-card">
 
-</div>
 
-<div class="stats-box">
+        {% set is_me = (
+            user.id == session.get("user_id")
+        ) %}
 
-<p>
-<strong>いいね数：</strong>
-❤️ {{ received_likes }}
-</p>
 
-<p>
-<strong>スター値：</strong>
-⭐ {{ user.stars }}
-</p>
+        <!-- =================================
+             写真
+        ================================== -->
 
+        <div class="photo-wrap">
+
+    <img
+        src="{{ user.photo_url else '/static/default.png' }}"
+        alt="Profile Photo"
+    >
 </div>
 
-{% if is_me %}
-<a href="/profile_edit_page" class="edit-btn">
-プロフィール編集
-</a>
-{% endif %}
 
-<a href="/home">ホームに戻る</a>
-</a>
+        <!-- =================================
+             名前
+        ================================== -->
+
+        <h1 class="profile-name">
+
+            {{ user.name }}
+
+        </h1>
+
+
+        <!-- =================================
+             年齢確認
+        ================================== -->
+
+        <div class="verify-area">
+
+            {% if user.verified %}
+
+                <span class="verified-badge">
+                    ✓ 年齢確認済み
+                </span>
+
+            {% else %}
+
+                <span class="not-verified-badge">
+                    ✕ 年齢未確認
+                </span>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- =================================
+             Coin
+             自分のプロフィールだけ表示
+        ================================== -->
+
+        {% if is_me %}
+
+            <div class="coin-box">
+
+                <div class="coin-label">
+                    MY COIN
+                </div>
+
+                <div class="coin-value">
+                    🪙 {{ user.coins or 0 }} Coin
+                </div>
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- =================================
+             基本情報
+        ================================== -->
+
+        <div class="info-box">
+
+
+            <div class="info-row">
+
+                <div class="info-label">
+                    📍 住んでいる県
+                </div>
+
+                <div class="info-value">
+                    {{ user.address or "未設定" }}
+                </div>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <div class="info-label">
+                    性別
+                </div>
+
+                <div class="info-value">
+                    {{ user.gender or "未設定" }}
+                </div>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <div class="info-label">
+                    年齢
+                </div>
+
+                <div class="info-value">
+
+                    {% if user.age %}
+
+                        {{ user.age }}歳
+
+                    {% else %}
+
+                        未設定
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================
+             自己紹介
+        ================================== -->
+
+        <div class="intro-box">
+
+            <div class="intro-title">
+                SELF INTRODUCTION
+            </div>
+
+            <div class="intro-text">
+                {{ user.intro or "自己紹介はまだありません。" }}
+            </div>
+
+        </div>
+
+
+        <!-- =================================
+             いいね・スター
+        ================================== -->
+
+        <div class="stats">
+
+
+            <div class="stat-card like-stat">
+
+                <div class="stat-icon">
+                    ❤️
+                </div>
+
+                <div class="stat-value">
+                    {{ received_likes or 0 }}
+                </div>
+
+                <div class="stat-label">
+                    LIKES
+                </div>
+
+            </div>
+
+
+            <div class="stat-card star-stat">
+
+                <div class="stat-icon">
+                    ⭐
+                </div>
+
+                <div class="stat-value">
+                    {{ user.stars or 0 }}
+                </div>
+
+                <div class="stat-label">
+                    STARS
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================
+             操作
+        ================================== -->
+
+        <div class="actions">
+
+
+            {% if is_me %}
+
+                <a href="/profile_edit_page" class="action-btn">
+                    ✏️ プロフィールを編集
+                </a>
+
+            {% endif %}
+
+
+            <a href="/home" class="action-btn">
+                ← ホームに戻る
+            </a>
+
+
+        </div>
+
+
+    </main>
+
 
 </div>
+
 
 </body>
+
 </html>
 
 
