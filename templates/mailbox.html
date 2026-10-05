@@ -724,14 +724,17 @@ body::before {
 
 
                 <article
-                    class="
-                        mail-card
-                        {{ mail.mail_type }}
-                        {% if not mail.is_read %}
-                            unread
-                        {% endif %}
-                    "
-                >
+    id="mail-{{ mail.id }}"
+    class="
+        mail-card
+        {{ mail.mail_type }}
+        {% if not mail.is_read %}
+            unread
+        {% endif %}
+    "
+    data-mail-id="{{ mail.id }}"
+    onclick="markMailRead(this)"
+>
 
 
                     <div class="mail-top">
@@ -785,11 +788,15 @@ body::before {
 
                                 {% if not mail.is_read %}
 
-                                    <span class="new-badge">
-                                        NEW
-                                    </span>
+    <span
+        class="new-badge"
+        id="new-badge-{{ mail.id }}"
+    >
+        NEW
+    </span>
 
-                                {% endif %}
+{% endif %}
+
 
 
                             </div>
@@ -889,6 +896,138 @@ body::before {
 
 </main>
 
+<script>
+
+async function markMailRead(card) {
+
+    if (!card) {
+        return;
+    }
+
+
+    const mailId =
+        card.dataset.mailId;
+
+
+    if (!mailId) {
+        return;
+    }
+
+
+    /* =====================================
+       すでに既読なら何もしない
+    ====================================== */
+
+    if (
+        !card.classList.contains(
+            "unread"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/mailbox/read/"
+                + encodeURIComponent(
+                    mailId
+                ),
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !data.success
+        ) {
+
+            console.error(
+                "MAIL READ ERROR:",
+                data
+            );
+
+            return;
+        }
+
+
+        /* =====================================
+           未読デザインを解除
+        ====================================== */
+
+        card.classList.remove(
+            "unread"
+        );
+
+
+        /* =====================================
+           NEWバッジを削除
+        ====================================== */
+
+        const badge =
+            document.getElementById(
+                "new-badge-"
+                + mailId
+            );
+
+
+        if (badge) {
+
+            badge.remove();
+        }
+
+
+        /* =====================================
+           未読件数を1減らす
+        ====================================== */
+
+        const counter =
+            document.querySelector(
+                ".unread-number"
+            );
+
+
+        if (counter) {
+
+            const currentCount =
+                Number(
+                    counter.textContent
+                ) || 0;
+
+
+            counter.textContent =
+                Math.max(
+                    0,
+                    currentCount - 1
+                );
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "MAIL READ ERROR:",
+            error
+        );
+    }
+}
+
+</script>
 
 </body>
 

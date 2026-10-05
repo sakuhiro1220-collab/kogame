@@ -1831,7 +1831,7 @@ body::before {
 
 <footer class="input-area">
 
-    /chat_room/{{ partner }}
+    <chat_room/{{ partner }}
 
         <label
             class="file-label"
@@ -1843,17 +1843,17 @@ body::before {
 
         <input
             type="file"
+            id="photoInput"
             name="photo"
             accept="image/*"
             class="file-input"
-            id="photoInput"
         >
 
         <input
             type="text"
+            id="messageInput"
             name="message"
             class="message-input"
-            id="messageInput"
             placeholder="メッセージ..."
             autocomplete="off"
         >

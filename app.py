@@ -23,7 +23,7 @@ import stripe
 import time
 import uuid
 import threading
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from flask_socketio import SocketIO, join_room, emit
 
@@ -885,7 +885,53 @@ def pair_link_join():
             "success": False,
             "message": "ログインしてください"
         }), 401
+@socketio.on(
+    "pair_link_join"
+)
+def handle_pair_link_join(
+    data=None
+):
 
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    print(
+        "PAIR LINK SOCKET JOIN:",
+        user_id,
+        request.sid
+    )
+
+
+    join_room(
+        str(
+            user_id
+        )
+    )
+
+
+    room_id = (
+        pair_link_user_room.get(
+            user_id
+        )
+    )
+
+
+    if room_id:
+
+        join_room(
+            room_id
+        )
+
+        print(
+            "PAIR LINK room参加:",
+            user_id,
+            room_id
+        )
 
     # ========================================================
     # ユーザー取得
@@ -2925,6 +2971,63 @@ def mailbox():
 
 
     # ======================================
+    # 30日より古いメールを削除
+    # ======================================
+
+    cutoff_date = (
+        datetime.utcnow()
+        - timedelta(days=30)
+    )
+
+
+    try:
+
+        old_mails = (
+            db.session.execute(
+
+                db.select(
+                    Mailbox
+                )
+
+                .where(
+                    Mailbox.receiver_id
+                    == user_id
+                )
+
+                .where(
+                    Mailbox.created_at
+                    < cutoff_date
+                )
+
+            )
+            .scalars()
+            .all()
+        )
+
+
+        for mail in old_mails:
+
+            db.session.delete(
+                mail
+            )
+
+
+        if old_mails:
+
+            db.session.commit()
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "MAILBOX DELETE ERROR:",
+            str(e)
+        )
+
+
+    # ======================================
     # 自分宛てのメールを取得
     # 新しい順
     # ======================================
@@ -2946,7 +3049,6 @@ def mailbox():
             )
 
         )
-
         .scalars()
         .all()
     )
@@ -2971,12 +3073,10 @@ def mailbox():
             )
 
             .where(
-                Mailbox.is_read
-                .is_(False)
+                Mailbox.is_read.is_(False)
             )
 
         )
-
         .scalar()
         or 0
     )
@@ -2994,6 +3094,86 @@ def mailbox():
         user=
             current_user
     )
+
+@app.route(
+    "/mailbox/read/<int:mail_id>",
+    methods=["POST"]
+)
+def mailbox_read(mail_id):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+
+        return jsonify({
+            "success": False,
+            "message": "ログインしてください"
+        }), 401
+
+
+    # ======================================
+    # メール取得
+    # ======================================
+
+    mail = db.session.get(
+        Mailbox,
+        mail_id
+    )
+
+
+    if not mail:
+
+        return jsonify({
+            "success": False,
+            "message": "メールが見つかりません"
+        }), 404
+
+
+    # ======================================
+    # 自分宛てのメールか確認
+    # ======================================
+
+    if mail.receiver_id != user_id:
+
+        return jsonify({
+            "success": False,
+            "message": "このメールを操作できません"
+        }), 403
+
+
+    # ======================================
+    # 既読処理
+    # ======================================
+
+    if not mail.is_read:
+
+        mail.is_read = True
+
+        try:
+
+            db.session.commit()
+
+        except Exception as e:
+
+            db.session.rollback()
+
+            print(
+                "MAIL READ ERROR:",
+                str(e)
+            )
+
+            return jsonify({
+                "success": False,
+                "message": "既読処理に失敗しました"
+            }), 500
+
+
+    return jsonify({
+        "success": True,
+        "mail_id": mail.id
+    })
 
 # -------------------------
 # LIKE
