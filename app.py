@@ -3836,176 +3836,6 @@ def chat_room(partner):
     )
 
 
-# -------------------------
-# ギフト送信（SocketIO）
-# -------------------------
-@socketio.on("send_rank_gift")
-def handle_send_rank_gift(data):
-
-    print("===== ギフト送信 =====")
-
-    user_id = session.get("user_id")
-
-    if not user_id:
-        return
-
-    partner = data.get("partner")
-    rank = data.get("rank")
-
-    star_map = {
-        "銅": 5,
-        "銀": 15,
-        "金": 30,
-        "サファイア": 70,
-        "エメラルド": 120,
-        "ダイヤモンド": 300,
-        "プラチナ": 700,
-        "氷の柱": 2000,
-        "ハートの雨": 5000,
-        "宝石の爆発": 10000,
-        "恋の龍": 50000
-    }
-
-    cost_map = {
-        "銅": 10,
-        "銀": 30,
-        "金": 60,
-        "サファイア": 120,
-        "エメラルド": 200,
-        "ダイヤモンド": 500,
-        "プラチナ": 1000,
-        "氷の柱": 10000,
-        "ハートの雨": 30000,
-        "宝石の爆発": 50000,
-        "恋の龍": 100000
-    }
-
-    if rank not in cost_map:
-        return
-
-    sender_user = db.session.get(
-        User,
-        user_id
-    )
-
-    receiver_user = db.session.get(
-        User,
-        partner
-    )
-
-    if not sender_user or not receiver_user:
-        return
-
-    stars = star_map[rank]
-    cost = cost_map[rank]
-
-    if (sender_user.coins or 0) < cost:
-
-        socketio.emit(
-            "gift_error",
-            {
-                "message": "コイン不足です"
-            },
-            room=user_id
-        )
-
-        return
-
-    try:
-
-        # 送信者のコインを減らす
-        sender_user.coins -= cost
-
-        # 受信者のスターを増やす
-        receiver_user.stars = (
-            (receiver_user.stars or 0)
-            + stars
-        )
-
-        # 2つまとめてDBへ保存
-        db.session.commit()
-
-    except Exception as e:
-
-        db.session.rollback()
-
-        print(
-            "ギフトDB処理エラー:",
-            str(e)
-        )
-
-        socketio.emit(
-            "gift_error",
-            {
-                "message": "ギフト処理に失敗しました"
-            },
-            room=user_id
-        )
-
-        return
-
-    timestamp = time.time()
-
-    chats.setdefault(
-        user_id,
-        []
-    ).append({
-        "partner": partner,
-        "sender": user_id,
-        "message":
-            f"{rank}ギフトを送りました！（+{stars}）",
-        "gift": True,
-        "timestamp": timestamp
-    })
-
-    chats.setdefault(
-        partner,
-        []
-    ).append({
-        "partner": user_id,
-        "sender": user_id,
-        "message":
-            f"{rank}ギフトを受け取りました！（+{stars}）",
-        "gift": True,
-        "timestamp": timestamp
-    })
-
-    save_json(
-        CHATS_FILE,
-        chats
-    )
-
-    # -------------------------
-# 送信者へ成功通知
-# -------------------------
-
-    socketio.emit(
-    "gift_sent",
-    {
-        "to": partner,
-        "rank": rank,
-        "stars": stars,
-        "cost": cost,
-        "coins_left": sender_user.coins
-    },
-    room=str(user_id)
-)
-
-
-# -------------------------
-# 受信者へギフト通知
-# -------------------------
-
-    socketio.emit(
-    "gift_received",
-    {
-        "from": user_id,
-        "rank": rank,
-        "stars": stars
-    },
-    room=str(partner)
-)
-
 
 
 # -------------------------
@@ -4119,7 +3949,10 @@ GIFTS = {
 }
 
     
-@app.route("/send_gift", methods=["POST"])
+@app.route(
+    "/send_gift",
+    methods=["POST"]
+)
 def send_gift():
 
     data = request.get_json(
@@ -4131,9 +3964,12 @@ def send_gift():
     )
 
     if not sender:
+
         return jsonify({
-            "error": "ログインしてください"
+            "error":
+                "ログインしてください"
         }), 401
+
 
     receiver = data.get(
         "receiver"
@@ -4143,11 +3979,38 @@ def send_gift():
         "gift_id"
     )
 
+
+    # =====================================
+    # 入力確認
+    # =====================================
+
+    if not receiver:
+
+        return jsonify({
+            "error":
+                "送信相手が指定されていません"
+        }), 400
+
+
     if gift_id not in GIFTS:
 
         return jsonify({
-            "error": "ギフトが存在しません"
+            "error":
+                "ギフトが存在しません"
         }), 400
+
+
+    if sender == receiver:
+
+        return jsonify({
+            "error":
+                "自分にはギフトを送れません"
+        }), 400
+
+
+    # =====================================
+    # ユーザー取得
+    # =====================================
 
     sender_user = db.session.get(
         User,
@@ -4159,40 +4022,73 @@ def send_gift():
         receiver
     )
 
+
     if not sender_user:
 
         return jsonify({
-            "error": "送信者が存在しません"
+            "error":
+                "送信者が存在しません"
         }), 404
+
 
     if not receiver_user:
 
         return jsonify({
-            "error": "相手が存在しません"
+            "error":
+                "相手が存在しません"
         }), 404
 
-    gift = GIFTS[gift_id]
+
+    # =====================================
+    # ギフト
+    # =====================================
+
+    gift = GIFTS[
+        gift_id
+    ]
+
+    cost = gift[
+        "coins"
+    ]
+
+    stars = gift[
+        "star"
+    ]
+
+    gift_name = gift[
+        "name"
+    ]
+
+
+    # =====================================
+    # コイン確認
+    # =====================================
 
     if (
         sender_user.coins or 0
-    ) < gift["coins"]:
+    ) < cost:
 
         return jsonify({
-            "error": "コインが足りません"
+            "error":
+                "コインが足りません"
         }), 403
+
+
+    # =====================================
+    # DB処理
+    # =====================================
 
     try:
 
-        sender_user.coins -= (
-            gift["coins"]
-        )
+        sender_user.coins -= cost
 
         receiver_user.stars = (
             (receiver_user.stars or 0)
-            + gift["star"]
+            + stars
         )
 
         db.session.commit()
+
 
     except Exception as e:
 
@@ -4208,17 +4104,139 @@ def send_gift():
                 "ギフト処理に失敗しました"
         }), 500
 
-    print(
-        f"{sender} → {receiver} に "
-        f"{gift['name']} ギフト送信"
+
+    # =====================================
+    # チャット履歴へ保存
+    # =====================================
+
+    timestamp = time.time()
+
+
+    sender_message = (
+        f"🎁 {gift_name}ギフトを送りました！"
+        f"（+{stars}スター）"
     )
 
+
+    receiver_message = (
+        f"🎁 {gift_name}ギフトを受け取りました！"
+        f"（+{stars}スター）"
+    )
+
+
+    chats.setdefault(
+        sender,
+        []
+    ).append({
+
+        "partner":
+            receiver,
+
+        "sender":
+            sender,
+
+        "message":
+            sender_message,
+
+        "photo":
+            None,
+
+        "read":
+            False,
+
+        "gift":
+            True,
+
+        "gift_id":
+            gift_id,
+
+        "timestamp":
+            timestamp
+
+    })
+
+
+    chats.setdefault(
+        receiver,
+        []
+    ).append({
+
+        "partner":
+            sender,
+
+        "sender":
+            sender,
+
+        "message":
+            receiver_message,
+
+        "photo":
+            None,
+
+        "read":
+            False,
+
+        "gift":
+            True,
+
+        "gift_id":
+            gift_id,
+
+        "timestamp":
+            timestamp
+
+    })
+
+
+    try:
+
+        save_json(
+            CHATS_FILE,
+            chats
+        )
+
+
+    except Exception as e:
+
+        print(
+            "ギフトチャット保存エラー:",
+            str(e)
+        )
+
+
+    # =====================================
+    # 完了
+    # =====================================
+
+    print(
+        sender,
+        "->",
+        receiver,
+        gift_name,
+        "ギフト送信"
+    )
+
+
     return jsonify({
-        "ok": True,
-        "gift": gift["name"],
-        "star_added": gift["star"],
+
+        "ok":
+            True,
+
+        "gift":
+            gift_name,
+
+        "gift_id":
+            gift_id,
+
+        "star_added":
+            stars,
+
         "coins_left":
-            sender_user.coins
+            sender_user.coins,
+
+        "message":
+            sender_message
+
     })
 # -------------------------
 # チャットAPI（自動更新）
