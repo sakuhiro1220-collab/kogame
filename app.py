@@ -4480,34 +4480,49 @@ def board():
 
 @app.route("/board_post", methods=["GET", "POST"])
 def board_post():
+
+
+
     user_id = session.get("user_id")
+
+
 
     if not user_id:
         return redirect(url_for("top"))
 
+
+
     if request.method == "POST":
 
-        title = request.form.get("title")
-        body = request.form.get("body")
 
-        boards.append({
-            "user_id": user_id,
-            "title": title,
-            "body": body
-        })
 
-        save_json(
-            BOARDS_FILE,
-            boards
+        title = request.form.get("title", "")
+        body = request.form.get("body", "")
+        category = request.form.get("category", "normal")
+
+
+
+        post = BoardPost(
+            user_id=user_id,
+            category=category,
+            content=body
         )
 
-        return redirect(
-            url_for("board")
-        )
+
+
+        db.session.add(post)
+        db.session.commit()
+
+
+
+        return redirect(url_for("board"))
+
+
 
     return render_template(
         "board_post.html"
     )
+
 
 # -------------------------
 # コインページ
