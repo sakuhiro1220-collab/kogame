@@ -510,109 +510,108 @@ body::before{
         <a
             href="/board_post"
             class="post-button"
-       oards %}
+        >
+            📝 投稿する
+        </a>
 
-    <div class="board-list">
+    </section>div>
 
-        {% for b in boards %}
+{% if boards %}
 
-        <article class="board-card">
+<div class="board-list">
 
-            <div class="post-header">
+    {% for b in boards %}
 
-                <div class="post-user">
+    <article class="board-card">
 
-                    {% if b.photo_url %}
+        <div class="post-header">
 
-                    <img
-                                  {% else %}
+            <div class="post-user">
 
-                    <div class="profile-fallback">
-                        👤
-                    </div>
+                {% if b.photo_url %}
 
-                    {% endif %}
-
-                    <div>
-
-                        <div class="user-name">
-                            {{ b.user_name }}
-                        </div>
-
-                        <div class="post-date">
-                            {{ b.created_at.strftime('%Y/%m/%d %H:%M') }}
-                        </div>
-
-                    </div>
-
+                <img
+                    src="{{ b.photo_url }}"
+                    lass="profile-fallback">
+                    👤
                 </div>
 
-                <div class="category-badge">
+                {% endif %}
 
-                    {% if b.category == "normal" %}
+                <div>
 
-                        📋 通常掲示板
+                    <div class="user-name">
+                        {{ b.user_name or b.user_id }}
+                    </div>
 
-                    {% elif b.category == "play" %}
-
-                        🎮 今から遊ぶ？
-
-                    {% elif b.category == "love" %}
-
-                        💗 恋人募集
-
-                    {% endif %}
+                    <div class="post-date">
+                        {{ b.created_at.strftime('%Y/%m/%d %H:%M') }}
+                    </div>
 
                 </div>
 
             </div>
 
-            {% if b.title %}
+            <div class="category-badge">
 
-            <h2 class="board-title">
-                {{ b.title }}
-            </h2>
-
-            {% endif %}
-
-            <p class="board-body">
-                {{ b.content }}
-            </p>
-
-            <div class="board-footer">
-
-                <a
-                    href="/               👤 プロフィールを見る
-                </a>
+                {% if b.category == "normal" %}
+                    📋 通常掲示板
+                {% elif b.category == "play" %}
+                    🎮 今から遊ぶ？
+                {% elif b.category == "love" %}
+                    💗 恋人募集
+                {% endif %}
 
             </div>
 
-        </article>
-
-        {% endfor %}
-
-    </div>
-
-    {% else %}
-
-    <div class="empty">
-
-        <div class="empty-icon">
-            📝
         </div>
 
-        <h2>
-            まだ投稿はありません
+        {% if b.title %}
+        <h2 class="board-title">
+            {{ b.title }}
         </h2>
+        {% endif %}
 
-        <p>
-            最初の投稿をしてみましょう
+        <p class="board-body">
+            {{ b.content }}
         </p>
 
-        <a
-            href="/board_post"
-            class="post-button"
-       
+        <div class="board-footer">
+
+            <a
+                href="/profile/{{ b.user_id }}"
+               </a>
+
+        </div>
+
+    </article>
+
+    {% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="empty">
+
+    <div class="empty-icon">
+        📝
+    </div>
+
+    <h2>
+        まだ投稿はありません
+    </h2>
+
+    <p>
+        最初の投稿をしてみましょう
+    </p>
+
+    <a
+        href="/board_post"
+        class="post-button"
+    >
+        📝 投稿する
+    </a>
 
 </main>
 

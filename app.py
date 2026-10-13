@@ -4467,10 +4467,26 @@ def chat_room_api(partner):
 
 @app.route("/board")
 def board():
+
     user_id = session.get("user_id")
 
     if not user_id:
         return redirect(url_for("top"))
+
+    BoardPost.query.filter(
+        BoardPost.created_at <
+        datetime.utcnow() - timedelta(days=1)
+    ).delete()
+
+    db.session.commit()
+
+    boards = (
+        BoardPost.query
+        .order_by(
+            BoardPost.created_at.desc()
+        )
+        .all()
+    )
 
     return render_template(
         "board.html",
