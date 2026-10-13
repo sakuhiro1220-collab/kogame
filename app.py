@@ -1,4 +1,5 @@
 import socket
+from unicodedata import category
 
 from flask_socketio import SocketIO, join_room
 
@@ -192,18 +193,131 @@ class User(db.Model):
         nullable=False,
         default=False
     )
-
-    verified = db.Column(
-            db.Boolean,
-            nullable=False,
-            default=False
-        )
     
     can_send_photo = db.Column(
             db.Boolean,
             nullable=False,
             default=False
         )
+
+class CoupleLink(db.Model):
+
+    __tablename__ = "couple_links"
+
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+
+    # 必ずIDが小さい方をuser1にする
+    user1_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+
+    # 必ずIDが大きい方をuser2にする
+    user2_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+
+    # 2人のLINK値
+    link_points = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
+
+    # user1 → user2 が
+    # 前回のLINK成立後にギフトを送ったか
+    user1_gift_pending = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
+
+
+    # user2 → user1
+    user2_gift_pending = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
+
+
+    __table_args__ = (
+
+        db.UniqueConstraint(
+            "user1_id",
+            "user2_id",
+            name="uq_couple_link_pair"
+        ),
+
+    )
+
+COUPLE_LINK_LEVELS = {
+
+    100: {
+        "name": "LINK II",
+        "unlock": "PAIR QUIZ"
+    },
+
+    500: {
+        "name": "LINK III",
+        "unlock": "ペア装飾"
+    },
+
+    1500: {
+        "name": "LINK IV",
+        "unlock": "HEART BATTLE"
+    },
+
+    5000: {
+        "name": "LINK V",
+        "unlock": "ペア称号"
+    },
+
+    10000: {
+        "name": "ETERNAL LINK",
+        "unlock": "SECRET GAME"
+    }
+
+}
+
+class BoardPost(db.Model):
+    __tablename__ = "board_posts"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    category = db.Column(
+        db.String(20),
+        nullable=False
+    )
+
+    content = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
 
 class StripePayment(db.Model):
     __tablename__ = "stripe_payments"
@@ -561,6 +675,63 @@ class GomokuRoom(db.Model):
         nullable=True
     )
 
+class ChatMessage(db.Model):
+
+    __tablename__ = "chat_messages"
+
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+
+    sender_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+
+    receiver_id = db.Column(
+        db.String(100),
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+
+    message = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+
+    photo_url = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+
+    gift = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
+
+
+    read = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False
+    )
+
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
+    
 class Mailbox(db.Model):
     __tablename__ = "mailboxes"
 
@@ -3777,7 +3948,8 @@ def chat_room(partner):
             }), 500
 
         now = time.time()
-
+        
+        
         # 自分側
         chats.setdefault(
             user_id,
@@ -3935,6 +4107,7 @@ def chat_send():
     })
 
 GIFTS = {
+    "tulip": {"name": "チューリップ", "coins": 1, "star": 1},
     "bronze": {"name": "銅", "coins": 10, "star": 5},
     "silver": {"name": "銀", "coins": 30, "star": 15},
     "gold": {"name": "金", "coins": 60, "star": 30},
@@ -3948,7 +4121,34 @@ GIFTS = {
     "love_dragon": {"name": "恋の龍", "coins": 100000, "star": 50000}
 }
 
-    
+COUPLE_LINK_LEVELS = {
+
+    100: {
+        "name": "LINK II",
+        "unlock": "PAIR QUIZ"
+    },
+
+    500: {
+        "name": "LINK III",
+        "unlock": "ペア装飾"
+    },
+
+    1500: {
+        "name": "LINK IV",
+        "unlock": "HEART BATTLE"
+    },
+
+    5000: {
+        "name": "LINK V",
+        "unlock": "ペア称号"
+    },
+
+    10000: {
+        "name": "ETERNAL LINK",
+        "unlock": "SECRET GAME"
+    }
+
+}   
 @app.route(
     "/send_gift",
     methods=["POST"]

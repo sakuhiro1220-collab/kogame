@@ -877,8 +877,9 @@ body::before {
         <div class="photo-wrap">
 
     <img
-        src="{{ user.photo_url else '/static/default.png' }}"
-        alt="Profile Photo"
+       src="{{ user.photo_url if user.photo_url else '/static/default.png' }}"
+        alt="プロフィール写真"
+        class="profile-photo"
     >
 </div>
 
