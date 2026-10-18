@@ -4553,6 +4553,8 @@ def board_post():
         "board_post.html"
     )
 
+with app.app_context():
+    db.create_all()
 
 # -------------------------
 # コインページ
