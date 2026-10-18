@@ -304,9 +304,22 @@ class BoardPost(db.Model):
         nullable=False
     )
 
+    user_name = db.Column(
+        db.String(100)
+    )
+
+    photo_url = db.Column(
+        db.Text
+    )
+
+    title = db.Column(
+        db.String(200)
+    )
+
     category = db.Column(
         db.String(20),
-        nullable=False
+        nullable=False,
+        default="normal"
     )
 
     content = db.Column(
@@ -318,6 +331,7 @@ class BoardPost(db.Model):
         db.DateTime,
         default=datetime.utcnow
     )
+
 
 class StripePayment(db.Model):
     __tablename__ = "stripe_payments"

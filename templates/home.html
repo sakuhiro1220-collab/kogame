@@ -1234,18 +1234,20 @@ body::before {
 
     .profile-photo-area {
 
-        height:
-            min(
-                42vh,
-                315px
-            );
+    height:
+        min(
+            30vh,
+            240px
+        );
 
-        min-height:
-            190px;
+    min-height:
+        180px;
 
-        border-radius:
-            15px;
-    }
+    border-radius:
+        15px;
+
+    overflow:hidden;
+}
 
 
     .profile-info {
@@ -1328,12 +1330,14 @@ body::before {
 
     .profile-photo-area {
 
-        height:
-            38vh;
+    height: 200px;
 
-        min-height:
-            165px;
-    }
+    min-height: 200px;
+
+    border-radius: 15px;
+
+    overflow: hidden;
+}
 
 
     .profile-info {
@@ -1518,50 +1522,29 @@ body::before {
                          プロフィール情報
                     ====================== -->
 
-                    <div class="profile-info">
+                   <div class="profile-photo-area">
 
+    <img
+        src="{{ u.photo_url }}"
+        class="profile-photo"
+    >
 
-                        <div class="name">
+    <div class="profile-overlay">
 
-                            {{ u.name }}
+        <div class="card-name">
+            {{ u.name }}
+            {% if u.age %}
+                {{ u.age }}
+            {% endif %}
+        </div>
 
-                            {% if u.age %}
+        <div class="card-address">
+            📍 {{ u.address }}
+        </div>
 
-                                （{{ u.age }}）
+    </div>
 
-                            {% endif %}
-
-                        </div>
-
-
-                        {% if u.gender %}
-
-                            <div class="info">
-                                {{ u.gender }}
-                            </div>
-
-                        {% endif %}
-
-
-                        {% if u.address %}
-
-                            <div class="info">
-                                📍 {{ u.address }}
-                            </div>
-
-                        {% endif %}
-
-
-                        {% if u.intro %}
-
-                            <div class="intro">
-                                {{ u.intro }}
-                            </div>
-
-                        {% endif %}
-
-
-                    </div>
+</div>
 
 
                     <!-- =====================

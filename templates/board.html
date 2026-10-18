@@ -7,183 +7,59 @@
 
 <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0"
 >
 
 <title>掲示板</title>
 
 <style>
 
-*{
-    box-sizing:border-box;
-}
-
-html,
 body{
+
     margin:0;
-    min-height:100%;
-}
-
-body{
-
-    min-height:100vh;
 
     color:white;
 
     font-family:
         "Segoe UI",
-        "Hiragino Sans",
-        "Yu Gothic",
         sans-serif;
 
     background:
-        radial-gradient(
-            circle at 10% 5%,
-            rgba(0,197,255,.20),
-            transparent 32%
-        ),
-        radial-gradient(
-            circle at 90% 85%,
-            rgba(142,72,255,.28),
-            transparent 38%
-        ),
         linear-gradient(
-            145deg,
+            135deg,
             #020617,
             #07162d,
             #100822
         );
 
-    background-attachment:fixed;
-}
-
-body::before{
-
-    content:"";
-
-    position:fixed;
-
-    inset:0;
-
-    z-index:0;
-
-    pointer-events:none;
-
-    background-image:
-        linear-gradient(
-            rgba(255,255,255,.02) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(255,255,255,.02) 1px,
-            transparent 1px
-        );
-
-    background-size:45px 45px;
+    min-height:100vh;
 }
 
 .header{
 
-    position:sticky;
+    padding:15px;
 
-    top:0;
-
-    z-index:100;
-
-    padding:
-        max(13px, env(safe-area-inset-top))
-        16px
-        13px;
+    text-align:center;
 
     background:
-        rgba(4,13,31,.9);
+        rgba(0,0,0,.3);
 
-    border-bottom:
-        1px solid rgba(255,255,255,.08);
-
-    backdrop-filter:blur(20px);
-}
-
-.header-inner{
-
-    width:min(850px,100%);
-
-    margin:0 auto;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-}
-
-.small-title{
-
-    color:#67ddff;
-
-    font-size:9px;
-
-    font-weight:900;
-
-    letter-spacing:4px;
-
-    margin-bottom:3px;
+    backdrop-filter:blur(10px);
 }
 
 .header h1{
 
     margin:0;
-
-    background:
-        linear-gradient(
-            90deg,
-            #fff,
-            #6de8ff,
-            #b792ff
-        );
-
-    background-clip:text;
-
-    -webkit-background-clip:text;
-
-    color:transparent;
-}
-
-.home-button{
-
-    border:none;
-
-    border-radius:14px;
-
-    padding:10px 16px;
-
-    color:white;
-
-    cursor:pointer;
-
-    font-weight:900;
-
-    background:
-        linear-gradient(
-            135deg,
-            #178fff,
-            #7557ff
-        );
 }
 
 .container{
 
-    position:relative;
+    width:min(900px,95%);
 
-    z-index:2;
-
-    width:min(850px,94%);
-
-    margin:24px auto 70px;
+    margin:20px auto;
 }
 
-.board-top{
+.top-area{
 
     display:flex;
 
@@ -191,53 +67,18 @@ body::before{
 
     align-items:center;
 
-    gap:15px;
-
     margin-bottom:20px;
-
-    padding:16px;
-
-    border-radius:18px;
-
-    border:
-        1px solid
-        rgba(255,255,255,.08);
-
-    background:
-        rgba(7,17,39,.75);
-}
-
-.board-description strong{
-
-    display:block;
-
-    margin-bottom:4px;
-}
-
-.board-description span{
-
-    color:#8fa2c0;
-
-    font-size:13px;
 }
 
 .post-button{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    justify-content:center;
 
     color:white;
 
     text-decoration:none;
 
-    font-weight:900;
+    padding:10px 15px;
 
-    border-radius:14px;
-
-    padding:12px 16px;
+    border-radius:12px;
 
     background:
         linear-gradient(
@@ -258,43 +99,16 @@ body::before{
 
 .board-card{
 
-    padding:20px;
+    padding:18px;
 
-    border-radius:20px;
-
-    position:relative;
-
-    overflow:hidden;
+    border-radius:18px;
 
     background:
-        rgba(7,17,39,.82);
+        rgba(255,255,255,.05);
 
     border:
         1px solid
         rgba(255,255,255,.08);
-}
-
-.board-card::before{
-
-    content:"";
-
-    position:absolute;
-
-    left:0;
-
-    top:15px;
-
-    width:3px;
-
-    height:55px;
-
-    border-radius:0 4px 4px 0;
-
-    background:
-        linear-gradient(
-            #5ee1ff,
-            #9c68ff
-        );
 }
 
 .post-header{
@@ -303,48 +117,7 @@ body::before{
 
     justify-content:space-between;
 
-    gap:12px;
-
-    margin-bottom:15px;
-}
-
-.post-user{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:10px;
-}
-
-.profile-image{
-
-    width:52px;
-
-    height:52px;
-
-    border-radius:50%;
-
-    object-fit:cover;
-}
-
-.profile-fallback{
-
-    width:52px;
-
-    height:52px;
-
-    border-radius:50%;
-
-    background:#1a2845;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    font-size:22px;
+    margin-bottom:10px;
 }
 
 .user-name{
@@ -354,108 +127,51 @@ body::before{
 
 .post-date{
 
-    font-size:11px;
+    font-size:12px;
 
-    color:#8fa2c0;
+    color:#9eb0c9;
 }
 
-.category-badge{
+.category{
 
     font-size:12px;
 
     font-weight:900;
 
-    color:#73ddff;
+    color:#6edfff;
 }
 
-.board-title{
-
-    margin:0 0 12px;
-
-    color:white;
-
-    font-size:20px;
-
-    font-weight:900;
-
-    line-height:1.5;
-}
-
-.board-body{
-
-    margin:0;
-
-    color:#c8d5e8;
-
-    font-size:14px;
+.content{
 
     line-height:1.8;
 
     white-space:pre-wrap;
-
-    overflow-wrap:anywhere;
-}
-
-.board-footer{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-top:15px;
-
-    padding-top:12px;
-
-    border-top:
-        1px solid
-        rgba(255,255,255,.08);
-}
-
-.author-link{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:5px;
-
-    color:#73ddff;
-
-    text-decoration:none;
-
-    font-size:12px;
-
-    font-weight:900;
-}
-
-.author-link:hover{
-
-    color:white;
 }
 
 .empty{
 
-    padding:60px 20px;
+    padding:40px;
 
     text-align:center;
 
     border-radius:20px;
 
     background:
-        rgba(7,17,39,.80);
-
-    border:
-        1px solid
-        rgba(255,255,255,.08);
+        rgba(255,255,255,.05);
 }
 
-.empty-icon{
+.home-button{
 
-    font-size:60px;
+    color:white;
 
-    margin-bottom:15px;
+    text-decoration:none;
+
+    padding:10px 14px;
+
+    border-radius:12px;
+
+    background:
+        #2185ff;
 }
 
 </style>
@@ -466,46 +182,22 @@ body::before{
 
 <header class="header">
 
-    <div class="header-inner">
-
-        <div>
-
-            <div class="small-title">
-                COMMUNITY BOARD
-            </div>
-
-            <h1>
-                📋 掲示板
-            </h1>
-
-        </div>
-
-        <button
-            class="home-button"
-            onclick="location.href='/home'"
-        >
-            🏠 ホーム
-        </button>
-
-    </div>
+    <h1>
+        📋 掲示板
+    </h1>
 
 </header>
 
 <main class="container">
 
-    <section class="board-top">
+    <div class="top-area">
 
-        <div class="board-description">
-
-            <strong>
-                みんなの掲示板
-            </strong>
-
-            <span>
-                気軽に投稿して交流しよう
-            </span>
-
-        </div>
+        <a
+            href="/home"
+            class="home-button"
+        >
+            🏠 ホーム
+        </a>
 
         <a
             href="/board_post"
@@ -514,34 +206,22 @@ body::before{
             📝 投稿する
         </a>
 
-    </section>div>
+    </div>
 
-{% if boards %}
+    {% if boards %}
 
-<div class="board-list">
+    <div class="board-list">
 
-    {% for b in boards %}
+        {% for b in boards %}
 
-    <article class="board-card">
+        <article class="board-card">
 
-        <div class="post-header">
-
-            <div class="post-user">
-
-                {% if b.photo_url %}
-
-                <img
-                    src="{{ b.photo_url }}"
-                    lass="profile-fallback">
-                    👤
-                </div>
-
-                {% endif %}
+            <div class="post-header">
 
                 <div>
 
                     <div class="user-name">
-                        {{ b.user_name or b.user_id }}
+                        👤 {{ b.user_id }}
                     </div>
 
                     <div class="post-date">
@@ -550,70 +230,60 @@ body::before{
 
                 </div>
 
+                <div class="category">
+
+                    {% if b.category == "normal" %}
+
+                        📋 通常
+
+                    {% elif b.category == "play" %}
+
+                        🎮 今から遊ぶ？
+
+                    {% elif b.category == "love" %}
+
+                        💗 恋人募集
+
+                    {% else %}
+
+                        📋 投稿
+
+                    {% endif %}
+
+                </div>
+
             </div>
 
-            <div class="category-badge">
+            <div class="content">
 
-                {% if b.category == "normal" %}
-                    📋 通常掲示板
-                {% elif b.category == "play" %}
-                    🎮 今から遊ぶ？
-                {% elif b.category == "love" %}
-                    💗 恋人募集
-                {% endif %}
+                {{ b.content }}
 
             </div>
 
-        </div>
+        </article>
 
-        {% if b.title %}
-        <h2 class="board-title">
-            {{ b.title }}
-        </h2>
-        {% endif %}
+        {% endfor %}
 
-        <p class="board-body">
-            {{ b.content }}
-        </p>
-
-        <div class="board-footer">
-
-            <a
-                href="/profile/{{ b.user_id }}"
-               </a>
-
-        </div>
-
-    </article>
-
-    {% endfor %}
-
-</div>
-
-{% else %}
-
-<div class="empty">
-
-    <div class="empty-icon">
-        📝
     </div>
 
-    <h2>
-        まだ投稿はありません
-    </h2>
+    {% else %}
 
-    <p>
-        最初の投稿をしてみましょう
-    </p>
+    <div class="empty">
 
-    <a
-        href="/board_post"
-        class="post-button"
-    >
-        📝 投稿する
-    </a>
+        <h2>
+            投稿はまだありません
+        </h2>
+
+        <p>
+            最初の投稿をしてみましょう
+        </p>
+
+    </div>
+
+    {% endif %}
 
 </main>
 
 </body>
+
 </html>
