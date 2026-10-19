@@ -4941,9 +4941,20 @@ def matching_page():
     return render_template("matching_page.html")
 
 
+
 # -------------------------
 # ゲーム1：質問で相性診断
 # -------------------------
+
+@app.route("/profile/<user_id>")
+def view_profile(user_id):
+
+    user = User.query.get_or_404(user_id)
+
+    return render_template(
+        "profile_view.html",
+        user=user
+    )
 # ============================================================
 # ゲーム1：PAIR LINK 相性診断
 # ============================================================

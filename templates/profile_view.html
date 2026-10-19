@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ user.name }}</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:20px;
+    color:white;
+    font-family:sans-serif;
+    background:
+        linear-gradient(
+            135deg,
+            #020617,
+            #07182f,
+            #100927
+        );
+}
+
+.card{
+
+    max-width:600px;
+
+    margin:auto;
+
+    padding:20px;
+
+    border-radius:20px;
+
+    background:
+        rgba(255,255,255,.05);
+}
+
+.photo{
+
+    width:100%;
+
+    height:300px;
+
+    object-fit:cover;
+
+    border-radius:15px;
+}
+
+.fallback{
+
+    width:100%;
+
+    height:300px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:80px;
+
+    border-radius:15px;
+
+    background:#233453;
+}
+
+.name{
+
+    margin-top:15px;
+
+    font-size:28px;
+
+    font-weight:900;
+}
+
+.intro{
+
+    margin-top:15px;
+
+    line-height:1.8;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="card">
+
+    {% if user.photo_url %}
+
+    <img
+        src="{{ user.photo_url }}"
+        class="photo"
+        alt="{{ user.name }}"
+    >
+
+    {% else %}
+
+    <div class="fallback">
+        👤
+    </div>
+
+    {% endif %}
+
+    <div class="name">
+
+        {{ user.name }}
+
+        {% if user.age %}
+        （{{ user.age }}）
+        {% endif %}
+
+    </div>
+
+    <div class="intro">
+
+        {{ user.intro or "自己紹介はありません" }}
+
+    </div>
+
+</div>
+
+</body>
+</html>
