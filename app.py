@@ -4487,15 +4487,14 @@ def board():
     if not user_id:
         return redirect(url_for("top"))
 
-    BoardPost.query.filter(
-        BoardPost.created_at <
-        datetime.utcnow() - timedelta(days=1)
-    ).delete()
-
-    db.session.commit()
+    category = request.args.get(
+        "category",
+        "normal"
+    )
 
     boards = (
         BoardPost.query
+        .filter_by(category=category)
         .order_by(
             BoardPost.created_at.desc()
         )
@@ -4504,7 +4503,8 @@ def board():
 
     return render_template(
         "board.html",
-        boards=boards
+        boards=boards,
+        category=category
     )
 
 

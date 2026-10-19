@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
 
 <meta charset="UTF-8">
@@ -14,14 +13,21 @@
 
 <style>
 
+*{
+    box-sizing:border-box;
+}
+
 body{
 
     margin:0;
+
+    min-height:100vh;
 
     color:white;
 
     font-family:
         "Segoe UI",
+        "Yu Gothic",
         sans-serif;
 
     background:
@@ -31,20 +37,24 @@ body{
             #07162d,
             #100822
         );
-
-    min-height:100vh;
 }
 
 .header{
 
-    padding:15px;
+    position:sticky;
+
+    top:0;
+
+    z-index:100;
+
+    padding:16px;
 
     text-align:center;
 
     background:
-        rgba(0,0,0,.3);
+        rgba(0,0,0,.35);
 
-    backdrop-filter:blur(10px);
+    backdrop-filter:blur(12px);
 }
 
 .header h1{
@@ -59,7 +69,7 @@ body{
     margin:20px auto;
 }
 
-.top-area{
+.top-row{
 
     display:flex;
 
@@ -67,18 +77,75 @@ body{
 
     align-items:center;
 
+    gap:10px;
+
     margin-bottom:20px;
 }
 
+.home-button,
 .post-button{
 
     color:white;
 
     text-decoration:none;
 
-    padding:10px 15px;
+    padding:12px 16px;
 
     border-radius:12px;
+
+    font-weight:900;
+}
+
+.home-button{
+
+    background:
+        linear-gradient(
+            135deg,
+            #168fff,
+            #7459ff
+        );
+}
+
+.post-button{
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff477b,
+            #a84fff
+        );
+}
+
+.tabs{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-bottom:20px;
+}
+
+.tab{
+
+    flex:1;
+
+    text-align:center;
+
+    padding:13px;
+
+    text-decoration:none;
+
+    color:white;
+
+    border-radius:12px;
+
+    background:
+        rgba(255,255,255,.08);
+
+    font-weight:900;
+}
+
+.tab.active{
 
     background:
         linear-gradient(
@@ -109,6 +176,8 @@ body{
     border:
         1px solid
         rgba(255,255,255,.08);
+
+    backdrop-filter:blur(10px);
 }
 
 .post-header{
@@ -116,6 +185,10 @@ body{
     display:flex;
 
     justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:10px;
 
     margin-bottom:10px;
 }
@@ -125,7 +198,21 @@ body{
     font-weight:900;
 }
 
+.user-name a{
+
+    color:white;
+
+    text-decoration:none;
+}
+
+.user-name a:hover{
+
+    color:#6edfff;
+}
+
 .post-date{
+
+    margin-top:4px;
 
     font-size:12px;
 
@@ -146,32 +233,71 @@ body{
     line-height:1.8;
 
     white-space:pre-wrap;
+
+    word-break:break-word;
+}
+
+.board-footer{
+
+    margin-top:15px;
+
+    padding-top:12px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,.08);
+}
+
+.profile-link{
+
+    color:#6edfff;
+
+    text-decoration:none;
+
+    font-weight:900;
+}
+
+.profile-link:hover{
+
+    color:white;
 }
 
 .empty{
 
-    padding:40px;
+    padding:60px 20px;
 
     text-align:center;
 
-    border-radius:20px;
+    border-radius:18px;
 
     background:
         rgba(255,255,255,.05);
 }
 
-.home-button{
+.empty h2{
 
-    color:white;
+    margin-top:0;
+}
 
-    text-decoration:none;
+@media (max-width:600px){
 
-    padding:10px 14px;
+    .tabs{
 
-    border-radius:12px;
+        flex-direction:column;
+    }
 
-    background:
-        #2185ff;
+    .top-row{
+
+        flex-direction:column;
+    }
+
+    .home-button,
+    .post-button{
+
+        width:100%;
+
+        text-align:center;
+    }
 }
 
 </style>
@@ -190,7 +316,7 @@ body{
 
 <main class="container">
 
-    <div class="top-area">
+    <div class="top-row">
 
         <a
             href="/home"
@@ -203,7 +329,32 @@ body{
             href="/board_post"
             class="post-button"
         >
-            📝 投稿する
+            ✏️ 投稿する
+        </a>
+
+    </div>
+
+    <div class="tabs">
+
+        <a
+            href="/board?category=normal"
+            class="tab {% if category == 'normal' %}active{% endif %}"
+        >
+            📋 通常
+        </a>
+
+        <a
+            href="/board?category=play"
+            class="tab {% if category == 'play' %}active{% endif %}"
+        >
+            🎮 今から遊ぶ？
+        </a>
+
+        <a
+            href="/board?category=love"
+            class="tab {% if category == 'love' %}active{% endif %}"
+        >
+            💗 恋人募集
         </a>
 
     </div>
@@ -214,18 +365,26 @@ body{
 
         {% for b in boards %}
 
-        <article class="board-card">
+        <div class="board-card">
 
             <div class="post-header">
 
                 <div>
 
                     <div class="user-name">
-                        👤 {{ b.user_id }}
+
+                        <a href="/profile/{{ b.user_id }}">
+
+                            👤 {{ b.user_id }}
+
+                        </a>
+
                     </div>
 
                     <div class="post-date">
+
                         {{ b.created_at.strftime('%Y/%m/%d %H:%M') }}
+
                     </div>
 
                 </div>
@@ -234,7 +393,7 @@ body{
 
                     {% if b.category == "normal" %}
 
-                        📋 通常
+                        📋 通常募集
 
                     {% elif b.category == "play" %}
 
@@ -243,10 +402,6 @@ body{
                     {% elif b.category == "love" %}
 
                         💗 恋人募集
-
-                    {% else %}
-
-                        📋 投稿
 
                     {% endif %}
 
@@ -260,7 +415,18 @@ body{
 
             </div>
 
-        </article>
+            <div class="board-footer">
+
+                <a
+                    href="/profile/{{ b.user_id }}"
+                    class="profile-link"
+                >
+                    👤 プロフィールを見る
+                </a>
+
+            </div>
+
+        </div>
 
         {% endfor %}
 
@@ -275,7 +441,7 @@ body{
         </h2>
 
         <p>
-            最初の投稿をしてみましょう
+            このカテゴリにはまだ投稿がありません。
         </p>
 
     </div>
@@ -285,5 +451,4 @@ body{
 </main>
 
 </body>
-
 </html>
