@@ -80,6 +80,7 @@ daifugo_rooms = {}
 app = Flask(__name__)
 socketio = SocketIO(app)
 
+
 # =========================
 # Flask Secret Key
 # =========================
@@ -3720,14 +3721,37 @@ def profile_edit():
         "intro"
     )
 
+    photo = request.files.get(
+        "photo"
+    )
+
+    if photo and photo.filename:
+        os.makedirs(
+            "static/uploads",
+            exist_ok=True
+        )
+
+        filename = secure_filename(
+            photo.filename
+        )
+
+        filepath = os.path.join(
+            "static",
+            "uploads",
+            filename
+        )
+
+        photo.save(filepath)
+
+        user.photo_url = (
+            "/static/uploads/"
+            + filename
+        )
+
     try:
-
         db.session.commit()
-
     except Exception as e:
-
         db.session.rollback()
-
         print(
             "プロフィール更新エラー:",
             str(e)
@@ -3742,6 +3766,9 @@ def profile_edit():
         "profile_edit_result.html",
         user=user
     )
+
+
+
 
 
 # -------------------------

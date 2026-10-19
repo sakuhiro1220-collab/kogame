@@ -1024,44 +1024,48 @@ body::before {
 
             <div class="preview-wrapper">
 
+    {% if user.photo_url and user.photo_url != "None" %}
 
-                {% if user.photo_url %}
+        <img
+            id="profilePreview"
+            src="{{ user.photo_url }}"
+            class="profile-preview"
+            alt="プロフィール画像"
+            onerror="showFallback(this)"
+        >
 
-                    {{ user.photo_url }}                    >
+        <div
+            id="profileFallback"
+            class="preview-fallback"
+            style="display:none;"
+        >
+            📷
+        </div>
 
+    {% else %}
 
-                    <div
-                        id="profileFallback"
-                        class="preview-fallback"
-                    >
-                        👤
-                    </div>
+        <img
+            id="profilePreview"
+            class="profile-preview"
+            style="display:none;"
+        >
 
+        <div
+            id="profileFallback"
+            class="preview-fallback"
+            style="display:flex;"
+        >
+            📷
+        </div>
 
-                {% else %}
+    {% endif %}
 
+    <div class="preview-badge">
+        📷
+    </div>
 
-                    
+</div>
 
-
-                    <div
-                        id="profileFallback"
-                        class="preview-fallback"
-                        style="display:flex;"
-                    >
-                        👤
-                    </div>
-
-
-                {% endif %}
-
-
-                <div class="preview-badge">
-                    📷
-                </div>
-
-
-            </div>
 
 
             <div class="profile-heading">

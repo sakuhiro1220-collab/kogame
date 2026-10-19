@@ -1,17 +1,30 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
 <title>{{ user.name }}</title>
 
 <style>
 
 body{
+
     margin:0;
-    padding:20px;
+
     color:white;
-    font-family:sans-serif;
+
+    font-family:
+        "Segoe UI",
+        sans-serif;
+
+    min-height:100vh;
+
     background:
         linear-gradient(
             135deg,
@@ -21,36 +34,49 @@ body{
         );
 }
 
+.container{
+
+    width:min(700px,95%);
+
+    margin:20px auto;
+
+    padding-bottom:40px;
+}
+
 .card{
 
-    max-width:600px;
+    overflow:hidden;
 
-    margin:auto;
-
-    padding:20px;
-
-    border-radius:20px;
+    border-radius:24px;
 
     background:
         rgba(255,255,255,.05);
+
+    backdrop-filter:blur(15px);
+
+    border:
+        1px solid
+        rgba(255,255,255,.08);
 }
 
-.photo{
+.profile-photo{
 
     width:100%;
 
-    height:300px;
+    height:350px;
 
     object-fit:cover;
 
-    border-radius:15px;
+    display:block;
+
+    background:#223455;
 }
 
-.fallback{
+.photo-fallback{
 
     width:100%;
 
-    height:300px;
+    height:350px;
 
     display:flex;
 
@@ -58,65 +84,242 @@ body{
 
     justify-content:center;
 
-    font-size:80px;
+    font-size:120px;
 
-    border-radius:15px;
+    background:
+        linear-gradient(
+            135deg,
+            #1d3154,
+            #2a194a
+        );
+}
 
-    background:#233453;
+.info{
+
+    padding:24px;
 }
 
 .name{
 
-    margin-top:15px;
+    font-size:34px;
+
+    font-weight:900;
+}
+
+.gender{
+
+    margin-left:10px;
 
     font-size:28px;
+}
+
+.male{
+
+    color:#5ecbff;
+}
+
+.female{
+
+    color:#ff71b8;
+}
+
+.age{
+
+    color:#d7e3f7;
+
+    font-size:18px;
+
+    margin-top:5px;
+}
+
+.location{
+
+    margin-top:12px;
+
+    color:#8fd6ff;
+}
+
+.verified{
+
+    margin-top:12px;
+
+    color:#79ffae;
+
+    font-weight:900;
+}
+
+.section-title{
+
+    margin-top:25px;
+
+    margin-bottom:10px;
+
+    font-size:18px;
 
     font-weight:900;
 }
 
 .intro{
 
-    margin-top:15px;
-
     line-height:1.8;
+
+    border-radius:15px;
+
+    padding:15px;
+
+    background:
+        rgba(255,255,255,.05);
+}
+
+.actions{
+
+    margin-top:25px;
+
+    display:flex;
+
+    gap:10px;
+}
+
+.btn{
+
+    flex:1;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:14px;
+
+    color:white;
+
+    font-weight:900;
+
+    text-decoration:none;
+
+    text-align:center;
+}
+
+.chat-btn{
+
+    background:
+        linear-gradient(
+            135deg,
+            #178cff,
+            #7358ff
+        );
+}
+
+.back-btn{
+
+    background:
+        rgba(255,255,255,.12);
 }
 
 </style>
 
 </head>
+
 <body>
 
-<div class="card">
+<div class="container">
 
-    {% if user.photo_url %}
+    <div class="card">
 
-    <img
-        src="{{ user.photo_url }}"
-        class="photo"
-        alt="{{ user.name }}"
-    >
+        {% if user.photo_url %}
 
-    {% else %}
+        <img
+            src="{{ user.photo_url }}"
+            alt="{{ user.name }}"
+            class="profile-photo"
+        >
 
-    <div class="fallback">
-        👤
-    </div>
+        {% else %}
 
-    {% endif %}
+        <div class="photo-fallback">
+            👤
+        </div>
 
-    <div class="name">
-
-        {{ user.name }}
-
-        {% if user.age %}
-        （{{ user.age }}）
         {% endif %}
 
-    </div>
+        <div class="info">
 
-    <div class="intro">
+            <div class="name">
 
-        {{ user.intro or "自己紹介はありません" }}
+                {{ user.name }}
+
+                {% if user.gender == "male" %}
+                    <span class="gender male">
+                        ♂
+                    </span>
+                {% elif user.gender == "female" %}
+                    <span class="gender female">
+                        ♀
+                    </span>
+                {% endif %}
+
+            </div>
+
+            {% if user.age %}
+
+            <div class="age">
+
+                {{ user.age }}歳
+
+            </div>
+
+            {% endif %}
+
+            {% if user.address %}
+
+            <div class="location">
+
+                📍 {{ user.address }}
+
+            </div>
+
+            {% endif %}
+
+            {% if user.verified %}
+
+            <div class="verified">
+
+                ✅ 本人確認済み
+
+            </div>
+
+            {% endif %}
+
+            <div class="section-title">
+
+                自己紹介
+
+            </div>
+
+            <div class="intro">
+
+                {{ user.intro or "自己紹介はありません" }}
+
+            </div>
+
+            <div class="actions">
+
+                <a
+                    href="/chat/{{ user.id }}"
+                    class="btn chat-btn"
+                >
+                    💬 チャットする
+                </a>
+
+                <a
+                    href="/home"
+                    class="btn back-btn"
+                >
+                    ← 戻る
+                </a>
+
+            </div>
+
+        </div>
 
     </div>
 
