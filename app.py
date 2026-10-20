@@ -41,6 +41,21 @@ COIN_PRODUCTS = {
 
 SWIPE_DAILY_FILE = "swipe_daily.json"
 
+import cloudinary
+import cloudinary.uploader
+
+cloudinary.config(
+    cloud_name=os.environ.get(
+        "CLOUDINARY_CLOUD_NAME"
+    ),
+    api_key=os.environ.get(
+        "CLOUDINARY_API_KEY"
+    ),
+    api_secret=os.environ.get(
+        "CLOUDINARY_API_SECRET"
+    ),
+    secure=True
+)
 
 def get_swipe_daily_data(user_id):
     today = date.today().isoformat()
@@ -3726,26 +3741,15 @@ def profile_edit():
     )
 
     if photo and photo.filename:
-        os.makedirs(
-            "static/uploads",
-            exist_ok=True
+        upload_result = (
+            cloudinary.uploader.upload(
+                photo,
+                folder="kogame_profiles"
+            )
         )
-
-        filename = secure_filename(
-            photo.filename
-        )
-
-        filepath = os.path.join(
-            "static",
-            "uploads",
-            filename
-        )
-
-        photo.save(filepath)
 
         user.photo_url = (
-            "/static/uploads/"
-            + filename
+            upload_result["secure_url"]
         )
 
     try:
