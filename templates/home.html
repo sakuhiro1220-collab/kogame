@@ -431,43 +431,18 @@ body::before {
    プロフィール写真
 ========================================= */
 
-.profile-photo-area {
-
-    position: relative;
-
-    width: 100%;
-
-    height:
-        min(
-            46vh,
-            360px
-        );
-
-    min-height:
-        215px;
-
-    overflow: hidden;
-
-    border-radius:
-        19px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #182744,
-            #201739
-        );
+.profile-photo-area{
+    width:100%;
+    height:240px;
+    overflow:hidden;
+    border-radius:18px;
 }
 
-
-.profile-img {
-
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
+.profile-img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:#111827;
 }
 
 
@@ -1500,9 +1475,7 @@ body::before {
 
                    <div class="profile-photo-area">
 
-                    <div style="color:red;">
-    {{ u.photo_url }}
-</div>
+                    
 
     <img
         src="{{ u.photo_url }}"
