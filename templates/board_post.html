@@ -14,25 +14,17 @@
 
 <style>
 
-/* =========================================
-   基本
-========================================= */
-
-* {
-    box-sizing: border-box;
+*{
+    box-sizing:border-box;
 }
 
-html,
-body {
-    margin: 0;
-    min-height: 100%;
-}
+body{
 
-body {
+    margin:0;
 
-    min-height: 100vh;
+    min-height:100vh;
 
-    color: white;
+    color:white;
 
     font-family:
         "Segoe UI",
@@ -43,12 +35,12 @@ body {
     background:
         radial-gradient(
             circle at 10% 5%,
-            rgba(0, 197, 255, 0.20),
+            rgba(0,197,255,.20),
             transparent 32%
         ),
         radial-gradient(
             circle at 90% 85%,
-            rgba(142, 72, 255, 0.28),
+            rgba(142,72,255,.28),
             transparent 38%
         ),
         linear-gradient(
@@ -58,56 +50,41 @@ body {
             #100822
         );
 
-    background-attachment: fixed;
-
-    overflow-x: hidden;
+    background-attachment:fixed;
 }
 
+body::before{
 
-/* =========================================
-   背景グリッド
-========================================= */
+    content:"";
 
-body::before {
+    position:fixed;
 
-    content: "";
+    inset:0;
 
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 0;
-
-    pointer-events: none;
+    pointer-events:none;
 
     background-image:
         linear-gradient(
-            rgba(255,255,255,0.022) 1px,
+            rgba(255,255,255,.022) 1px,
             transparent 1px
         ),
         linear-gradient(
             90deg,
-            rgba(255,255,255,0.022) 1px,
+            rgba(255,255,255,.022) 1px,
             transparent 1px
         );
 
-    background-size: 45px 45px;
+    background-size:
+        45px 45px;
 }
 
+.header{
 
-/* =========================================
-   ヘッダー
-========================================= */
+    position:sticky;
 
-.header {
+    top:0;
 
-    position: sticky;
-
-    top: 0;
-
-    z-index: 100;
-
-    width: 100%;
+    z-index:100;
 
     padding:
         max(13px, env(safe-area-inset-top))
@@ -115,502 +92,290 @@ body::before {
         13px;
 
     background:
-        rgba(4,13,31,0.90);
+        rgba(4,13,31,.90);
+
+    backdrop-filter:blur(20px);
 
     border-bottom:
         1px solid
-        rgba(255,255,255,0.08);
-
-    backdrop-filter:
-        blur(20px);
-
-    box-shadow:
-        0 8px 30px
-        rgba(0,0,0,0.18);
+        rgba(255,255,255,.08);
 }
 
+.header-inner{
 
-.header-inner {
+    width:min(760px,100%);
 
-    width: min(760px, 100%);
+    margin:0 auto;
 
-    margin: 0 auto;
+    display:flex;
 
-    display: flex;
+    align-items:center;
 
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 15px;
+    justify-content:space-between;
 }
 
+.small-title{
 
-.title-area {
+    color:#67ddff;
 
-    min-width: 0;
+    font-size:9px;
+
+    font-weight:900;
+
+    letter-spacing:4px;
 }
 
+.header h1{
 
-.small-title {
-
-    margin-bottom: 3px;
-
-    color: #67ddff;
-
-    font-size: 9px;
-
-    font-weight: 900;
-
-    letter-spacing: 4px;
-}
-
-
-.header h1 {
-
-    margin: 0;
+    margin:4px 0 0;
 
     font-size:
         clamp(
-            21px,
+            22px,
             5vw,
-            29px
+            30px
         );
 
     background:
         linear-gradient(
             90deg,
-            #ffffff,
+            #fff,
             #6de8ff,
             #b792ff
         );
 
-    background-clip: text;
+    -webkit-background-clip:text;
 
-    -webkit-background-clip: text;
+    background-clip:text;
 
-    color: transparent;
+    color:transparent;
 }
 
+.back-button{
 
-/* =========================================
-   戻るボタン
-========================================= */
+    display:flex;
 
-.back-button {
+    align-items:center;
 
-    flex-shrink: 0;
+    justify-content:center;
 
-    display: inline-flex;
+    min-height:42px;
 
-    min-height: 42px;
+    padding:0 15px;
 
-    align-items: center;
+    border-radius:14px;
 
-    justify-content: center;
+    color:white;
 
-    padding: 0 15px;
+    text-decoration:none;
+
+    font-size:12px;
+
+    font-weight:900;
 
     border:
         1px solid
-        rgba(255,255,255,0.11);
-
-    border-radius: 14px;
-
-    color: white;
-
-    text-decoration: none;
-
-    font-size: 12px;
-
-    font-weight: 900;
+        rgba(255,255,255,.11);
 
     background:
-        rgba(255,255,255,0.07);
-
-    transition:
-        transform 0.2s,
-        background 0.2s;
+        rgba(255,255,255,.07);
 }
 
+.container{
 
-.back-button:hover {
+    width:min(760px,94%);
 
-    transform:
-        translateY(-2px);
-
-    background:
-        rgba(255,255,255,0.13);
+    margin:28px auto 70px;
 }
 
+.post-card{
 
-/* =========================================
-   メイン
-========================================= */
+    padding:25px;
 
-.container {
-
-    position: relative;
-
-    z-index: 2;
-
-    width: min(760px, 94%);
-
-    margin:
-        28px auto
-        70px;
-}
-
-
-/* =========================================
-   投稿フォーム本体
-========================================= */
-
-.post-card {
-
-    padding:
-        25px;
+    border-radius:24px;
 
     border:
         1px solid
-        rgba(255,255,255,0.09);
-
-    border-radius: 24px;
+        rgba(255,255,255,.09);
 
     background:
-        rgba(7,17,39,0.82);
+        rgba(7,17,39,.82);
 
-    backdrop-filter:
-        blur(19px);
-
-    box-shadow:
-        0 18px 50px
-        rgba(0,0,0,0.28);
+    backdrop-filter:blur(18px);
 }
 
+.post-heading{
 
-.post-heading {
-
-    margin-bottom: 24px;
+    margin-bottom:20px;
 }
 
+.post-heading h2{
 
-.post-heading h2 {
-
-    margin:
-        0 0 6px;
-
-    font-size: 21px;
+    margin:0 0 8px;
 }
 
+.post-heading p{
 
-.post-heading p {
+    margin:0;
 
-    margin: 0;
+    color:#8ca2c4;
 
-    color: #8497b7;
-
-    font-size: 12px;
-
-    line-height: 1.6;
+    line-height:1.6;
 }
 
+.form-group{
 
-/* =========================================
-   フォーム
-========================================= */
-
-.form-group {
-
-    margin-bottom: 20px;
+    margin-bottom:20px;
 }
 
+.form-label{
 
-.form-label {
+    display:block;
 
-    display: block;
+    margin-bottom:10px;
 
-    margin-bottom: 8px;
+    font-size:13px;
 
-    color: #dce8f8;
-
-    font-size: 13px;
-
-    font-weight: 900;
+    font-weight:900;
 }
 
+.category-switch{
 
-.form-label span {
+    display:flex;
 
-    margin-left: 5px;
+    flex-direction:column;
 
-    color: #ff709e;
-
-    font-size: 10px;
+    gap:10px;
 }
 
+.category-option{
 
-/* =========================================
-   タイトル
-========================================= */
+    display:block;
 
-.title-input {
+    padding:15px;
 
-    width: 100%;
+    text-align:center;
 
-    height: 50px;
+    border-radius:14px;
 
-    padding:
-        0 15px;
+    cursor:pointer;
 
-    outline: none;
+    font-weight:900;
 
     border:
         1px solid
-        rgba(255,255,255,0.11);
-
-    border-radius: 14px;
-
-    color: white;
-
-    font-size: 14px;
+        rgba(255,255,255,.1);
 
     background:
-        rgba(255,255,255,0.06);
+        rgba(255,255,255,.05);
 
-    transition:
-        border-color 0.2s,
-        background 0.2s,
-        box-shadow 0.2s;
+    transition:.2s;
 }
 
+.category-option input{
 
-.title-input::placeholder {
-
-    color: #71829f;
+    display:none;
 }
 
-
-.title-input:focus {
-
-    border-color:
-        rgba(80,218,255,0.55);
-
-    background:
-        rgba(255,255,255,0.09);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(80,218,255,0.06);
-}
-
-
-/* =========================================
-   本文
-========================================= */
-
-.body-input {
-
-    display: block;
-
-    width: 100%;
-
-    min-height: 190px;
-
-    resize: vertical;
-
-    padding: 15px;
-
-    outline: none;
-
-    border:
-        1px solid
-        rgba(255,255,255,0.11);
-
-    border-radius: 14px;
-
-    color: white;
-
-    font-family: inherit;
-
-    font-size: 14px;
-
-    line-height: 1.7;
-
-    background:
-        rgba(255,255,255,0.06);
-
-    transition:
-        border-color 0.2s,
-        background 0.2s,
-        box-shadow 0.2s;
-}
-
-
-.body-input::placeholder {
-
-    color: #71829f;
-}
-
-
-.body-input:focus {
-
-    border-color:
-        rgba(80,218,255,0.55);
-
-    background:
-        rgba(255,255,255,0.09);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(80,218,255,0.06);
-}
-
-
-/* =========================================
-   画像
-========================================= */
-
-.photo-box {
-
-    position: relative;
-
-    padding: 16px;
-
-    border:
-        1px dashed
-        rgba(126,221,255,0.28);
-
-    border-radius: 15px;
-
-    background:
-        rgba(80,210,255,0.035);
-}
-
-
-.photo-description {
-
-    margin-bottom: 11px;
-
-    color: #879ab7;
-
-    font-size: 11px;
-}
-
-
-.photo-input {
-
-    display: block;
-
-    width: 100%;
-
-    color: #bccbe0;
-
-    font-size: 12px;
-}
-
-
-.photo-input::file-selector-button {
-
-    margin-right: 11px;
-
-    padding:
-        9px 13px;
-
-    border: none;
-
-    border-radius: 10px;
-
-    color: white;
-
-    font-weight: 800;
-
-    cursor: pointer;
+.category-option:has(input:checked){
 
     background:
         linear-gradient(
             135deg,
-            #198dff,
+            #168fff,
             #7558ff
         );
+
+    border:none;
 }
 
+.body-input{
 
-/* =========================================
-   操作ボタン
-========================================= */
+    width:100%;
 
-.actions {
+    min-height:220px;
 
-    display: grid;
+    resize:vertical;
+
+    padding:15px;
+
+    border-radius:14px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.11);
+
+    background:
+        rgba(255,255,255,.06);
+
+    color:white;
+
+    font-family:inherit;
+
+    font-size:14px;
+
+    outline:none;
+}
+
+.body-input:focus{
+
+    border-color:
+        rgba(80,218,255,.55);
+}
+
+.actions{
+
+    display:grid;
 
     grid-template-columns:
         1fr 2fr;
 
-    gap: 10px;
+    gap:10px;
 
-    margin-top: 27px;
+    margin-top:25px;
 }
 
+.cancel-button{
 
-.cancel-button {
+    display:flex;
 
-    min-height: 50px;
+    align-items:center;
 
-    display: flex;
+    justify-content:center;
 
-    align-items: center;
+    min-height:52px;
 
-    justify-content: center;
+    text-decoration:none;
+
+    color:#cbd8eb;
+
+    font-weight:900;
+
+    border-radius:14px;
 
     border:
         1px solid
-        rgba(255,255,255,0.12);
-
-    border-radius: 14px;
-
-    color: #c9d6e8;
-
-    text-decoration: none;
-
-    font-size: 13px;
-
-    font-weight: 900;
+        rgba(255,255,255,.12);
 
     background:
-        rgba(255,255,255,0.06);
-
-    transition:
-        transform 0.2s,
-        background 0.2s;
+        rgba(255,255,255,.06);
 }
 
+.submit-button{
 
-.cancel-button:hover {
+    min-height:52px;
 
-    transform:
-        translateY(-2px);
+    border:none;
 
-    background:
-        rgba(255,255,255,0.11);
-}
+    border-radius:14px;
 
+    color:white;
 
-.submit-button {
+    font-size:15px;
 
-    min-height: 50px;
+    font-weight:900;
 
-    border: none;
-
-    border-radius: 14px;
-
-    color: white;
-
-    font-size: 14px;
-
-    font-weight: 950;
-
-    cursor: pointer;
+    cursor:pointer;
 
     background:
         linear-gradient(
@@ -618,181 +383,18 @@ body::before {
             #ff467b,
             #a64fff
         );
-
-    box-shadow:
-        0 10px 30px
-        rgba(255,68,151,0.25);
-
-    transition:
-        transform 0.2s,
-        box-shadow 0.2s;
 }
 
+@media(max-width:600px){
 
-.submit-button:hover {
+    .actions{
 
-    transform:
-        translateY(-3px);
-
-    box-shadow:
-        0 14px 38px
-        rgba(255,68,151,0.37);
-}
-
-
-/* =========================================
-   注意
-========================================= */
-
-.notice {
-
-    margin-top: 18px;
-
-    padding:
-        11px 13px;
-
-    border-radius: 12px;
-
-    color: #8193af;
-
-    font-size: 10px;
-
-    line-height: 1.6;
-
-    background:
-        rgba(255,255,255,0.035);
-}
-
-
-/* =========================================
-   スマホ
-========================================= */
-
-@media (max-width: 600px) {
-
-    .header {
-
-        padding-left: 10px;
-
-        padding-right: 10px;
+        grid-template-columns:1fr;
     }
 
+    .body-input{
 
-    .header-inner {
-
-        gap: 8px;
-    }
-
-
-    .small-title {
-
-        font-size: 7px;
-
-        letter-spacing: 2px;
-    }
-
-
-    .header h1 {
-
-        font-size: 18px;
-    }
-
-
-    .back-button {
-
-        min-height: 38px;
-
-        padding:
-            0 10px;
-
-        font-size: 10px;
-    }
-
-
-    .container {
-
-        width: 95%;
-
-        margin-top: 14px;
-    }
-
-
-    .post-card {
-
-        padding:
-            18px 13px;
-
-        border-radius: 19px;
-    }
-
-
-    .post-heading {
-
-        margin-bottom: 19px;
-    }
-
-
-    .post-heading h2 {
-
-        font-size: 18px;
-    }
-
-
-    .title-input {
-
-        height: 47px;
-
-        font-size: 13px;
-    }
-
-
-    .body-input {
-
-        min-height: 170px;
-
-        font-size: 13px;
-    }
-
-
-    .actions {
-
-        grid-template-columns:
-            1fr;
-
-        gap: 8px;
-    }
-
-
-    .submit-button {
-
-        order: 1;
-    }
-
-
-    .cancel-button {
-
-        order: 2;
-    }
-}
-
-
-/* =========================================
-   小さいスマホ
-========================================= */
-
-@media (max-width: 360px) {
-
-    .back-text {
-
-        display: none;
-    }
-
-
-    .back-button {
-
-        width: 40px;
-
-        padding: 0;
+        min-height:180px;
     }
 }
 
@@ -800,20 +402,13 @@ body::before {
 
 </head>
 
-
 <body>
-
-
-<!-- =========================================
-     ヘッダー
-========================================= -->
 
 <header class="header">
 
     <div class="header-inner">
 
-
-        <div class="title-area">
+        <div>
 
             <div class="small-title">
                 NEW POST
@@ -825,30 +420,20 @@ body::before {
 
         </div>
 
-
-        <a href="/board" class="back-button">
-            ←
-
-            <span class="back-text">
-                掲示板へ戻る
-            </span>
+        <a
+            href="/board"
+            class="back-button"
+        >
+            ← 掲示板へ戻る
         </a>
-
 
     </div>
 
 </header>
 
-
-<!-- =========================================
-     メイン
-========================================= -->
-
 <main class="container">
 
-
     <section class="post-card">
-
 
         <div class="post-heading">
 
@@ -857,98 +442,87 @@ body::before {
             </h2>
 
             <p>
-                タイトルと本文を入力して投稿してください。
+                投稿先を選択して自由に書き込んでください。
             </p>
 
         </div>
 
-
-        <form action="/board_post" method="POST" enctype="multipart/form-data">
-
-
-            <!-- タイトル -->
-
-            <div class="form-group">
-
-                <label
-                    for="title"
-                    class="form-label"
-                >
-                    タイトル
-                    <span>必須</span>
-                </label>
-
-
-                <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    class="title-input"
-                    placeholder="投稿のタイトルを入力"
-                    maxlength="100"
-                    required
-                >
-
-            </div>
-
-
-            <!-- 本文 -->
+        <form
+            action="/board_post"
+            method="POST"
+        >
 
             <div class="form-group">
 
-                <label
-                    for="body"
-                    class="form-label"
-                >
-                    本文
-                    <span>必須</span>
+                <label class="form-label">
+
+                    投稿先
+
                 </label>
 
+                <div class="category-switch">
 
-                <textarea
-                    id="body"
-                    name="body"
-                    class="body-input"
-                    placeholder="投稿内容を入力してください"
-                    required
-                ></textarea>
+                    <label class="category-option">
 
-            </div>
+                        <input
+                            type="radio"
+                            name="category"
+                            value="normal"
+                            checked
+                        >
 
+                        📢 通常掲示板
 
-            <!-- 画像 -->
+                    </label>
 
-            <div class="form-group">
+                    <label class="category-option">
 
-                <label
-                    for="photo"
-                    class="form-label"
-                >
-                    📷 画像
-                </label>
+                        <input
+                            type="radio"
+                            name="category"
+                            value="status"
+                        >
 
+                        💬 今何してる？
 
-                <div class="photo-box">
+                    </label>
 
-                    <div class="photo-description">
-                        投稿に画像を追加できます。
-                    </div>
+                    <label class="category-option">
 
+                        <input
+                            type="radio"
+                            name="category"
+                            value="love"
+                        >
 
-                    <input
-                        type="file"
-                        id="photo"
-                        name="photo"
-                        class="photo-input"
-                        accept="image/*"
-                    >
+                        💗 恋人募集
+
+                    </label>
 
                 </div>
 
             </div>
 
+            <div class="form-group">
 
-            <!-- ボタン -->
+                <label
+                    class="form-label"
+                    for="body"
+                >
+
+                    本文
+
+                </label>
+
+                <textarea
+                    id="body"
+                    name="body"
+                    class="body-input"
+                    placeholder="自由に投稿してください"
+                    required
+                ></textarea>
+
+            </div>
 
             <div class="actions">
 
@@ -956,34 +530,27 @@ body::before {
                     href="/board"
                     class="cancel-button"
                 >
-                    キャンセル
-                </a>
 
+                    キャンセル
+
+                </a>
 
                 <button
                     type="submit"
                     class="submit-button"
                 >
+
                     🚀 投稿する
+
                 </button>
 
             </div>
 
-
         </form>
-
-
-        <div class="notice">
-            ※ 現在のサーバー処理ではタイトルと本文が保存されます。
-            画像保存を有効にするには、Python側の画像アップロード処理も追加する必要があります。
-        </div>
-
 
     </section>
 
-
 </main>
-
 
 </body>
 
