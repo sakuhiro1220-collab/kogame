@@ -1784,73 +1784,22 @@ let giftSending =
 
 function sendRankGift(rank) {
 
-    alert(
-        "① sendRankGift開始"
-    );
+    alert("① 開始");
 
-    console.log(
-        "① sendRankGift開始"
-    );
-
-   console.log(
-    "giftSending =",
-    giftSending
-);
-
-alert(
-    "giftSending = "
-    + giftSending
-);
-
-// 一時的に無効化
-giftSending = false;
-
-    alert(
-        "③ socket送信前"
-    );
-
-    console.log(
-        "③ socket送信前"
-    );
+    alert("② 通過");
 
     socket.emit(
         "send_rank_gift",
         {
-            partner:
-                partnerId,
-
-            rank:
-                rank
+            partner: partnerId,
+            rank: rank
         }
     );
 
-    alert(
-        "④ socket送信完了"
-    );
-
-    console.log(
-        "④ socket送信完了"
-    );
-
-    closeGiftMenu();
-
-    playGiftAnimation(
-        rank
-    );
-
-    setTimeout(
-        () => {
-
-            giftSending =
-                false;
-
-        },
-
-        1300
-
-    );
+    alert("③ emit完了");
 
 }
+
 
 /* =========================================
    ギフト送信成功
