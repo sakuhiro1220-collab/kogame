@@ -93,8 +93,6 @@ CPU_WAIT_SECONDS = 300
 daifugo_rooms = {}
 
 app = Flask(__name__)
-socketio = SocketIO(app)
-
 
 # =========================
 # Flask Secret Key
@@ -137,18 +135,16 @@ app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300
+}
 # DB初期化
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 
-app.config[
-    "SQLALCHEMY_ENGINE_OPTIONS"
-] = {
-    "pool_pre_ping": True,
-    "pool_recycle": 300
-}
+
 # =========================
 # Database Models
 # =========================
@@ -2481,10 +2477,26 @@ def login():
     # PostgreSQLからユーザー取得
     # -------------------------
 
-    user = db.session.get(
-        User,
-        user_id
-    )
+    try:
+
+        db.session.remove()
+
+        user = db.session.get(
+            User,
+            user_id
+        )
+
+    except Exception as e:
+
+        print(
+            "LOGIN DB ERROR:",
+            str(e)
+        )
+
+        return (
+            "データベース接続エラー",
+            500
+        )
 
 
     # -------------------------
