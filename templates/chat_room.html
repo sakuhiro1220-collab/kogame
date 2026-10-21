@@ -1782,7 +1782,19 @@ let giftSending =
 
 function sendRankGift(rank) {
 
-    alert("① socket前");
+    if (giftSending) {
+
+        return;
+
+    }
+
+    giftSending = true;
+
+    console.log(
+        "ギフト送信:",
+        rank,
+        partnerId
+    );
 
     socket.emit(
         "send_rank_gift",
@@ -1792,7 +1804,22 @@ function sendRankGift(rank) {
         }
     );
 
-    alert("② socket後");
+    closeGiftMenu();
+
+    playGiftAnimation(
+        rank
+    );
+
+    setTimeout(
+        () => {
+
+            giftSending = false;
+
+        },
+
+        1300
+
+    );
 
 }
 
@@ -3744,7 +3771,7 @@ function playGiftAnimation(rank) {
     switch (rank) {
 
 
-        case "銅":
+        case "bronze":
 
             playStandardGift(
                 "🥉 銅",
@@ -3760,7 +3787,7 @@ function playGiftAnimation(rank) {
             break;
 
 
-        case "銀":
+        case "silver":
 
             playStandardGift(
                 "🥈 銀",
@@ -3776,7 +3803,7 @@ function playGiftAnimation(rank) {
             break;
 
 
-        case "金":
+        case "gold":
 
             playStandardGift(
                 "🥇 金",
@@ -3792,7 +3819,7 @@ function playGiftAnimation(rank) {
             break;
 
 
-        case "サファイア":
+        case "sapphire":
 
             playStandardGift(
                 "🔷 サファイア",
@@ -3808,7 +3835,7 @@ function playGiftAnimation(rank) {
             break;
 
 
-        case "エメラルド":
+        case "emerald":
 
             playStandardGift(
                 "💚 エメラルド",
@@ -3824,7 +3851,7 @@ function playGiftAnimation(rank) {
             break;
 
 
-        case "ダイヤモンド":
+        case "diamond":
 
             playStandardGift(
                 "💎 ダイヤモンド",
@@ -3840,7 +3867,7 @@ function playGiftAnimation(rank) {
             break;
 
 
-        case "プラチナ":
+        case "platina":
 
             playStandardGift(
                 "👑 プラチナ",
@@ -3857,28 +3884,28 @@ function playGiftAnimation(rank) {
             break;
 
 
-        case "氷の柱":
+        case "ice_pillar":
 
             playIceEffect();
 
             break;
 
 
-        case "ハートの雨":
+        case "heart_rain":
 
             playHeartRain();
 
             break;
 
 
-        case "宝石の爆発":
+        case "gem_explosion":
 
             playGemExplosion();
 
             break;
 
 
-        case "恋の龍":
+        case "love_dragon":
 
             playDragonEffect();
 
