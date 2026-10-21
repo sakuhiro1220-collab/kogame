@@ -4373,7 +4373,7 @@ def send_gift():
     # =====================================
     # DB処理
     # =====================================
-
+    
     try:
 
         sender_user.coins -= cost
@@ -4382,6 +4382,23 @@ def send_gift():
             (receiver_user.stars or 0)
             + stars
         )
+
+        gift_log = Gift(
+
+            sender_id=sender,
+
+            receiver_id=receiver,
+
+            gift_type=gift_id,
+
+            coins=cost
+
+         )
+
+        db.session.add(
+            gift_log
+        )
+
 
         db.session.commit()
 
