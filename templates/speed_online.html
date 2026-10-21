@@ -590,7 +590,7 @@ color: transparent;
         <div id="modalMessage"></div>
 
         <a
-            href="/"
+            href="/home"
             class="btn"
         >
             ホームへ戻る
@@ -602,7 +602,12 @@ color: transparent;
 
 
 <script>
+const roomCode =
+    "{{ room_code }}";
 
+currentRoom =
+    roomCode;
+    
 const socket = io();
 
 const userId = "{{ user_id }}";
@@ -681,15 +686,11 @@ socket.on(
     () => {
 
         statusEl.textContent =
-            "マッチング中";
+            "待機中";
 
         subStatusEl.textContent =
-            "参加可能な卓を探しています...";
+            "対戦開始を待っています";
 
-        socket.emit(
-            "join_speed",
-            {}
-        );
     }
 );
 

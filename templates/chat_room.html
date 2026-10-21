@@ -1343,10 +1343,7 @@ body::before {
 
         <div class="gift-grid">
 
-            <button
-    type="button"
-    class="gift-card gift-bronze"
-    onclick="alert('テスト')"
+            
 >
 
             <button
@@ -1787,21 +1784,32 @@ let giftSending =
 
 function sendRankGift(rank) {
 
+    alert(
+        "① sendRankGift開始"
+    );
+
+    console.log(
+        "① sendRankGift開始"
+    );
+
     if (giftSending) {
+
+        alert(
+            "② giftSendingで停止"
+        );
 
         return;
     }
 
+    giftSending = true;
 
-    giftSending =
-        true;
+    alert(
+        "③ socket送信前"
+    );
 
     console.log(
-"ギフト送信:",
-rank,
-partnerId
-);  
-
+        "③ socket送信前"
+    );
 
     socket.emit(
         "send_rank_gift",
@@ -1814,19 +1822,19 @@ partnerId
         }
     );
 
+    alert(
+        "④ socket送信完了"
+    );
+
+    console.log(
+        "④ socket送信完了"
+    );
 
     closeGiftMenu();
-
-    
-    /*
-       現在は送信直後に
-       送信者側の演出を再生
-    */
 
     playGiftAnimation(
         rank
     );
-
 
     setTimeout(
         () => {
@@ -1835,8 +1843,11 @@ partnerId
                 false;
 
         },
+
         1300
+
     );
+
 }
 
 /* =========================================

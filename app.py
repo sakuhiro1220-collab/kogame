@@ -8626,7 +8626,19 @@ def speed_online():
         coins=user.coins or 0
     )
 
+@app.route("/speed_lobby")
+def speed_lobby():
 
+    if not session.get(
+        "user_id"
+    ):
+        return redirect(
+            url_for("top")
+        )
+
+    return render_template(
+        "speed_lobby.html"
+    )
 # =========================
 # マッチング開始
 # =========================
