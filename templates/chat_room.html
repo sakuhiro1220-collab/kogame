@@ -1787,18 +1787,10 @@ let giftSending =
 
 function sendRankGift(rank) {
 
-    alert(
-        "ギフト押された: " + rank
-    );
+    if (giftSending) {
 
-    console.log(
-        "ギフト送信:",
-        rank,
-        partnerId
-    );
-
-    return;
-}
+        return;
+    }
 
 
     giftSending =
