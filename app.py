@@ -460,6 +460,39 @@ class SwipeHistory(db.Model):
 
     )
 
+class Gift(db.Model):
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    sender_id = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    receiver_id = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    gift_type = db.Column(
+        db.String(50),
+        nullable=False
+    )
+
+    coins = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now()
+    )
+
+
 class SpeedRoom(db.Model):
     __tablename__ = "speed_rooms"
 
@@ -6998,24 +7031,7 @@ def gomoku_result():
 
 def check_gomoku_timeout():
 
-    with app.app_context():
-
-        while True:
-
-            try:
-
-                # 元の処理
-
-                pass
-
-            except Exception as e:
-
-                db.session.rollback()
-
-                print(
-                    "gomoku timeout:",
-                    str(e)
-                )
+    while True:
 
         socketio.sleep(1)
 
