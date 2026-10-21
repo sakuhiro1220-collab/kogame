@@ -1344,6 +1344,12 @@ body::before {
         <div class="gift-grid">
 
             <button
+    type="button"
+    class="gift-card gift-bronze"
+    onclick="alert('テスト')"
+>
+
+            <button
                 type="button"
                 class="gift-card gift-flower"
                 onclick="sendRankGift('tulip')"
@@ -1781,10 +1787,18 @@ let giftSending =
 
 function sendRankGift(rank) {
 
-    if (giftSending) {
+    alert(
+        "ギフト押された: " + rank
+    );
 
-        return;
-    }
+    console.log(
+        "ギフト送信:",
+        rank,
+        partnerId
+    );
+
+    return;
+}
 
 
     giftSending =
