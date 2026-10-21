@@ -3697,7 +3697,19 @@ def profile_edit_page():
     )
 
     
+@app.route(
+    "/profile_view/<int:user_id>"
+)
+def profile_view(user_id):
 
+    user = User.query.get_or_404(
+        user_id
+    )
+
+    return render_template(
+        "profile_view.html",
+        user=user
+    )
 
 @app.route(
     "/profile_edit",
