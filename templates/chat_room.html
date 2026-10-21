@@ -1792,16 +1792,18 @@ function sendRankGift(rank) {
         "① sendRankGift開始"
     );
 
-    if (giftSending) {
+   console.log(
+    "giftSending =",
+    giftSending
+);
 
-        alert(
-            "② giftSendingで停止"
-        );
+alert(
+    "giftSending = "
+    + giftSending
+);
 
-        return;
-    }
-
-    giftSending = true;
+// 一時的に無効化
+giftSending = false;
 
     alert(
         "③ socket送信前"
