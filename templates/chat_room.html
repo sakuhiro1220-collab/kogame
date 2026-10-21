@@ -1781,9 +1781,19 @@ let giftSending =
 
 function sendRankGift(rank) {
 
-    alert(
-        "TEST 999"
+    alert("① 開始");
+
+    alert("② socket前");
+
+    socket.emit(
+        "send_rank_gift",
+        {
+            partner: partnerId,
+            rank: rank
+        }
     );
+
+    alert("③ socket後");
 
 }
 

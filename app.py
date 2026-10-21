@@ -4569,6 +4569,13 @@ def send_gift():
 @socketio.on("send_rank_gift")
 def handle_rank_gift(data):
 
+    print(
+        "========== GIFT EVENT =========="
+    )
+
+    print(data)
+
+
     sender = session.get(
         "user_id"
     )
