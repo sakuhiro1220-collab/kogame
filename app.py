@@ -4244,7 +4244,9 @@ COUPLE_LINK_LEVELS = {
         "unlock": "SECRET GAME"
     }
 
-}   
+}  
+
+
 @app.route(
     "/send_gift",
     methods=["POST"]
@@ -4551,6 +4553,221 @@ def send_gift():
             sender_message
 
     })
+
+@socketio.on("send_rank_gift")
+def handle_rank_gift(data):
+
+    sender = session.get(
+        "user_id"
+    )
+
+    if not sender:
+
+        emit(
+            "gift_error",
+            {
+                "message":
+                    "ログインしてください"
+            }
+        )
+
+        return
+
+    receiver = data.get(
+        "partner"
+    )
+
+    rank = data.get(
+        "rank"
+    )
+
+    if not receiver:
+
+        emit(
+            "gift_error",
+            {
+                "message":
+                    "送信先がありません"
+            }
+        )
+
+        return
+
+    gift_map = {
+
+        "一輪の花":
+            "tulip",
+
+        "銅":
+            "bronze",
+
+        "銀":
+            "silver",
+
+        "金":
+            "gold",
+
+        "サファイア":
+            "sapphire",
+
+        "エメラルド":
+            "emerald",
+
+        "ダイヤモンド":
+            "diamond",
+
+        "プラチナ":
+            "platinum",
+
+        "氷の柱":
+            "ice_pillar",
+
+        "ハートの雨":
+            "heart_rain",
+
+        "宝石の爆発":
+            "gem_explosion",
+
+        "恋の龍":
+            "love_dragon"
+    }
+
+    gift_id = gift_map.get(
+        rank
+    )
+
+    if not gift_id:
+
+        emit(
+            "gift_error",
+            {
+                "message":
+                    "ギフトが存在しません"
+            }
+        )
+
+        return
+
+    sender_user = db.session.get(
+        User,
+        sender
+    )
+
+    receiver_user = db.session.get(
+        User,
+        receiver
+    )
+
+    if (
+        not sender_user
+        or
+        not receiver_user
+    ):
+
+        emit(
+            "gift_error",
+            {
+                "message":
+                    "ユーザーが見つかりません"
+            }
+        )
+
+        return
+
+    gift = GIFTS[
+        gift_id
+    ]
+
+    cost = gift[
+        "coins"
+    ]
+
+    stars = gift[
+        "star"
+    ]
+
+    if (
+        sender_user.coins or 0
+    ) < cost:
+
+        emit(
+            "gift_error",
+            {
+                "message":
+                    "コインが足りません"
+            }
+        )
+
+        return
+
+    try:
+
+        sender_user.coins -= cost
+
+        receiver_user.stars = (
+            (receiver_user.stars or 0)
+            + stars
+        )
+
+        gift_log = Gift(
+
+            sender_id=sender,
+
+            receiver_id=receiver,
+
+            gift_type=gift_id,
+
+            coins=cost
+
+        )
+
+        db.session.add(
+            gift_log
+        )
+
+        db.session.commit()
+
+        emit(
+            "gift_sent",
+            {
+                "rank": rank,
+                "stars": stars
+            }
+        )
+
+        socketio.emit(
+            "gift_received",
+            {
+                "rank": rank,
+                "stars": stars
+            },
+            room=receiver
+        )
+
+        print(
+            sender,
+            "->",
+            receiver,
+            rank,
+            "ギフト送信"
+        )
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        emit(
+            "gift_error",
+            {
+                "message":
+                    "ギフト送信失敗"
+            }
+        )
+
+        print(
+            "GIFT ERROR:",
+            str(e)
+        )
 # -------------------------
 # チャットAPI（自動更新）
 # -------------------------
