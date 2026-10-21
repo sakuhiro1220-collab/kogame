@@ -143,6 +143,12 @@ db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 
+app.config[
+    "SQLALCHEMY_ENGINE_OPTIONS"
+] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300
+}
 # =========================
 # Database Models
 # =========================
@@ -6992,7 +6998,24 @@ def gomoku_result():
 
 def check_gomoku_timeout():
 
-    while True:
+    with app.app_context():
+
+        while True:
+
+            try:
+
+                # 元の処理
+
+                pass
+
+            except Exception as e:
+
+                db.session.rollback()
+
+                print(
+                    "gomoku timeout:",
+                    str(e)
+                )
 
         socketio.sleep(1)
 
@@ -8348,6 +8371,10 @@ def speed_online():
 
 @socketio.on("join_speed")
 def on_join_speed(data):
+
+    try:db.session.remove()
+
+    except:pass
 
     print("================ SPEED JOIN ================")
 
