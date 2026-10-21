@@ -1781,9 +1781,7 @@ let giftSending =
 
 function sendRankGift(rank) {
 
-    alert("① 開始");
-
-    alert("② socket前");
+    alert("① socket前");
 
     socket.emit(
         "send_rank_gift",
@@ -1793,7 +1791,7 @@ function sendRankGift(rank) {
         }
     );
 
-    alert("③ socket後");
+    alert("② socket後");
 
 }
 
