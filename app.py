@@ -4612,50 +4612,9 @@ def handle_rank_gift(data):
 
         return
 
-    gift_map = {
+    gift_id = rank
 
-        "一輪の花":
-            "tulip",
-
-        "銅":
-            "bronze",
-
-        "銀":
-            "silver",
-
-        "金":
-            "gold",
-
-        "サファイア":
-            "sapphire",
-
-        "エメラルド":
-            "emerald",
-
-        "ダイヤモンド":
-            "diamond",
-
-        "プラチナ":
-            "platinum",
-
-        "氷の柱":
-            "ice_pillar",
-
-        "ハートの雨":
-            "heart_rain",
-
-        "宝石の爆発":
-            "gem_explosion",
-
-        "恋の龍":
-            "love_dragon"
-    }
-
-    gift_id = gift_map.get(
-        rank
-    )
-
-    if not gift_id:
+    if gift_id not in GIFTS:
 
         emit(
             "gift_error",
@@ -4664,7 +4623,6 @@ def handle_rank_gift(data):
                     "ギフトが存在しません"
             }
         )
-
         return
 
     sender_user = db.session.get(
