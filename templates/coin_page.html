@@ -906,6 +906,33 @@ body::before {
     <div class="grid">
 
 
+        {% if not user.starter_pack_used %}
+
+<div class="starter-pack">
+
+    <h3>
+        🎉 初回限定パック
+    </h3>
+
+    <p>
+        100 Coin
+    </p>
+
+    <p>
+        500円
+    </p>
+
+    <button
+        onclick="buyStarterPack()"
+    >
+        購入する
+    </button>
+
+</div>
+
+{% endif %}
+
+
         <!-- =================================
              100 COIN
         ================================== -->

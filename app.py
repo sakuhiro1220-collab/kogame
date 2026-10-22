@@ -218,6 +218,12 @@ class User(db.Model):
             default=False
         )
 
+    first_purchase_used = db.Column(
+    db.Boolean,
+    nullable=False,
+    default=False
+)
+
 class CoupleLink(db.Model):
 
     __tablename__ = "couple_links"
@@ -4860,7 +4866,84 @@ def coin_page():
     user = users.get(user_id)
     return render_template("coin_page.html", user=user)
 
+@app.route(
+    "/pay/starter_pack",
+    methods=["POST"]
+)
+def pay_starter_pack():
 
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+
+        return jsonify({
+            "error":
+                "ログインしてください"
+        }), 401
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+    if user.starter_pack_used:
+
+        return jsonify({
+            "error":
+                "購入済みです"
+        }), 400
+
+    checkout_session = (
+        stripe.checkout.Session.create(
+
+            mode="payment",
+
+            line_items=[
+                {
+                    "price_data": {
+                        "currency":
+                            "jpy",
+
+                        "product_data": {
+                            "name":
+                                "初回限定100コイン"
+                        },
+
+                        "unit_amount":
+                            500
+                    },
+
+                    "quantity": 1
+                }
+            ],
+
+            metadata={
+                "type":
+                    "starter_pack",
+
+                "user_id":
+                    user_id
+            },
+
+            success_url=
+                BASE_URL
+                + "/pay/success"
+                + "?session_id="
+                + "{CHECKOUT_SESSION_ID}",
+
+            cancel_url=
+                BASE_URL
+                + "/pay/cancel"
+
+        )
+    )
+
+    return jsonify({
+        "url":
+            checkout_session.url
+    })
 # -------------------------
 # Stripe決済
 # -------------------------
@@ -5028,9 +5111,27 @@ def fulfill_coin_payment(checkout_session):
         "metadata"
     ) or {}
 
-    user_id = metadata.get(
-        "user_id"
-    )
+    payment_type = metadata.get("type")
+    user_id = metadata.get("user_id")
+
+    if payment_type == "starter_pack":
+        user = db.session.get(
+            User,
+            user_id
+        )
+
+        if not user:
+            raise ValueError(
+                f"ユーザーが存在しません: {user_id}"
+            )
+
+        if user.starter_pack_used:
+            return
+
+        user.coins = (user.coins or 0) + 100
+        user.starter_pack_used = True
+        db.session.commit()
+        return
 
     coin_value = metadata.get(
         "coins"
