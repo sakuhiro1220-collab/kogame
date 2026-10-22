@@ -45,6 +45,7 @@ STARTER_PACK_PRICE = 1
 
 SWIPE_DAILY_FILE = "swipe_daily.json"
 
+
 import cloudinary
 import cloudinary.uploader
 
@@ -149,6 +150,33 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
+from sqlalchemy import text
+
+with app.app_context():
+
+    try:
+
+        db.session.execute(
+            text("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS
+            first_purchase_used
+            BOOLEAN DEFAULT FALSE
+            """)
+        )
+
+        db.session.commit()
+
+        print(
+            "first_purchase_used column ready"
+        )
+
+    except Exception as e:
+
+        print(
+            "column create error:",
+            str(e)
+        )
 # =========================
 # Database Models
 # =========================
