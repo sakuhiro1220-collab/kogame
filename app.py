@@ -1123,16 +1123,52 @@ PAIR_LINK_QUESTIONS = [
 )
 def pair_link_join():
 
+
     user_id = session.get(
-        "user_id"
-    )
-
+            "user_id"
+        )
+    
+    
     if not user_id:
+    
+            return
+    
+    
+        # ========================================================
+        # 個人ルーム
+        # ========================================================
+    
+    join_room(
+            str(
+                user_id
+            )
+        )
+    
+    
+        # ========================================================
+        # ゲームルーム
+        # ========================================================
+    
+    room_id = (
+            pair_link_user_room.get(
+                user_id
+            )
+        )
+    
+    
+    if room_id:
+    
+            join_room(
+                room_id
+            )
+    
+    
+            print(
+                "PAIR LINK room参加:",
+                user_id,
+                room_id
+            )
 
-        return jsonify({
-            "success": False,
-            "message": "ログインしてください"
-        }), 401
 @socketio.on(
     "pair_link_join"
 )
@@ -1768,12 +1804,7 @@ def pair_link_questions():
 # Socket.IO参加
 # ============================================================
 
-@socketio.on(
-    "pair_link_join"
-)
-def handle_pair_link_join(
-    data=None
-):
+
 
     user_id = session.get(
         "user_id"
