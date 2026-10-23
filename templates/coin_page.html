@@ -205,7 +205,133 @@ body::before {
     gap: 18px;
 }
 
+/* =========================
+   初回限定パック
+========================= */
 
+.starter-pack-card{
+
+    width:100%;
+
+    margin-bottom:30px;
+
+    padding:32px;
+
+    border-radius:28px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffb700,
+            #ff7a00
+        );
+
+    box-shadow:
+        0 0 40px
+        rgba(
+            255,
+            170,
+            0,
+            .45
+        );
+
+    position:relative;
+
+    overflow:hidden;
+}
+
+.starter-badge{
+
+    position:absolute;
+
+    top:18px;
+
+    right:18px;
+
+    background:white;
+
+    color:#ff8500;
+
+    font-weight:900;
+
+    padding:8px 16px;
+
+    border-radius:999px;
+}
+
+.starter-title{
+
+    font-size:32px;
+
+    font-weight:900;
+
+    color:white;
+
+    margin-bottom:15px;
+}
+
+.starter-coin{
+
+    font-size:54px;
+
+    font-weight:900;
+
+    color:white;
+}
+
+.starter-price{
+
+    margin-top:10px;
+
+    font-size:40px;
+
+    font-weight:900;
+
+    color:white;
+}
+
+.starter-sub{
+
+    margin-top:10px;
+
+    color:white;
+
+    opacity:.9;
+
+    font-size:16px;
+}
+
+.starter-btn{
+
+    margin-top:20px;
+
+    border:none;
+
+    background:white;
+
+    color:#ff7a00;
+
+    font-size:20px;
+
+    font-weight:900;
+
+    padding:16px;
+
+    width:100%;
+
+    border-radius:18px;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.starter-btn:hover{
+
+    transform:scale(1.02);
+
+    background:#fff4d6;
+}
 /* =========================================
    商品カード
 ========================================= */
@@ -744,6 +870,62 @@ body::before {
 
         margin-top: 9px;
     }
+    /* =========================
+   スマホ対応
+========================= */
+
+@media (max-width: 768px) {
+
+    .starter-pack-card {
+
+        padding: 22px;
+
+        border-radius: 20px;
+
+        margin-bottom: 20px;
+    }
+
+    .starter-content {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+    }
+
+    .starter-title {
+
+        font-size: 24px;
+    }
+
+    .starter-coin {
+
+        font-size: 38px;
+    }
+
+    .starter-price {
+
+        font-size: 30px;
+    }
+
+    .starter-btn {
+
+        width: 100%;
+
+        font-size: 18px;
+
+        padding: 14px;
+    }
+
+    .starter-badge {
+
+        font-size: 12px;
+
+        padding: 6px 12px;
+    }
+
+}
 
 
     .plan-100 .coin-image {
@@ -908,9 +1090,13 @@ body::before {
 
         {% if not user.starter_pack_used %}
 
-<div class="starter-pack">
+<div class="starter-pack-card">
 
-    <h3>
+    <div class="starter-badge">
+        初回限定
+    </div>
+
+    <h3 class="starter-title">
         🎉 初回限定パック
     </h3>
 
@@ -919,11 +1105,11 @@ body::before {
     </p>
 
     <p>
-        500円
+        160円
     </p>
 
     <button
-        onclick="buyStarterPack()"
+        onclick="buyStarterPack(160)"
     >
         購入する
     </button>
