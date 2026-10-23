@@ -862,1382 +862,7 @@ socketio = SocketIO(
     engineio_logger=True
 )
 
-# ============================================================
-# PAIR LINK
-# ============================================================
 
-PAIR_LINK_ENTRY_COST = 100
-
-PAIR_LINK_WIN_REWARD = 200
-
-PAIR_LINK_PLAYER_COUNT = 6
-
-PAIR_LINK_QUESTION_COUNT = 5
-
-PAIR_REACTION_ROUNDS = 10
-
-PAIR_REACTION_PENALTY_SECONDS = 2.0
-
-
-# ============================================================
-# PAIR LINK 待機ユーザー
-# ============================================================
-
-pair_link_waiting = {
-    "male": [],
-    "female": []
-}
-
-
-# ============================================================
-# PAIR LINK ゲームルーム
-# ============================================================
-
-pair_link_rooms = {}
-
-
-# ============================================================
-# ユーザー → ゲームルーム
-# ============================================================
-
-pair_link_user_room = {}
-
-
-
-
-rooms = {}  # スピード＆ジオゲッサー用オンライン対戦ルーム
-daifugo_rooms = {}  # 大富豪用オンライン対戦ルーム
-
-PAIR_LINK_QUESTIONS = [
-
-    {
-        "text": "休日の理想は？",
-        "options": [
-            {"value": "A", "text": "家でのんびり"},
-            {"value": "B", "text": "外へ遊びに行く"},
-            {"value": "C", "text": "趣味に没頭"},
-            {"value": "D", "text": "その日の気分"}
-        ]
-    },
-
-    {
-        "text": "恋人との連絡頻度は？",
-        "options": [
-            {"value": "A", "text": "毎日たくさん"},
-            {"value": "B", "text": "1日数回"},
-            {"value": "C", "text": "必要なとき"},
-            {"value": "D", "text": "あまり気にしない"}
-        ]
-    },
-
-    {
-        "text": "理想のデートは？",
-        "options": [
-            {"value": "A", "text": "テーマパーク"},
-            {"value": "B", "text": "カフェやレストラン"},
-            {"value": "C", "text": "旅行や自然"},
-            {"value": "D", "text": "家で映画やゲーム"}
-        ]
-    },
-
-    {
-        "text": "相手に一番求めるものは？",
-        "options": [
-            {"value": "A", "text": "優しさ"},
-            {"value": "B", "text": "面白さ"},
-            {"value": "C", "text": "誠実さ"},
-            {"value": "D", "text": "一緒にいて落ち着く"}
-        ]
-    },
-
-    {
-        "text": "旅行するなら？",
-        "options": [
-            {"value": "A", "text": "温泉"},
-            {"value": "B", "text": "海外"},
-            {"value": "C", "text": "都会"},
-            {"value": "D", "text": "自然豊かな場所"}
-        ]
-    },
-
-    {
-        "text": "休日に起きる時間は？",
-        "options": [
-            {"value": "A", "text": "朝早く"},
-            {"value": "B", "text": "9時くらい"},
-            {"value": "C", "text": "昼前"},
-            {"value": "D", "text": "昼過ぎ"}
-        ]
-    },
-
-    {
-        "text": "ゲームするなら？",
-        "options": [
-            {"value": "A", "text": "協力ゲーム"},
-            {"value": "B", "text": "対戦ゲーム"},
-            {"value": "C", "text": "RPG"},
-            {"value": "D", "text": "あまりゲームしない"}
-        ]
-    },
-
-    {
-        "text": "予定はどう決める？",
-        "options": [
-            {"value": "A", "text": "かなり前から"},
-            {"value": "B", "text": "数日前"},
-            {"value": "C", "text": "前日"},
-            {"value": "D", "text": "当日のノリ"}
-        ]
-    },
-
-    {
-        "text": "プレゼントでもらって嬉しいものは？",
-        "options": [
-            {"value": "A", "text": "実用的な物"},
-            {"value": "B", "text": "ファッション"},
-            {"value": "C", "text": "食べ物"},
-            {"value": "D", "text": "一緒にできる体験"}
-        ]
-    },
-
-    {
-        "text": "好きな季節は？",
-        "options": [
-            {"value": "A", "text": "春"},
-            {"value": "B", "text": "夏"},
-            {"value": "C", "text": "秋"},
-            {"value": "D", "text": "冬"}
-        ]
-    },
-
-    {
-        "text": "デートの食事なら？",
-        "options": [
-            {"value": "A", "text": "おしゃれなお店"},
-            {"value": "B", "text": "焼肉"},
-            {"value": "C", "text": "居酒屋系"},
-            {"value": "D", "text": "家で一緒に料理"}
-        ]
-    },
-
-    {
-        "text": "友達付き合いは？",
-        "options": [
-            {"value": "A", "text": "少人数で深く"},
-            {"value": "B", "text": "大人数でワイワイ"},
-            {"value": "C", "text": "どちらも好き"},
-            {"value": "D", "text": "一人時間が多い"}
-        ]
-    },
-
-    {
-        "text": "会話ではどのタイプ？",
-        "options": [
-            {"value": "A", "text": "自分から話す"},
-            {"value": "B", "text": "相手の話を聞く"},
-            {"value": "C", "text": "半々"},
-            {"value": "D", "text": "慣れると話す"}
-        ]
-    },
-
-    {
-        "text": "映画を見るなら？",
-        "options": [
-            {"value": "A", "text": "恋愛"},
-            {"value": "B", "text": "ホラー"},
-            {"value": "C", "text": "アクション"},
-            {"value": "D", "text": "コメディ"}
-        ]
-    },
-
-    {
-        "text": "突然1万円もらったら？",
-        "options": [
-            {"value": "A", "text": "貯金"},
-            {"value": "B", "text": "欲しい物を買う"},
-            {"value": "C", "text": "美味しい物を食べる"},
-            {"value": "D", "text": "遊びや旅行"}
-        ]
-    },
-
-    {
-        "text": "意見がぶつかったときは？",
-        "options": [
-            {"value": "A", "text": "すぐ話し合う"},
-            {"value": "B", "text": "少し時間を置く"},
-            {"value": "C", "text": "相手から話すのを待つ"},
-            {"value": "D", "text": "冷静に考える"}
-        ]
-    },
-
-    {
-        "text": "好きなデート時間は？",
-        "options": [
-            {"value": "A", "text": "朝"},
-            {"value": "B", "text": "昼"},
-            {"value": "C", "text": "夕方"},
-            {"value": "D", "text": "夜"}
-        ]
-    },
-
-    {
-        "text": "一番大切にしたい時間は？",
-        "options": [
-            {"value": "A", "text": "恋人との時間"},
-            {"value": "B", "text": "友達との時間"},
-            {"value": "C", "text": "趣味の時間"},
-            {"value": "D", "text": "全部バランス良く"}
-        ]
-    },
-
-    {
-        "text": "恋人との趣味は？",
-        "options": [
-            {"value": "A", "text": "同じ方がいい"},
-            {"value": "B", "text": "違っていてもいい"},
-            {"value": "C", "text": "一部同じがいい"},
-            {"value": "D", "text": "気にしない"}
-        ]
-    },
-
-    {
-        "text": "理想の関係は？",
-        "options": [
-            {"value": "A", "text": "いつも一緒"},
-            {"value": "B", "text": "親友みたい"},
-            {"value": "C", "text": "お互い自由"},
-            {"value": "D", "text": "支え合える"}
-        ]
-    }
-
-]
-
-# ============================================================
-# PAIR LINK
-# 参加・6人マッチング
-# ============================================================
-
-@app.route(
-    "/pair_link/join",
-    methods=["POST"]
-)
-def pair_link_join():
-
-
-    user_id = session.get(
-            "user_id"
-        )
-    
-    
-    if not user_id:
-    
-            return
-    
-    
-        # ========================================================
-        # 個人ルーム
-        # ========================================================
-    
-    join_room(
-            str(
-                user_id
-            )
-        )
-    
-    
-        # ========================================================
-        # ゲームルーム
-        # ========================================================
-    
-    room_id = (
-            pair_link_user_room.get(
-                user_id
-            )
-        )
-    
-    
-    if room_id:
-    
-            join_room(
-                room_id
-            )
-    
-    
-            print(
-                "PAIR LINK room参加:",
-                user_id,
-                room_id
-            )
-
-@socketio.on(
-    "pair_link_join"
-)
-def handle_pair_link_join(
-    data=None
-):
-
-    user_id = session.get(
-        "user_id"
-    )
-
-    if not user_id:
-        return
-
-
-    print(
-        "PAIR LINK SOCKET JOIN:",
-        user_id,
-        request.sid
-    )
-
-
-    join_room(
-        str(
-            user_id
-        )
-    )
-
-
-    room_id = (
-        pair_link_user_room.get(
-            user_id
-        )
-    )
-
-
-    if room_id:
-
-        join_room(
-            room_id
-        )
-
-        print(
-            "PAIR LINK room参加:",
-            user_id,
-            room_id
-        )
-
-    # ========================================================
-    # ユーザー取得
-    # ========================================================
-
-    user = db.session.get(
-        User,
-        user_id
-    )
-
-    if not user:
-
-        return jsonify({
-            "success": False,
-            "message": "ユーザーが存在しません"
-        }), 404
-
-
-    # ========================================================
-    # コイン確認
-    # この時点ではまだ引かない
-    # ========================================================
-
-    if (
-        user.coins or 0
-    ) < PAIR_LINK_ENTRY_COST:
-
-        return jsonify({
-            "success": False,
-            "message": "参加には100 COIN必要です"
-        }), 403
-
-
-    # ========================================================
-    # すでにゲーム参加済み
-    # ========================================================
-
-    if (
-        user_id
-        in pair_link_user_room
-    ):
-
-        room_id = (
-            pair_link_user_room[
-                user_id
-            ]
-        )
-
-        return jsonify({
-            "success": True,
-            "matched": True,
-            "room_id": room_id,
-            "next_url": url_for(
-                "pair_link_questions"
-            )
-        })
-
-
-    # ========================================================
-    # 性別取得
-    #
-    # DBに male / female が入っている想定
-    # ========================================================
-
-    gender = (
-        user.gender or ""
-    ).strip().lower()
-
-
-    # 日本語で保存している場合にも対応
-    if gender in (
-        "男",
-        "男性"
-    ):
-
-        gender = "male"
-
-
-    elif gender in (
-        "女",
-        "女性"
-    ):
-
-        gender = "female"
-
-
-    # ========================================================
-    # 今回の3 + 3マッチング対象外
-    # ========================================================
-
-    if gender not in (
-        "male",
-        "female"
-    ):
-
-        return jsonify({
-            "success": False,
-            "message":
-                "現在このゲームに参加できる設定ではありません"
-        }), 400
-
-
-    # ========================================================
-    # 二重参加防止
-    # ========================================================
-
-    if (
-        user_id
-        in pair_link_waiting["male"]
-        or
-        user_id
-        in pair_link_waiting["female"]
-    ):
-
-        return jsonify({
-            "success": True,
-            "waiting": True,
-            "male_count": len(
-                pair_link_waiting[
-                    "male"
-                ]
-            ),
-            "female_count": len(
-                pair_link_waiting[
-                    "female"
-                ]
-            )
-        })
-
-
-    # ========================================================
-    # 待機列へ追加
-    # ========================================================
-
-    pair_link_waiting[
-        gender
-    ].append(
-        user_id
-    )
-
-
-    male_count = len(
-        pair_link_waiting[
-            "male"
-        ]
-    )
-
-    female_count = len(
-        pair_link_waiting[
-            "female"
-        ]
-    )
-
-
-    print(
-        "PAIR LINK WAITING:",
-        male_count,
-        female_count
-    )
-
-
-    # ========================================================
-    # まだ3 + 3揃っていない
-    # ========================================================
-
-    if (
-        male_count < 3
-        or
-        female_count < 3
-    ):
-
-        return jsonify({
-            "success": True,
-            "waiting": True,
-            "male_count":
-                male_count,
-            "female_count":
-                female_count,
-            "total_count":
-                male_count
-                +
-                female_count
-        })
-
-
-    # ========================================================
-    # 3 + 3成立
-    # ========================================================
-
-    players = (
-
-        pair_link_waiting[
-            "male"
-        ][:3]
-
-        +
-
-        pair_link_waiting[
-            "female"
-        ][:3]
-
-    )
-
-
-    # ========================================================
-    # PostgreSQLから6人を再取得
-    # ========================================================
-
-    player_users = []
-
-
-    for player_id in players:
-
-        player = db.session.get(
-            User,
-            player_id
-        )
-
-
-        if not player:
-
-            return jsonify({
-                "success": False,
-                "message":
-                    "参加者情報を取得できませんでした"
-            }), 409
-
-
-        # ----------------------------------------------------
-        # 100 COIN再確認
-        # ----------------------------------------------------
-
-        if (
-            player.coins or 0
-        ) < PAIR_LINK_ENTRY_COST:
-
-            # 残高不足ユーザーを待機列から除外
-            for waiting_gender in (
-                "male",
-                "female"
-            ):
-
-                if (
-                    player_id
-                    in pair_link_waiting[
-                        waiting_gender
-                    ]
-                ):
-
-                    pair_link_waiting[
-                        waiting_gender
-                    ].remove(
-                        player_id
-                    )
-
-
-            return jsonify({
-                "success": False,
-                "message":
-                    "参加者の残高不足によりゲームを開始できませんでした"
-            }), 409
-
-
-        player_users.append(
-            player
-        )
-
-
-    # ========================================================
-    # ゲームルーム作成
-    # ========================================================
-
-    room_id = str(
-        uuid.uuid4()
-    )
-
-
-    # ========================================================
-    # 20問から5問を選択
-    # この6人は全員同じ5問になる
-    # ========================================================
-
-    question_indexes = (
-        random.sample(
-            range(
-                len(
-                    PAIR_LINK_QUESTIONS
-                )
-            ),
-            PAIR_LINK_QUESTION_COUNT
-        )
-    )
-
-
-    # ========================================================
-    # 参加費
-    # 6人揃ったこのタイミングで初めて徴収
-    # ========================================================
-
-    try:
-
-        for player in player_users:
-
-            player.coins -= (
-                PAIR_LINK_ENTRY_COST
-            )
-
-
-        db.session.commit()
-
-
-    except Exception as e:
-
-        db.session.rollback()
-
-
-        print(
-            "PAIR LINK参加費エラー:",
-            str(e)
-        )
-
-
-        return jsonify({
-            "success": False,
-            "message":
-                "参加費の処理に失敗しました"
-        }), 500
-
-
-    # ========================================================
-    # 待機列から6人削除
-    # ========================================================
-
-    del pair_link_waiting[
-        "male"
-    ][:3]
-
-
-    del pair_link_waiting[
-        "female"
-    ][:3]
-
-
-    # ========================================================
-    # ゲーム情報作成
-    # ========================================================
-
-    pair_link_rooms[
-        room_id
-    ] = {
-
-        "id":
-            room_id,
-
-        "players":
-            players,
-
-        "questions":
-            question_indexes,
-
-        "answers":
-            {},
-
-        "pairs":
-            [],
-
-        "reaction":
-            {},
-
-        "phase":
-            "questions",
-
-        "winner_pair":
-            None,
-
-        "results":
-            [],
-
-        "reward_paid":
-            False
-    }
-
-
-    # ========================================================
-    # ユーザーとルームを紐付け
-    # ========================================================
-
-    for player_id in players:
-
-        pair_link_user_room[
-            player_id
-        ] = room_id
-
-
-    # ========================================================
-    # 6人へゲーム開始を通知
-    # ========================================================
-
-    for player_id in players:
-
-        socketio.emit(
-
-            "pair_link_game_ready",
-
-            {
-
-                "room_id":
-                    room_id,
-
-                "next_url":
-                    url_for(
-                        "pair_link_questions"
-                    )
-
-            },
-
-            room=str(
-                player_id
-            )
-
-        )
-
-
-    # ========================================================
-    # 最後に参加したユーザーにも結果を返す
-    # ========================================================
-
-    return jsonify({
-
-        "success":
-            True,
-
-        "waiting":
-            False,
-
-        "matched":
-            True,
-
-        "room_id":
-            room_id,
-
-        "next_url":
-            url_for(
-                "pair_link_questions"
-            )
-
-    })
-
-
-# ============================================================
-# PAIR LINK
-# 質問ページ
-# ============================================================
-
-@app.route(
-    "/pair_link/questions"
-)
-def pair_link_questions():
-
-    user_id = session.get(
-        "user_id"
-    )
-
-
-    if not user_id:
-
-        return redirect(
-            url_for(
-                "top"
-            )
-        )
-
-
-    # ========================================================
-    # ユーザー確認
-    # ========================================================
-
-    user = db.session.get(
-        User,
-        user_id
-    )
-
-
-    if not user:
-
-        session.pop(
-            "user_id",
-            None
-        )
-
-        return redirect(
-            url_for(
-                "top"
-            )
-        )
-
-
-    # ========================================================
-    # 所属ルーム取得
-    # ========================================================
-
-    room_id = (
-        pair_link_user_room.get(
-            user_id
-        )
-    )
-
-
-    if not room_id:
-
-        return redirect(
-            url_for(
-                "matching_question"
-            )
-        )
-
-
-    room = pair_link_rooms.get(
-        room_id
-    )
-
-
-    if not room:
-
-        return redirect(
-            url_for(
-                "matching_question"
-            )
-        )
-
-
-    # ========================================================
-    # 参加者チェック
-    # ========================================================
-
-    if (
-        user_id
-        not in room[
-            "players"
-        ]
-    ):
-
-        return (
-            "このゲームには参加していません",
-            403
-        )
-
-
-    # ========================================================
-    # このゲームで使う5問
-    # ========================================================
-
-    questions = [
-
-        PAIR_LINK_QUESTIONS[
-            question_index
-        ]
-
-        for question_index
-        in room[
-            "questions"
-        ]
-
-    ]
-
-
-    # ========================================================
-    # HTMLへ
-    # ========================================================
-
-    return render_template(
-
-        "answer_page.html",
-
-        questions=
-            questions,
-
-        room_id=
-            room_id
-
-    )
-
-
-# ============================================================
-# PAIR LINK
-# Socket.IO参加
-# ============================================================
-
-
-
-    user_id = session.get(
-        "user_id"
-    )
-
-
-    if not user_id:
-
-        return
-
-
-    # ========================================================
-    # 個人ルーム
-    # ========================================================
-
-    join_room(
-        str(
-            user_id
-        )
-    )
-
-
-    # ========================================================
-    # ゲームルーム
-    # ========================================================
-
-    room_id = (
-        pair_link_user_room.get(
-            user_id
-        )
-    )
-
-
-    if room_id:
-
-        join_room(
-            room_id
-        )
-
-
-        print(
-            "PAIR LINK room参加:",
-            user_id,
-            room_id
-        )
-
-# ============================================================
-# PAIR LINK
-# 6人ボイスチャット WebRTC シグナリング
-# ============================================================
-
-
-@socketio.on("pair_voice_join")
-def handle_pair_voice_join(data=None):
-
-    user_id = session.get(
-        "user_id"
-    )
-
-    if not user_id:
-        return
-
-
-    # =========================================
-    # ユーザーが所属しているPAIR LINKルーム
-    # =========================================
-
-    room_id = pair_link_user_room.get(
-        user_id
-    )
-
-    if not room_id:
-        return
-
-
-    room = pair_link_rooms.get(
-        room_id
-    )
-
-    if not room:
-        return
-
-
-    # =========================================
-    # このゲームの参加者か確認
-    # =========================================
-
-    if user_id not in room["players"]:
-        return
-
-
-    # =========================================
-    # ボイス専用Socket.IOルーム
-    # =========================================
-
-    voice_room = (
-        "pair_voice_"
-        + room_id
-    )
-
-
-    # =========================================
-    # ボイスルームへ参加
-    # =========================================
-
-    join_room(
-        voice_room
-    )
-
-
-    print(
-        "PAIR VOICE JOIN:",
-        user_id,
-        room_id,
-        request.sid
-    )
-
-
-    # =========================================
-    # すでに参加しているユーザーへ
-    # 新規参加者を通知
-    #
-    # 新規参加者側からOfferを作ってもらう
-    # =========================================
-
-    socketio.emit(
-
-        "pair_voice_peer_joined",
-
-        {
-            "peer_id":
-                request.sid
-        },
-
-        room=
-            voice_room,
-
-        skip_sid=
-            request.sid
-    )
-
-
-# ============================================================
-# WebRTC Offer
-# ============================================================
-
-@socketio.on("pair_voice_offer")
-def handle_pair_voice_offer(data=None):
-
-    if not data:
-        return
-
-
-    user_id = session.get(
-        "user_id"
-    )
-
-    if not user_id:
-        return
-
-
-    room_id = pair_link_user_room.get(
-        user_id
-    )
-
-    if not room_id:
-        return
-
-
-    room = pair_link_rooms.get(
-        room_id
-    )
-
-    if not room:
-        return
-
-
-    if user_id not in room["players"]:
-        return
-
-
-    target = data.get(
-        "target"
-    )
-
-    sdp = data.get(
-        "sdp"
-    )
-
-
-    if not target:
-        return
-
-
-    if not sdp:
-        return
-
-
-    print(
-        "PAIR VOICE OFFER:",
-        request.sid,
-        "->",
-        target
-    )
-
-
-    socketio.emit(
-
-        "pair_voice_offer",
-
-        {
-            "from":
-                request.sid,
-
-            "sdp":
-                sdp
-        },
-
-        to=
-            target
-    )
-
-
-# ============================================================
-# WebRTC Answer
-# ============================================================
-
-@socketio.on("pair_voice_answer")
-def handle_pair_voice_answer(data=None):
-
-    if not data:
-        return
-
-
-    user_id = session.get(
-        "user_id"
-    )
-
-    if not user_id:
-        return
-
-
-    room_id = pair_link_user_room.get(
-        user_id
-    )
-
-    if not room_id:
-        return
-
-
-    room = pair_link_rooms.get(
-        room_id
-    )
-
-    if not room:
-        return
-
-
-    if user_id not in room["players"]:
-        return
-
-
-    target = data.get(
-        "target"
-    )
-
-    sdp = data.get(
-        "sdp"
-    )
-
-
-    if not target:
-        return
-
-
-    if not sdp:
-        return
-
-
-    print(
-        "PAIR VOICE ANSWER:",
-        request.sid,
-        "->",
-        target
-    )
-
-
-    socketio.emit(
-
-        "pair_voice_answer",
-
-        {
-            "from":
-                request.sid,
-
-            "sdp":
-                sdp
-        },
-
-        to=
-            target
-    )
-
-
-# ============================================================
-# WebRTC ICE Candidate
-# ============================================================
-
-@socketio.on("pair_voice_ice")
-def handle_pair_voice_ice(data=None):
-
-    if not data:
-        return
-
-
-    user_id = session.get(
-        "user_id"
-    )
-
-    if not user_id:
-        return
-
-
-    room_id = pair_link_user_room.get(
-        user_id
-    )
-
-    if not room_id:
-        return
-
-
-    room = pair_link_rooms.get(
-        room_id
-    )
-
-    if not room:
-        return
-
-
-    if user_id not in room["players"]:
-        return
-
-
-    target = data.get(
-        "target"
-    )
-
-    candidate = data.get(
-        "candidate"
-    )
-
-
-    if not target:
-        return
-
-
-    if not candidate:
-        return
-
-
-    socketio.emit(
-
-        "pair_voice_ice",
-
-        {
-            "from":
-                request.sid,
-
-            "candidate":
-                candidate
-        },
-
-        to=
-            target
-    )
-
-
-# ============================================================
-# ボイスチャット退出
-# ============================================================
-
-@socketio.on("pair_voice_leave")
-def handle_pair_voice_leave(data=None):
-
-    user_id = session.get(
-        "user_id"
-    )
-
-    if not user_id:
-        return
-
-
-    room_id = pair_link_user_room.get(
-        user_id
-    )
-
-    if not room_id:
-        return
-
-
-    voice_room = (
-        "pair_voice_"
-        + room_id
-    )
-
-
-    print(
-        "PAIR VOICE LEAVE:",
-        user_id,
-        room_id,
-        request.sid
-    )
-
-
-    # =========================================
-    # 他の参加者へ退出通知
-    # =========================================
-
-    socketio.emit(
-
-        "pair_voice_peer_left",
-
-        {
-            "peer_id":
-                request.sid
-        },
-
-        room=
-            voice_room,
-
-        skip_sid=
-            request.sid
-    )
 # -------------------------
 # Stripe設定
 
@@ -5389,7 +4014,1382 @@ def view_profile(user_id):
 # ============================================================
 # ゲーム1：PAIR LINK 相性診断
 # ============================================================
+# ============================================================
+# PAIR LINK
+# ============================================================
 
+PAIR_LINK_ENTRY_COST = 100
+
+PAIR_LINK_WIN_REWARD = 200
+
+PAIR_LINK_PLAYER_COUNT = 6
+
+PAIR_LINK_QUESTION_COUNT = 5
+
+PAIR_REACTION_ROUNDS = 10
+
+PAIR_REACTION_PENALTY_SECONDS = 2.0
+
+
+# ============================================================
+# PAIR LINK 待機ユーザー
+# ============================================================
+
+pair_link_waiting = {
+    "male": [],
+    "female": []
+}
+
+
+# ============================================================
+# PAIR LINK ゲームルーム
+# ============================================================
+
+pair_link_rooms = {}
+
+
+# ============================================================
+# ユーザー → ゲームルーム
+# ============================================================
+
+pair_link_user_room = {}
+
+
+
+
+rooms = {}  # スピード＆ジオゲッサー用オンライン対戦ルーム
+daifugo_rooms = {}  # 大富豪用オンライン対戦ルーム
+
+PAIR_LINK_QUESTIONS = [
+
+    {
+        "text": "休日の理想は？",
+        "options": [
+            {"value": "A", "text": "家でのんびり"},
+            {"value": "B", "text": "外へ遊びに行く"},
+            {"value": "C", "text": "趣味に没頭"},
+            {"value": "D", "text": "その日の気分"}
+        ]
+    },
+
+    {
+        "text": "恋人との連絡頻度は？",
+        "options": [
+            {"value": "A", "text": "毎日たくさん"},
+            {"value": "B", "text": "1日数回"},
+            {"value": "C", "text": "必要なとき"},
+            {"value": "D", "text": "あまり気にしない"}
+        ]
+    },
+
+    {
+        "text": "理想のデートは？",
+        "options": [
+            {"value": "A", "text": "テーマパーク"},
+            {"value": "B", "text": "カフェやレストラン"},
+            {"value": "C", "text": "旅行や自然"},
+            {"value": "D", "text": "家で映画やゲーム"}
+        ]
+    },
+
+    {
+        "text": "相手に一番求めるものは？",
+        "options": [
+            {"value": "A", "text": "優しさ"},
+            {"value": "B", "text": "面白さ"},
+            {"value": "C", "text": "誠実さ"},
+            {"value": "D", "text": "一緒にいて落ち着く"}
+        ]
+    },
+
+    {
+        "text": "旅行するなら？",
+        "options": [
+            {"value": "A", "text": "温泉"},
+            {"value": "B", "text": "海外"},
+            {"value": "C", "text": "都会"},
+            {"value": "D", "text": "自然豊かな場所"}
+        ]
+    },
+
+    {
+        "text": "休日に起きる時間は？",
+        "options": [
+            {"value": "A", "text": "朝早く"},
+            {"value": "B", "text": "9時くらい"},
+            {"value": "C", "text": "昼前"},
+            {"value": "D", "text": "昼過ぎ"}
+        ]
+    },
+
+    {
+        "text": "ゲームするなら？",
+        "options": [
+            {"value": "A", "text": "協力ゲーム"},
+            {"value": "B", "text": "対戦ゲーム"},
+            {"value": "C", "text": "RPG"},
+            {"value": "D", "text": "あまりゲームしない"}
+        ]
+    },
+
+    {
+        "text": "予定はどう決める？",
+        "options": [
+            {"value": "A", "text": "かなり前から"},
+            {"value": "B", "text": "数日前"},
+            {"value": "C", "text": "前日"},
+            {"value": "D", "text": "当日のノリ"}
+        ]
+    },
+
+    {
+        "text": "プレゼントでもらって嬉しいものは？",
+        "options": [
+            {"value": "A", "text": "実用的な物"},
+            {"value": "B", "text": "ファッション"},
+            {"value": "C", "text": "食べ物"},
+            {"value": "D", "text": "一緒にできる体験"}
+        ]
+    },
+
+    {
+        "text": "好きな季節は？",
+        "options": [
+            {"value": "A", "text": "春"},
+            {"value": "B", "text": "夏"},
+            {"value": "C", "text": "秋"},
+            {"value": "D", "text": "冬"}
+        ]
+    },
+
+    {
+        "text": "デートの食事なら？",
+        "options": [
+            {"value": "A", "text": "おしゃれなお店"},
+            {"value": "B", "text": "焼肉"},
+            {"value": "C", "text": "居酒屋系"},
+            {"value": "D", "text": "家で一緒に料理"}
+        ]
+    },
+
+    {
+        "text": "友達付き合いは？",
+        "options": [
+            {"value": "A", "text": "少人数で深く"},
+            {"value": "B", "text": "大人数でワイワイ"},
+            {"value": "C", "text": "どちらも好き"},
+            {"value": "D", "text": "一人時間が多い"}
+        ]
+    },
+
+    {
+        "text": "会話ではどのタイプ？",
+        "options": [
+            {"value": "A", "text": "自分から話す"},
+            {"value": "B", "text": "相手の話を聞く"},
+            {"value": "C", "text": "半々"},
+            {"value": "D", "text": "慣れると話す"}
+        ]
+    },
+
+    {
+        "text": "映画を見るなら？",
+        "options": [
+            {"value": "A", "text": "恋愛"},
+            {"value": "B", "text": "ホラー"},
+            {"value": "C", "text": "アクション"},
+            {"value": "D", "text": "コメディ"}
+        ]
+    },
+
+    {
+        "text": "突然1万円もらったら？",
+        "options": [
+            {"value": "A", "text": "貯金"},
+            {"value": "B", "text": "欲しい物を買う"},
+            {"value": "C", "text": "美味しい物を食べる"},
+            {"value": "D", "text": "遊びや旅行"}
+        ]
+    },
+
+    {
+        "text": "意見がぶつかったときは？",
+        "options": [
+            {"value": "A", "text": "すぐ話し合う"},
+            {"value": "B", "text": "少し時間を置く"},
+            {"value": "C", "text": "相手から話すのを待つ"},
+            {"value": "D", "text": "冷静に考える"}
+        ]
+    },
+
+    {
+        "text": "好きなデート時間は？",
+        "options": [
+            {"value": "A", "text": "朝"},
+            {"value": "B", "text": "昼"},
+            {"value": "C", "text": "夕方"},
+            {"value": "D", "text": "夜"}
+        ]
+    },
+
+    {
+        "text": "一番大切にしたい時間は？",
+        "options": [
+            {"value": "A", "text": "恋人との時間"},
+            {"value": "B", "text": "友達との時間"},
+            {"value": "C", "text": "趣味の時間"},
+            {"value": "D", "text": "全部バランス良く"}
+        ]
+    },
+
+    {
+        "text": "恋人との趣味は？",
+        "options": [
+            {"value": "A", "text": "同じ方がいい"},
+            {"value": "B", "text": "違っていてもいい"},
+            {"value": "C", "text": "一部同じがいい"},
+            {"value": "D", "text": "気にしない"}
+        ]
+    },
+
+    {
+        "text": "理想の関係は？",
+        "options": [
+            {"value": "A", "text": "いつも一緒"},
+            {"value": "B", "text": "親友みたい"},
+            {"value": "C", "text": "お互い自由"},
+            {"value": "D", "text": "支え合える"}
+        ]
+    }
+
+]
+
+# ============================================================
+# PAIR LINK
+# 参加・6人マッチング
+# ============================================================
+
+@app.route(
+    "/pair_link/join",
+    methods=["POST"]
+)
+def pair_link_join():
+
+
+    user_id = session.get(
+            "user_id"
+        )
+    
+    
+    if not user_id:
+    
+            return
+    
+    
+        # ========================================================
+        # 個人ルーム
+        # ========================================================
+    
+    join_room(
+            str(
+                user_id
+            )
+        )
+    
+    
+        # ========================================================
+        # ゲームルーム
+        # ========================================================
+    
+    room_id = (
+            pair_link_user_room.get(
+                user_id
+            )
+        )
+    
+    
+    if room_id:
+    
+            join_room(
+                room_id
+            )
+    
+    
+            print(
+                "PAIR LINK room参加:",
+                user_id,
+                room_id
+            )
+
+@socketio.on(
+    "pair_link_join"
+)
+def handle_pair_link_join(
+    data=None
+):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    print(
+        "PAIR LINK SOCKET JOIN:",
+        user_id,
+        request.sid
+    )
+
+
+    join_room(
+        str(
+            user_id
+        )
+    )
+
+
+    room_id = (
+        pair_link_user_room.get(
+            user_id
+        )
+    )
+
+
+    if room_id:
+
+        join_room(
+            room_id
+        )
+
+        print(
+            "PAIR LINK room参加:",
+            user_id,
+            room_id
+        )
+
+    # ========================================================
+    # ユーザー取得
+    # ========================================================
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+    if not user:
+
+        return jsonify({
+            "success": False,
+            "message": "ユーザーが存在しません"
+        }), 404
+
+
+    # ========================================================
+    # コイン確認
+    # この時点ではまだ引かない
+    # ========================================================
+
+    if (
+        user.coins or 0
+    ) < PAIR_LINK_ENTRY_COST:
+
+        return jsonify({
+            "success": False,
+            "message": "参加には100 COIN必要です"
+        }), 403
+
+
+    # ========================================================
+    # すでにゲーム参加済み
+    # ========================================================
+
+    if (
+        user_id
+        in pair_link_user_room
+    ):
+
+        room_id = (
+            pair_link_user_room[
+                user_id
+            ]
+        )
+
+        return jsonify({
+            "success": True,
+            "matched": True,
+            "room_id": room_id,
+            "next_url": url_for(
+                "pair_link_questions"
+            )
+        })
+
+
+    # ========================================================
+    # 性別取得
+    #
+    # DBに male / female が入っている想定
+    # ========================================================
+
+    gender = (
+        user.gender or ""
+    ).strip().lower()
+
+
+    # 日本語で保存している場合にも対応
+    if gender in (
+        "男",
+        "男性"
+    ):
+
+        gender = "male"
+
+
+    elif gender in (
+        "女",
+        "女性"
+    ):
+
+        gender = "female"
+
+
+    # ========================================================
+    # 今回の3 + 3マッチング対象外
+    # ========================================================
+
+    if gender not in (
+        "male",
+        "female"
+    ):
+
+        return jsonify({
+            "success": False,
+            "message":
+                "現在このゲームに参加できる設定ではありません"
+        }), 400
+
+
+    # ========================================================
+    # 二重参加防止
+    # ========================================================
+
+    if (
+        user_id
+        in pair_link_waiting["male"]
+        or
+        user_id
+        in pair_link_waiting["female"]
+    ):
+
+        return jsonify({
+            "success": True,
+            "waiting": True,
+            "male_count": len(
+                pair_link_waiting[
+                    "male"
+                ]
+            ),
+            "female_count": len(
+                pair_link_waiting[
+                    "female"
+                ]
+            )
+        })
+
+
+    # ========================================================
+    # 待機列へ追加
+    # ========================================================
+
+    pair_link_waiting[
+        gender
+    ].append(
+        user_id
+    )
+
+
+    male_count = len(
+        pair_link_waiting[
+            "male"
+        ]
+    )
+
+    female_count = len(
+        pair_link_waiting[
+            "female"
+        ]
+    )
+
+
+    print(
+        "PAIR LINK WAITING:",
+        male_count,
+        female_count
+    )
+
+
+    # ========================================================
+    # まだ3 + 3揃っていない
+    # ========================================================
+
+    if (
+        male_count < 3
+        or
+        female_count < 3
+    ):
+
+        return jsonify({
+            "success": True,
+            "waiting": True,
+            "male_count":
+                male_count,
+            "female_count":
+                female_count,
+            "total_count":
+                male_count
+                +
+                female_count
+        })
+
+
+    # ========================================================
+    # 3 + 3成立
+    # ========================================================
+
+    players = (
+
+        pair_link_waiting[
+            "male"
+        ][:3]
+
+        +
+
+        pair_link_waiting[
+            "female"
+        ][:3]
+
+    )
+
+
+    # ========================================================
+    # PostgreSQLから6人を再取得
+    # ========================================================
+
+    player_users = []
+
+
+    for player_id in players:
+
+        player = db.session.get(
+            User,
+            player_id
+        )
+
+
+        if not player:
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "参加者情報を取得できませんでした"
+            }), 409
+
+
+        # ----------------------------------------------------
+        # 100 COIN再確認
+        # ----------------------------------------------------
+
+        if (
+            player.coins or 0
+        ) < PAIR_LINK_ENTRY_COST:
+
+            # 残高不足ユーザーを待機列から除外
+            for waiting_gender in (
+                "male",
+                "female"
+            ):
+
+                if (
+                    player_id
+                    in pair_link_waiting[
+                        waiting_gender
+                    ]
+                ):
+
+                    pair_link_waiting[
+                        waiting_gender
+                    ].remove(
+                        player_id
+                    )
+
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "参加者の残高不足によりゲームを開始できませんでした"
+            }), 409
+
+
+        player_users.append(
+            player
+        )
+
+
+    # ========================================================
+    # ゲームルーム作成
+    # ========================================================
+
+    room_id = str(
+        uuid.uuid4()
+    )
+
+
+    # ========================================================
+    # 20問から5問を選択
+    # この6人は全員同じ5問になる
+    # ========================================================
+
+    question_indexes = (
+        random.sample(
+            range(
+                len(
+                    PAIR_LINK_QUESTIONS
+                )
+            ),
+            PAIR_LINK_QUESTION_COUNT
+        )
+    )
+
+
+    # ========================================================
+    # 参加費
+    # 6人揃ったこのタイミングで初めて徴収
+    # ========================================================
+
+    try:
+
+        for player in player_users:
+
+            player.coins -= (
+                PAIR_LINK_ENTRY_COST
+            )
+
+
+        db.session.commit()
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+
+        print(
+            "PAIR LINK参加費エラー:",
+            str(e)
+        )
+
+
+        return jsonify({
+            "success": False,
+            "message":
+                "参加費の処理に失敗しました"
+        }), 500
+
+
+    # ========================================================
+    # 待機列から6人削除
+    # ========================================================
+
+    del pair_link_waiting[
+        "male"
+    ][:3]
+
+
+    del pair_link_waiting[
+        "female"
+    ][:3]
+
+
+    # ========================================================
+    # ゲーム情報作成
+    # ========================================================
+
+    pair_link_rooms[
+        room_id
+    ] = {
+
+        "id":
+            room_id,
+
+        "players":
+            players,
+
+        "questions":
+            question_indexes,
+
+        "answers":
+            {},
+
+        "pairs":
+            [],
+
+        "reaction":
+            {},
+
+        "phase":
+            "questions",
+
+        "winner_pair":
+            None,
+
+        "results":
+            [],
+
+        "reward_paid":
+            False
+    }
+
+
+    # ========================================================
+    # ユーザーとルームを紐付け
+    # ========================================================
+
+    for player_id in players:
+
+        pair_link_user_room[
+            player_id
+        ] = room_id
+
+
+    # ========================================================
+    # 6人へゲーム開始を通知
+    # ========================================================
+
+    for player_id in players:
+
+        socketio.emit(
+
+            "pair_link_game_ready",
+
+            {
+
+                "room_id":
+                    room_id,
+
+                "next_url":
+                    url_for(
+                        "pair_link_questions"
+                    )
+
+            },
+
+            room=str(
+                player_id
+            )
+
+        )
+
+
+    # ========================================================
+    # 最後に参加したユーザーにも結果を返す
+    # ========================================================
+
+    return jsonify({
+
+        "success":
+            True,
+
+        "waiting":
+            False,
+
+        "matched":
+            True,
+
+        "room_id":
+            room_id,
+
+        "next_url":
+            url_for(
+                "pair_link_questions"
+            )
+
+    })
+
+
+# ============================================================
+# PAIR LINK
+# 質問ページ
+# ============================================================
+
+@app.route(
+    "/pair_link/questions"
+)
+def pair_link_questions():
+
+    user_id = session.get(
+        "user_id"
+    )
+
+
+    if not user_id:
+
+        return redirect(
+            url_for(
+                "top"
+            )
+        )
+
+
+    # ========================================================
+    # ユーザー確認
+    # ========================================================
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+
+    if not user:
+
+        session.pop(
+            "user_id",
+            None
+        )
+
+        return redirect(
+            url_for(
+                "top"
+            )
+        )
+
+
+    # ========================================================
+    # 所属ルーム取得
+    # ========================================================
+
+    room_id = (
+        pair_link_user_room.get(
+            user_id
+        )
+    )
+
+
+    if not room_id:
+
+        return redirect(
+            url_for(
+                "matching_question"
+            )
+        )
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+
+    if not room:
+
+        return redirect(
+            url_for(
+                "matching_question"
+            )
+        )
+
+
+    # ========================================================
+    # 参加者チェック
+    # ========================================================
+
+    if (
+        user_id
+        not in room[
+            "players"
+        ]
+    ):
+
+        return (
+            "このゲームには参加していません",
+            403
+        )
+
+
+    # ========================================================
+    # このゲームで使う5問
+    # ========================================================
+
+    questions = [
+
+        PAIR_LINK_QUESTIONS[
+            question_index
+        ]
+
+        for question_index
+        in room[
+            "questions"
+        ]
+
+    ]
+
+
+    # ========================================================
+    # HTMLへ
+    # ========================================================
+
+    return render_template(
+
+        "answer_page.html",
+
+        questions=
+            questions,
+
+        room_id=
+            room_id
+
+    )
+
+
+# ============================================================
+# PAIR LINK
+# Socket.IO参加
+# ============================================================
+
+
+
+    user_id = session.get(
+        "user_id"
+    )
+
+
+    if not user_id:
+
+        return
+
+
+    # ========================================================
+    # 個人ルーム
+    # ========================================================
+
+    join_room(
+        str(
+            user_id
+        )
+    )
+
+
+    # ========================================================
+    # ゲームルーム
+    # ========================================================
+
+    room_id = (
+        pair_link_user_room.get(
+            user_id
+        )
+    )
+
+
+    if room_id:
+
+        join_room(
+            room_id
+        )
+
+
+        print(
+            "PAIR LINK room参加:",
+            user_id,
+            room_id
+        )
+
+# ============================================================
+# PAIR LINK
+# 6人ボイスチャット WebRTC シグナリング
+# ============================================================
+
+
+@socketio.on("pair_voice_join")
+def handle_pair_voice_join(data=None):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    # =========================================
+    # ユーザーが所属しているPAIR LINKルーム
+    # =========================================
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    # =========================================
+    # このゲームの参加者か確認
+    # =========================================
+
+    if user_id not in room["players"]:
+        return
+
+
+    # =========================================
+    # ボイス専用Socket.IOルーム
+    # =========================================
+
+    voice_room = (
+        "pair_voice_"
+        + room_id
+    )
+
+
+    # =========================================
+    # ボイスルームへ参加
+    # =========================================
+
+    join_room(
+        voice_room
+    )
+
+
+    print(
+        "PAIR VOICE JOIN:",
+        user_id,
+        room_id,
+        request.sid
+    )
+
+
+    # =========================================
+    # すでに参加しているユーザーへ
+    # 新規参加者を通知
+    #
+    # 新規参加者側からOfferを作ってもらう
+    # =========================================
+
+    socketio.emit(
+
+        "pair_voice_peer_joined",
+
+        {
+            "peer_id":
+                request.sid
+        },
+
+        room=
+            voice_room,
+
+        skip_sid=
+            request.sid
+    )
+
+
+# ============================================================
+# WebRTC Offer
+# ============================================================
+
+@socketio.on("pair_voice_offer")
+def handle_pair_voice_offer(data=None):
+
+    if not data:
+        return
+
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    if user_id not in room["players"]:
+        return
+
+
+    target = data.get(
+        "target"
+    )
+
+    sdp = data.get(
+        "sdp"
+    )
+
+
+    if not target:
+        return
+
+
+    if not sdp:
+        return
+
+
+    print(
+        "PAIR VOICE OFFER:",
+        request.sid,
+        "->",
+        target
+    )
+
+
+    socketio.emit(
+
+        "pair_voice_offer",
+
+        {
+            "from":
+                request.sid,
+
+            "sdp":
+                sdp
+        },
+
+        to=
+            target
+    )
+
+
+# ============================================================
+# WebRTC Answer
+# ============================================================
+
+@socketio.on("pair_voice_answer")
+def handle_pair_voice_answer(data=None):
+
+    if not data:
+        return
+
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    if user_id not in room["players"]:
+        return
+
+
+    target = data.get(
+        "target"
+    )
+
+    sdp = data.get(
+        "sdp"
+    )
+
+
+    if not target:
+        return
+
+
+    if not sdp:
+        return
+
+
+    print(
+        "PAIR VOICE ANSWER:",
+        request.sid,
+        "->",
+        target
+    )
+
+
+    socketio.emit(
+
+        "pair_voice_answer",
+
+        {
+            "from":
+                request.sid,
+
+            "sdp":
+                sdp
+        },
+
+        to=
+            target
+    )
+
+
+# ============================================================
+# WebRTC ICE Candidate
+# ============================================================
+
+@socketio.on("pair_voice_ice")
+def handle_pair_voice_ice(data=None):
+
+    if not data:
+        return
+
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return
+
+
+    if user_id not in room["players"]:
+        return
+
+
+    target = data.get(
+        "target"
+    )
+
+    candidate = data.get(
+        "candidate"
+    )
+
+
+    if not target:
+        return
+
+
+    if not candidate:
+        return
+
+
+    socketio.emit(
+
+        "pair_voice_ice",
+
+        {
+            "from":
+                request.sid,
+
+            "candidate":
+                candidate
+        },
+
+        to=
+            target
+    )
+
+
+# ============================================================
+# ボイスチャット退出
+# ============================================================
+
+@socketio.on("pair_voice_leave")
+def handle_pair_voice_leave(data=None):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return
+
+
+    voice_room = (
+        "pair_voice_"
+        + room_id
+    )
+
+
+    print(
+        "PAIR VOICE LEAVE:",
+        user_id,
+        room_id,
+        request.sid
+    )
+
+
+    # =========================================
+    # 他の参加者へ退出通知
+    # =========================================
+
+    socketio.emit(
+
+        "pair_voice_peer_left",
+
+        {
+            "peer_id":
+                request.sid
+        },
+
+        room=
+            voice_room,
+
+        skip_sid=
+            request.sid
+    )
 @app.route("/matching_question")
 def matching_question():
 
