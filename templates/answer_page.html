@@ -765,7 +765,7 @@ body::before {
 </style>
 
 </head>
-<body data-room-id="{{ room_id }}"></body>
+<body data-room-id="{{ room_id }}">
 
 <body>
 
@@ -861,10 +861,16 @@ body::before {
          回答フォーム
     ====================================== -->
 
-    /answer_question
+    <!-- 回答フォーム -->
 
+<form
+    id="questionForm"
+    method="POST"
+    action="/answer_question"
+>
 
-        <section class="question-card">
+<section class="question-card">
+
 
 
             <!-- =============================
