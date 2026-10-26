@@ -950,11 +950,12 @@ h1 {
     ====================================== -->
 
     <a
-        href="/home"
-        class="home-button"
-    >
-        🏠 ホームに戻る
-    </a>
+    href="#"
+    class="home-button"
+    onclick="goHome(); return false;"
+>
+    🏠 ホームに戻る
+</a>
 
 </div>
 
@@ -964,6 +965,40 @@ h1 {
 ========================================= -->
 
 <script>
+async function leavePairLink() {
+
+    try {
+
+        await fetch(
+            "/pair_link/leave",
+            {
+                method: "POST"
+            }
+        );
+
+    } catch (e) {
+        console.log(e);
+    }
+
+}
+
+async function goHome() {
+
+    await leavePairLink();
+
+    window.location.href = "/";
+}
+
+window.addEventListener(
+    "beforeunload",
+    function() {
+
+        navigator.sendBeacon(
+            "/pair_link/leave"
+        );
+
+    }
+);
 
 
 

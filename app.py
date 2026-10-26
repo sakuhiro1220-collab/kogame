@@ -4778,7 +4778,34 @@ def handle_pair_link_join(
             room_id
         )
 
+@app.route(
+    "/pair_link/leave",
+    methods=["POST"]
+)
+def pair_link_leave():
 
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return jsonify({
+            "success": True
+        })
+
+    if user_id in pair_link_waiting["male"]:
+        pair_link_waiting["male"].remove(
+            user_id
+        )
+
+    if user_id in pair_link_waiting["female"]:
+        pair_link_waiting["female"].remove(
+            user_id
+        )
+
+    return jsonify({
+        "success": True
+    })
 
 
 
