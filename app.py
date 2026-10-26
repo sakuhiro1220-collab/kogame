@@ -4298,79 +4298,7 @@ def pair_link_join():
             "message": "ユーザーが存在しません"
         }), 404
 
-    return jsonify({
-        "success": True,
-        "message": "route ok"
-    })
-
-    
-
-@socketio.on(
-    "pair_link_join"
-)
-def handle_pair_link_join(
-    data=None
-):
-
-    user_id = session.get(
-        "user_id"
-    )
-
-    if not user_id:
-        return
-
-
-    print(
-        "PAIR LINK SOCKET JOIN:",
-        user_id,
-        request.sid
-    )
-
-
-    join_room(
-        str(
-            user_id
-        )
-    )
-
-
-    room_id = (
-        pair_link_user_room.get(
-            user_id
-        )
-    )
-
-
-    if room_id:
-
-        join_room(
-            room_id
-        )
-
-        print(
-            "PAIR LINK room参加:",
-            user_id,
-            room_id
-        )
-
-    # ========================================================
-    # ユーザー取得
-    # ========================================================
-
-    user = db.session.get(
-        User,
-        user_id
-    )
-
-    if not user:
-
-        return jsonify({
-            "success": False,
-            "message": "ユーザーが存在しません"
-        }), 404
-
-
-    # ========================================================
+        # ========================================================
     # コイン確認
     # この時点ではまだ引かない
     # ========================================================
@@ -4799,6 +4727,61 @@ def handle_pair_link_join(
             )
 
     })
+
+    
+
+@socketio.on(
+    "pair_link_join"
+)
+def handle_pair_link_join(
+    data=None
+):
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return
+
+
+    print(
+        "PAIR LINK SOCKET JOIN:",
+        user_id,
+        request.sid
+    )
+
+
+    join_room(
+        str(
+            user_id
+        )
+    )
+
+
+    room_id = (
+        pair_link_user_room.get(
+            user_id
+        )
+    )
+
+
+    if room_id:
+
+        join_room(
+            room_id
+        )
+
+        print(
+            "PAIR LINK room参加:",
+            user_id,
+            room_id
+        )
+
+
+
+
+
 
 
 # ============================================================
