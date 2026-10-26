@@ -2388,6 +2388,10 @@ def profile():
         user=user
     )
 
+# ==========================
+# テスト用
+# ==========================
+
 @app.route("/profile_edit_page")
 def profile_edit_page():
 
@@ -4021,7 +4025,7 @@ daifugo_rooms = {}  # 大富豪用オンライン対戦ルーム
 # PAIR LINK
 # ============================================================
 
-PAIR_LINK_ENTRY_COST = 100
+PAIR_LINK_ENTRY_COST = 0
 
 PAIR_LINK_WIN_REWARD = 200
 
@@ -4297,6 +4301,9 @@ def pair_link_join():
             "success": False,
             "message": "ユーザーが存在しません"
         }), 404
+
+
+    
 
         # ========================================================
     # コイン確認
