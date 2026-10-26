@@ -4011,6 +4011,9 @@ def view_profile(user_id):
         "profile_view.html",
         user=user
     )
+
+    rooms = {}  # スピード＆ジオゲッサー用オンライン対戦ルーム
+daifugo_rooms = {}  # 大富豪用オンライン対戦ルーム
 # ============================================================
 # ゲーム1：PAIR LINK 相性診断
 # ============================================================
@@ -4057,8 +4060,7 @@ pair_link_user_room = {}
 
 
 
-rooms = {}  # スピード＆ジオゲッサー用オンライン対戦ルーム
-daifugo_rooms = {}  # 大富豪用オンライン対戦ルーム
+
 
 PAIR_LINK_QUESTIONS = [
 
@@ -4275,51 +4277,10 @@ PAIR_LINK_QUESTIONS = [
 )
 def pair_link_join():
 
-
-    user_id = session.get(
-            "user_id"
-        )
-    
-    
-    if not user_id:
-    
-            return
-    
-    
-        # ========================================================
-        # 個人ルーム
-        # ========================================================
-    
-    join_room(
-            str(
-                user_id
-            )
-        )
-    
-    
-        # ========================================================
-        # ゲームルーム
-        # ========================================================
-    
-    room_id = (
-            pair_link_user_room.get(
-                user_id
-            )
-        )
-    
-    
-    if room_id:
-    
-            join_room(
-                room_id
-            )
-    
-    
-            print(
-                "PAIR LINK room参加:",
-                user_id,
-                room_id
-            )
+    return jsonify({
+        "success": True,
+        "message": "debug"
+    })
 
 @socketio.on(
     "pair_link_join"
