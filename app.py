@@ -4277,10 +4277,33 @@ PAIR_LINK_QUESTIONS = [
 )
 def pair_link_join():
 
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return jsonify({
+            "success": False,
+            "message": "ログインしてください"
+        }), 401
+
+    user = db.session.get(
+        User,
+        user_id
+    )
+
+    if not user:
+        return jsonify({
+            "success": False,
+            "message": "ユーザーが存在しません"
+        }), 404
+
     return jsonify({
         "success": True,
-        "message": "debug"
+        "message": "route ok"
     })
+
+    
 
 @socketio.on(
     "pair_link_join"
