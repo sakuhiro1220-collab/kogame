@@ -5830,19 +5830,31 @@ def answer_question():
 
 
     print(
-        "PAIR LINK 回答:",
-        user_id,
-        answers
+    "PAIR LINK 回答:",
+    user_id,
+    answers
+)
+
+    print(
+    "ROOM ID:",
+    room_id
+)
+
+    print(
+    "ROOM PLAYERS:",
+    room["players"]
+)
+
+    print(
+    "ANSWER USERS:",
+    list(
+        room["answers"].keys()
     )
-
-
-    # ========================================
-    # 現在の回答人数
-    # ========================================
+)
 
     answer_count = len(
-        room["answers"]
-    )
+    room["answers"]
+)
 
 
     print(
