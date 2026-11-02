@@ -4817,7 +4817,43 @@ def pair_link_leave():
 
 
 
+# ============================================================
+# PAIR REACTION画面
+# ============================================================
 
+@app.route("/pair_reaction")
+def pair_reaction():
+
+    user_id = session.get(
+        "user_id"
+    )
+
+    if not user_id:
+        return redirect(
+            url_for("top")
+        )
+
+    room_id = pair_link_user_room.get(
+        user_id
+    )
+
+    if not room_id:
+        return redirect(
+            url_for("matching_question")
+        )
+
+    room = pair_link_rooms.get(
+        room_id
+    )
+
+    if not room:
+        return redirect(
+            url_for("matching_question")
+        )
+
+    return render_template(
+        "pair_reaction.html"
+    )
 # ============================================================
 # PAIR LINK
 # 質問ページ
