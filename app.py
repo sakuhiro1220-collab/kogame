@@ -5913,12 +5913,19 @@ def answer_question():
     # ========================================
     # 相性から3ペア作成
     # ========================================
-
+    print(
+    "ROOM ANSWERS:",
+    room["answers"]
+)
     pairs = create_pair_link_pairs(
         room
     )
 
-
+    print(
+    "PAIRS LENGTH:",
+    len(pairs)
+)
+    
     if len(pairs) != 3:
 
         print(
