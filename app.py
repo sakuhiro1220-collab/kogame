@@ -362,6 +362,38 @@ class BoardPost(db.Model):
         default=datetime.utcnow
     )
 
+class ChatMessage(db.Model):
+    __tablename__ = "chat_messages"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    room_id = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    sender_id = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    message = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    is_read = db.Column(
+        db.Boolean,
+        default=False
+    )
 
 class StripePayment(db.Model):
     __tablename__ = "stripe_payments"
@@ -2766,11 +2798,36 @@ def chat_room(partner):
     # -------------------------
     # 履歴
     # -------------------------
-    history = [
-        item
-        for item in chats.get(user_id, [])
-        if item.get("partner") == partner
-    ]
+    history = (
+    ChatMessage.query
+    .filter(
+        (
+            (ChatMessage.sender_id == user_id)
+            &
+            (ChatMessage.receiver_id == partner)
+        )
+        |
+        (
+            (ChatMessage.sender_id == partner)
+            &
+            (ChatMessage.receiver_id == user_id)
+        )
+    )
+    .order_by(
+        ChatMessage.created_at.asc()
+    )
+    .all()
+)
+
+    ChatMessage.query.filter_by(
+    receiver_id=user_id,
+    sender_id=partner,
+    is_read=False
+).update(
+    {"is_read": True}
+)
+
+    db.session.commit()
 
     history.sort(
         key=lambda x: x.get(
