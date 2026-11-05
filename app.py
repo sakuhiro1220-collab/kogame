@@ -841,7 +841,7 @@ class Mailbox(db.Model):
         nullable=False
     )
 
-    is_read = db.Column(
+    read = db.Column(
         db.Boolean,
         nullable=False,
         default=False
@@ -2791,9 +2791,9 @@ def chat_room(partner):
     ChatMessage.query.filter_by(
     receiver_id=user_id,
     sender_id=partner,
-    is_read=False
+    read=False
 ).update(
-    {"is_read": True}
+    {"read": True}
 )
 
     db.session.commit()
