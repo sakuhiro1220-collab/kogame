@@ -2791,7 +2791,7 @@ def chat_room(partner):
     ChatMessage.query.filter_by(
     receiver_id=user_id,
     sender_id=partner,
-    read=False
+    is_read=False
 ).update(
     {"is_read": True}
 )
