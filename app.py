@@ -2671,7 +2671,7 @@ def chat_room(partner):
             msg.get("partner") == partner
             and msg.get("sender") != user_id
         ):
-            msg["read"] = True
+            msg["is_read"] = True
 
     save_json(CHATS_FILE, chats)
 
@@ -2740,7 +2740,7 @@ def chat_room(partner):
             "sender": user_id,
             "message": message,
             "photo": photo_url,
-            "read": False,
+            "is_read": False,
             "gift": False,
             "timestamp": now
         })
@@ -2754,7 +2754,7 @@ def chat_room(partner):
             "sender": user_id,
             "message": message,
             "photo": photo_url,
-            "read": False,
+            "is_read": False,
             "gift": False,
             "timestamp": now
         })
@@ -2793,7 +2793,7 @@ def chat_room(partner):
     sender_id=partner,
     read=False
 ).update(
-    {"read": True}
+    {"is_read": True}
 )
 
     db.session.commit()
@@ -2884,7 +2884,7 @@ def chat_send():
         "sender": user_id,
         "message": message,
         "photo": None,
-        "read": False,
+        "is_read": False,
         "gift": False,
         "timestamp": now
     })
@@ -2897,7 +2897,7 @@ def chat_send():
         "sender": user_id,
         "message": message,
         "photo": None,
-        "read": False,
+        "is_read": False,
         "gift": False,
         "timestamp": now
     })
@@ -3166,7 +3166,7 @@ def send_gift():
         "photo":
             None,
 
-        "read":
+        "is_read":
             False,
 
         "gift":
@@ -3198,7 +3198,7 @@ def send_gift():
         "photo":
             None,
 
-        "read":
+        "is_read":
             False,
 
         "gift":
