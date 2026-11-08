@@ -797,7 +797,7 @@ class ChatMessage(db.Model):
     )
 
 
-    read = db.Column(
+    is_read = db.Column(
         db.Boolean,
         nullable=False,
         default=False
@@ -841,7 +841,7 @@ class Mailbox(db.Model):
         nullable=False
     )
 
-    read = db.Column(
+    is_read = db.Column(
         db.Boolean,
         nullable=False,
         default=False
