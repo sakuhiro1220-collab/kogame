@@ -1183,13 +1183,15 @@ body::before {
                         {% endif %}
 
 
-                        {% if msg.read %}
+                        <div class="message-time">
+    {{ msg.created_at.strftime("%H:%M") }}
+</div>
 
-                            <span class="read">
-                                既読
-                            </span>
-
-                        {% endif %}
+<div class="message-read">
+    {% if msg.is_read %}
+        既読
+    {% endif %}
+</div>
 
 
                     </div>
@@ -1634,15 +1636,6 @@ body::before {
 
 <div id="giftEffectLayer"></div>
 
-<div class="message-time">
-    {{ message.created_at.strftime("%H:%M") }}
-</div>
-
-<div class="message-read">
-    {% if message.is_read %}
-        既読
-    {% endif %}
-</div>
 
 <script>
 
