@@ -1158,7 +1158,7 @@ body::before {
         {% for msg in history %}
 
 
-            {% if msg.sender == user_id %}
+            {% if msg.sender_id == user_id %}
 
 
                 <div class="message-row me">
@@ -1176,9 +1176,9 @@ body::before {
                         {{ msg.message }}
 
 
-                        {% if msg.photo %}
+                        {% if msg.photo_url %}
 
-                            {{ msg.photo }}
+                            {{ msg.photo_url }}
 
                         {% endif %}
 
@@ -1218,9 +1218,9 @@ body::before {
                         {{ msg.message }}
 
 
-                        {% if msg.photo %}
+                        {% if msg.photo_url %}
 
-                            {{ msg.photo }}
+                            {{ msg.photo_url }}
 
                         {% endif %}
 
