@@ -2683,6 +2683,11 @@ def chat_room(partner):
         message = request.form.get("message")
         photo = request.files.get("photo")
 
+        if not message and not (photo and photo.filename):
+            return jsonify({
+                "error": "メッセージまたは写真を入力してください"
+            }), 400
+
         if (current_user.coins or 0) < 30:
             return jsonify({
                 "error": "コイン不足（30必要）"
@@ -2690,120 +2695,70 @@ def chat_room(partner):
 
         photo_url = None
 
-        if photo and allowed_file(photo.filename):
-
-            filename = secure_filename(
-                photo.filename
-            )
-
-            save_path = os.path.join(
-                app.config["UPLOAD_FOLDER"],
-                filename
-            )
-
-            photo.save(save_path)
-
-            photo_url = "/" + save_path.replace(
-                "\\",
-                "/"
-            )
-
         try:
+            if photo and allowed_file(photo.filename):
 
-            # PostgreSQLで30コイン消費
+                filename = secure_filename(photo.filename)
+
+                save_path = os.path.join(
+                    app.config["UPLOAD_FOLDER"],
+                    filename
+                )
+
+                photo.save(save_path)
+
+                photo_url = "/" + save_path.replace("\\", "/")
+
+            new_message = ChatMessage(
+                sender_id=user_id,
+                receiver_id=partner,
+                message=message,
+                photo_url=photo_url,
+                gift=False,
+                is_read=False
+            )
+
+            db.session.add(new_message)
             current_user.coins -= 30
-
             db.session.commit()
 
         except Exception as e:
-
             db.session.rollback()
-
-            print(
-                "チャットコイン消費エラー:",
-                str(e)
-            )
-
+            print("チャット保存エラー:", str(e))
             return jsonify({
-                "error": "コイン処理に失敗しました"
+                "error": "チャット保存に失敗しました"
             }), 500
-
-        now = time.time()
-        
-        
-        # 自分側
-        chats.setdefault(
-            user_id,
-            []
-        ).append({
-            "partner": partner,
-            "sender": user_id,
-            "message": message,
-            "photo": photo_url,
-            "is_read": False,
-            "gift": False,
-            "timestamp": now
-        })
-
-        # 相手側
-        chats.setdefault(
-            partner,
-            []
-        ).append({
-            "partner": user_id,
-            "sender": user_id,
-            "message": message,
-            "photo": photo_url,
-            "is_read": False,
-            "gift": False,
-            "timestamp": now
-        })
-
-        save_json(
-            CHATS_FILE,
-            chats
-        )
 
     # -------------------------
     # 履歴
     # -------------------------
+
     history = (
-    ChatMessage.query
-    .filter(
-        (
-            (ChatMessage.sender_id == user_id)
-            &
-            (ChatMessage.receiver_id == partner)
+        ChatMessage.query
+        .filter(
+            (
+                (ChatMessage.sender_id == user_id)
+                &
+                (ChatMessage.receiver_id == partner)
+            )
+            |
+            (
+                (ChatMessage.sender_id == partner)
+                &
+                (ChatMessage.receiver_id == user_id)
+            )
         )
-        |
-        (
-            (ChatMessage.sender_id == partner)
-            &
-            (ChatMessage.receiver_id == user_id)
-        )
+        .order_by(ChatMessage.created_at.asc())
+        .all()
     )
-    .order_by(
-        ChatMessage.created_at.asc()
-    )
-    .all()
-)
 
     ChatMessage.query.filter_by(
-    receiver_id=user_id,
-    sender_id=partner,
-    is_read=False
-).update(
-    {"is_read": True}
-)
+        receiver_id=user_id,
+        sender_id=partner,
+        is_read=False
+    ).update({"is_read": True})
 
     db.session.commit()
-
-    history.sort(
-        key=lambda x: x.get(
-            "timestamp",
-            0
-        )
-    )
 
     return render_template(
         "chat_room.html",
